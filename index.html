@@ -1,0 +1,3016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>APEX Coaching Log</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;min-height:100vh}
+:root{--yellow:#FFD600;--dark:#111;--light:#fff;--border:#ddd;--hover:#FFF8DC;--red:#d32f2f;--green:#388e3c}
+
+/* ── LOGIN ── */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f9f9f9}
+.login-card{background:#fff;border:2px solid var(--yellow);border-radius:12px;padding:48px 40px;width:420px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.10)}
+.login-card h1{font-size:1.6rem;font-weight:800;color:var(--dark);margin-bottom:4px}
+.login-card .sub{font-size:.9rem;color:#555;margin-bottom:28px}
+.login-card label{display:block;font-size:.85rem;font-weight:600;margin-bottom:4px}
+.login-card input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:6px;font-size:.95rem;margin-bottom:16px;outline:none;transition:border .2s}
+.login-card input:focus{border-color:var(--yellow)}
+.login-card select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:6px;font-size:.95rem;margin-bottom:16px;outline:none}
+.btn-primary{background:var(--yellow);color:var(--dark);border:none;border-radius:6px;padding:11px 28px;font-size:1rem;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
+.btn-primary:hover{opacity:.88}
+.error-msg{color:var(--red);font-size:.85rem;margin-bottom:12px;display:none}
+.apex-logo{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.apex-logo .logo-box{background:var(--yellow);border-radius:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem}
+
+/* ── MAIN APP ── */
+#app{display:none;flex-direction:column;min-height:100vh}
+header{background:var(--yellow);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.10);position:sticky;top:0;z-index:100}
+header .brand{font-weight:900;font-size:1.15rem;color:var(--dark)}
+header .user-area{display:flex;align-items:center;gap:12px}
+header .user-badge{background:#fff;border-radius:20px;padding:4px 14px;font-size:.82rem;font-weight:600}
+header .btn-logout{background:var(--dark);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600}
+
+nav{background:#fff;border-bottom:2px solid var(--yellow);padding:0 24px;display:flex;gap:0}
+nav button{background:none;border:none;padding:14px 20px;font-size:.9rem;font-weight:600;cursor:pointer;color:#555;border-bottom:3px solid transparent;transition:all .2s}
+nav button.active{color:var(--dark);border-bottom-color:var(--yellow)}
+nav button:hover{color:var(--dark);background:var(--hover)}
+
+main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
+
+/* ── DASHBOARD ── */
+.dashboard-title{font-size:1.3rem;font-weight:800;margin-bottom:18px}
+.filter-bar{background:#f9f9f9;border:1.5px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px;align-items:flex-end}
+.filter-bar label{font-size:.78rem;font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+.filter-bar select,.filter-bar input{padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem;min-width:150px;outline:none}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--yellow)}
+.filter-btn{background:var(--yellow);border:none;border-radius:5px;padding:7px 16px;font-weight:700;font-size:.87rem;cursor:pointer}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:26px}
+.stat-card{background:#fff;border:2px solid var(--yellow);border-radius:10px;padding:20px 24px}
+.stat-card .label{font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.stat-card .value{font-size:2rem;font-weight:900;color:var(--dark)}
+.stat-card .sublabel{font-size:.75rem;color:#888;margin-top:2px}
+
+/* ── TABLE ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-header h2{font-size:1.1rem;font-weight:800}
+.btn-add{background:var(--yellow);border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer}
+.btn-add:hover{opacity:.88}
+
+.table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:.87rem}
+thead th{background:var(--yellow);color:var(--dark);padding:10px 12px;text-align:left;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f0f0f0;transition:background .15s}
+tbody tr:hover{background:var(--hover)}
+tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:700}
+.badge-green{background:#e8f5e9;color:var(--green)}
+.badge-yellow{background:#fff8e1;color:#f57f17}
+.badge-red{background:#ffebee;color:var(--red)}
+.badge-blue{background:#e3f2fd;color:#1565c0}
+.badge-gray{background:#f5f5f5;color:#555}
+
+.action-btns{display:flex;gap:6px}
+.btn-sm{padding:4px 10px;border-radius:4px;border:none;font-size:.77rem;font-weight:700;cursor:pointer;transition:opacity .2s}
+.btn-sm:hover{opacity:.8}
+.btn-view{background:#e3f2fd;color:#1565c0}
+.btn-edit{background:#fff8e1;color:#f57f17}
+.btn-del{background:#ffebee;color:var(--red)}
+
+.empty-state{text-align:center;padding:48px 20px;color:#aaa;font-size:.95rem}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:780px;box-shadow:0 8px 40px rgba(0,0,0,.18);margin:auto}
+.modal-header{background:var(--yellow);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-weight:800;font-size:1.05rem}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;font-weight:700;line-height:1}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid.full{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none;font-family:inherit;transition:border .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--yellow)}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-group .required{color:var(--red)}
+.form-section{margin-top:20px;padding-top:16px;border-top:1.5px solid #f0f0f0}
+.form-section h4{font-size:.85rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#555;margin-bottom:12px}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.checkbox-group label{display:flex;align-items:center;gap:6px;font-size:.87rem;font-weight:500;cursor:pointer;padding:5px 10px;border:1.5px solid var(--border);border-radius:5px;transition:all .15s}
+.checkbox-group label:hover{border-color:var(--yellow);background:var(--hover)}
+.checkbox-group input[type=checkbox]{accent-color:var(--yellow);width:14px;height:14px}
+.perf-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px;table-layout:fixed}
+.perf-table th{background:#f5f5f5;padding:6px 4px;text-align:center;font-weight:700;font-size:.72rem;word-break:break-word;line-height:1.2}
+.perf-table td{padding:5px 4px;border:1px solid #eee;text-align:center}
+.perf-table input{width:100%;max-width:68px;padding:4px 3px;border:1px solid #ddd;border-radius:4px;text-align:center;font-size:.8rem;box-sizing:border-box}
+.perf-table .calc{font-weight:700;background:#fffbef}
+.perf-table col.col-week{width:16%}
+.perf-table col.col-num{width:10%}
+.perf-table col.col-pct{width:7%}
+.perf-table col.col-wk1cvr{width:9%}
+/* ── PROJECTION TABLE ── */
+.focus-on-bar{display:flex;align-items:center;gap:10px;background:#fffbef;border:1.5px solid #ffe082;border-radius:8px;padding:10px 14px;margin-bottom:14px;flex-wrap:wrap}
+.focus-on-bar .focus-label{font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#555;white-space:nowrap}
+.focus-on-bar label{display:inline-flex;align-items:center;gap:5px;font-size:.84rem;font-weight:700;cursor:pointer;padding:4px 12px;border-radius:20px;border:1.5px solid #e0e0e0;background:#fff;transition:all .15s;user-select:none}
+.focus-on-bar label:hover{border-color:#ff9800;background:#fff8e1}
+.focus-on-bar label:has(input:checked){background:#fff3e0;border-color:#ff9800;color:#e65100}
+.proj-table{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:4px}
+.proj-table th{padding:9px 12px;text-align:center;font-size:.72rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.proj-row-header{background:#f0f0f0}
+.proj-curr-header{background:#e8eaf6;color:#283593}
+.proj-tcr-header{background:#1565c0;color:#fff}
+.proj-csr-header{background:#2e7d32;color:#fff}
+.proj-table td{padding:8px 12px;border:1px solid #e0e0e0;text-align:center;vertical-align:middle}
+.proj-label{text-align:left!important;font-weight:700;background:#f8f8f8;font-size:.82rem;white-space:nowrap}
+.proj-curr{background:#eef0fb;font-weight:700;color:#283593}
+.proj-tcr{background:#e3f2fd}
+.proj-csr{background:#e8f5e9}
+.proj-dash{color:#bbb;font-size:.82rem}
+.proj-calc{font-weight:700;color:#0d47a1}
+.proj-csr.proj-calc{color:#1b5e20}
+.proj-input{width:76px;padding:4px 6px;border-radius:6px;text-align:center;font-size:.9rem;font-weight:700;display:block;margin:0 auto 2px}
+.proj-tcr-input{border:2px solid #1976d2}
+.proj-csr-input{border:2px solid #388e3c}
+.proj-hint{font-size:.7rem;color:#888;display:block;text-align:center}
+.proj-footnote{font-size:.78rem;color:#666;margin-top:10px;line-height:1.6}
+/* ── EXPORT / SHEETS ── */
+.btn-export{background:#fff;color:var(--dark);border:1.5px solid #bbb;border-radius:6px;padding:7px 14px;font-size:.82rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-export:hover{background:#f5f5f5;border-color:#888}
+.btn-sheets-cfg{background:none;border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:6px;padding:5px 10px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-sheets-cfg:hover{background:rgba(255,255,255,.15)}
+.sync-status{font-size:.72rem;font-weight:700;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;margin-left:8px}
+.sync-status.ok{background:#e8f5e9;color:#2e7d32}
+.sync-status.err{background:#ffebee;color:#c62828}
+.sheets-code{background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:.78rem;padding:14px;border-radius:8px;overflow-x:auto;white-space:pre;line-height:1.5;max-height:200px;overflow-y:auto}
+.tenure-badge{display:inline-block;background:var(--yellow);color:var(--dark);border-radius:5px;padding:3px 10px;font-weight:700;font-size:.85rem;margin-top:4px}
+.view-field{padding:8px 12px;background:#f9f9f9;border-radius:6px;font-size:.9rem;min-height:36px;line-height:1.5}
+.view-field.big{min-height:60px}
+.info-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.info-chip{background:#f0f0f0;border-radius:4px;padding:2px 8px;font-size:.8rem;font-weight:600}
+
+@media(max-width:600px){
+  .form-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  main{padding:12px}
+}
+
+/* ── AGENT VIEW TABS ── */
+.agent-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px}
+.agent-tab{background:none;border:none;padding:10px 22px;font-size:.9rem;font-weight:600;cursor:pointer;color:#777;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+.agent-tab.active{color:var(--dark);border-bottom-color:var(--yellow)}
+.agent-tab:hover{color:var(--dark);background:var(--hover)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.star-field{background:#f9f9f9;border-radius:8px;padding:14px;margin-bottom:12px}
+.star-field label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;display:block;margin-bottom:6px}
+.star-field textarea,.star-field input,.star-field select{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.88rem;font-family:inherit;outline:none;transition:border .2s;background:#fff}
+.star-field textarea:focus,.star-field input:focus,.star-field select:focus{border-color:var(--yellow)}
+.coaching-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.coaching-detail-item{background:#f9f9f9;border-radius:8px;padding:12px}
+.coaching-detail-item.full{grid-column:1/-1}
+.coaching-detail-item .cd-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:5px}
+.coaching-detail-item .cd-val{font-size:.88rem;line-height:1.5;color:#222}
+
+/* ── BURGER / ROSTER ── */
+.btn-burger{background:var(--dark);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:1.1rem;cursor:pointer;font-weight:700;line-height:1;transition:opacity .2s}
+.btn-burger:hover{opacity:.8}
+
+.roster-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.roster-overlay.open{display:flex}
+.roster-panel{background:#fff;border-radius:12px;width:100%;max-width:1000px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.roster-header{background:var(--yellow);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.roster-header h3{font-weight:900;font-size:1.1rem}
+.roster-body{padding:20px 24px}
+.roster-filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.roster-filter-bar input,.roster-filter-bar select{padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem;outline:none}
+.roster-filter-bar input:focus,.roster-filter-bar select:focus{border-color:var(--yellow)}
+.roster-filter-bar input{min-width:200px}
+.roster-count{font-size:.82rem;color:#666;font-weight:600;margin-left:auto;align-self:center}
+.btn-add-agent{background:var(--yellow);border:none;border-radius:6px;padding:8px 18px;font-weight:700;font-size:.87rem;cursor:pointer}
+.btn-add-agent:hover{opacity:.88}
+.roster-table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px;max-height:58vh;overflow-y:auto}
+.roster-table{width:100%;border-collapse:collapse;font-size:.86rem}
+.roster-table thead{position:sticky;top:0;z-index:2}
+.roster-table thead th{background:var(--yellow);padding:10px 12px;text-align:left;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.roster-table tbody tr{border-bottom:1px solid #f0f0f0}
+.roster-table tbody tr:hover{background:var(--hover)}
+.roster-table td{padding:9px 12px;vertical-align:middle}
+.roster-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+
+/* agent sub-modal inside roster */
+.agent-form-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1200;align-items:center;justify-content:center;padding:20px}
+.agent-form-overlay.open{display:flex}
+.agent-form-panel{background:#fff;border-radius:10px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.agent-form-header{background:var(--yellow);padding:16px 20px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:space-between}
+.agent-form-body{padding:20px}
+.agent-form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════ LOGIN ══════════════════════════════════ -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="apex-logo">
+      <div class="logo-box">A</div>
+      <div>
+        <div style="font-weight:900;font-size:1.1rem">APEX</div>
+        <div style="font-size:.75rem;color:#666">Coaching Log System</div>
+      </div>
+    </div>
+    <h1>Sign In</h1>
+    <p class="sub">Use your Homeaglow email address to access the system.</p>
+    <div class="error-msg" id="loginError"></div>
+    <label for="emailInput">Email Address</label>
+    <input type="email" id="emailInput" placeholder="yourname@homeaglowsales.com" autocomplete="email"/>
+    <button class="btn-primary" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ APP ══════════════════════════════════ -->
+<div id="app" style="display:none;flex-direction:column;min-height:100vh">
+  <header>
+    <div class="brand">⚡ APEX Coaching Log</div>
+    <div class="user-area">
+      <div class="user-badge" id="userBadge"></div>
+      <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
+  <nav>
+    <button id="navDashboard" class="active" onclick="showView('dashboard')">📊 Dashboard</button>
+    <button id="navLog" onclick="showView('log')">📋 Coaching Log</button>
+    <button id="navNTE" onclick="showView('nte')">📝 NTE</button>
+  </nav>
+  <main>
+    <!-- DASHBOARD -->
+    <div id="viewDashboard">
+      <div class="dashboard-title">Weekly Coaching Dashboard</div>
+      <div class="filter-bar">
+        <div>
+          <label>WK #</label>
+          <select id="filterWK" onchange="renderDashboard()"><option value="">All Weeks</option></select>
+        </div>
+        <div>
+          <label>Cluster</label>
+          <select id="filterCluster" onchange="onClusterChange()">
+            <option value="">All Clusters</option>
+            <option>Jubee</option>
+            <option>Kendryck</option>
+            <option>Princess</option>
+          </select>
+        </div>
+        <div>
+          <label>Team Lead</label>
+          <select id="filterTL" onchange="onTLChange()"><option value="">All TLs</option></select>
+        </div>
+        <div>
+          <label>Agent</label>
+          <select id="filterAgent" onchange="renderDashboard()"><option value="">All Agents</option></select>
+        </div>
+        <button class="filter-btn" onclick="clearFilters()">Clear</button>
+        <button class="btn-export" onclick="exportCoachingCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="label">Coaching Sessions</div>
+          <div class="value" id="statCount">0</div>
+          <div class="sublabel">This week's entries</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Avg. TCR%</div>
+          <div class="value" id="statTCR">—</div>
+          <div class="sublabel">Connected / Leads Touched</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Avg. CSR%</div>
+          <div class="value" id="statCSR">—</div>
+          <div class="sublabel">Sales / Connected</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Avg. CVR%</div>
+          <div class="value" id="statCVR">—</div>
+          <div class="sublabel">Sales / Leads Touched</div>
+        </div>
+      </div>
+      <div class="section-header">
+        <h2>Recent Coaching Entries</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
+              <th>Highlights</th><th>Opportunities</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="dashTableBody"><tr><td colspan="10" class="empty-state">No entries found.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COACHING LOG -->
+    <div id="viewLog" style="display:none">
+      <div class="section-header">
+        <h2>All Coaching Entries</h2>
+        <button class="btn-add" id="btnAddCoaching" onclick="openAddModal()" style="display:none">+ New Coaching Log</button>
+      </div>
+      <div class="filter-bar">
+        <div>
+          <label>WK #</label>
+          <select id="logFilterWK" onchange="renderLogTable()"><option value="">All</option></select>
+        </div>
+        <div>
+          <label>Team Lead</label>
+          <select id="logFilterTL" onchange="onLogTLChange()"><option value="">All TLs</option></select>
+        </div>
+        <div>
+          <label>Agent</label>
+          <select id="logFilterAgent" onchange="renderLogTable()"><option value="">All</option></select>
+        </div>
+        <button class="filter-btn" onclick="clearLogFilters()">Clear</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
+              <th>Coaching Type</th><th>Opportunities</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody"><tr><td colspan="10" class="empty-state">No entries found.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NTE DASHBOARD -->
+    <div id="viewNTE" style="display:none">
+      <div class="section-header">
+        <h2>NTE Dashboard</h2>
+        <button class="btn-add" id="btnAddNTE" onclick="openNTEForm()" style="display:none">+ NTE</button>
+      </div>
+      <div class="filter-bar">
+        <div>
+          <label>WK #</label>
+          <select id="nteFilterWK" onchange="renderNTETable()"><option value="">All Weeks</option></select>
+        </div>
+        <div>
+          <label>Cluster</label>
+          <select id="nteFilterCluster" onchange="onNTEClusterChange()">
+            <option value="">All Clusters</option>
+            <option>Jubee</option>
+            <option>Kendryck</option>
+            <option>Princess</option>
+          </select>
+        </div>
+        <div>
+          <label>Team Lead</label>
+          <select id="nteFilterTL" onchange="onNTETLChange()"><option value="">All TLs</option></select>
+        </div>
+        <div>
+          <label>Agent</label>
+          <select id="nteFilterAgent" onchange="renderNTETable()"><option value="">All Agents</option></select>
+        </div>
+        <button class="filter-btn" onclick="clearNTEFilters()">Clear</button>
+        <button class="btn-export" onclick="exportNTECSV()">⬇ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th><th>NTE Link</th><th>Type of NTE</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="nteTableBody"><tr><td colspan="8" class="empty-state">No NTE entries found.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════ ADD/EDIT MODAL ══════════════════════════════════ -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="formModalTitle">New Coaching Log</h3>
+      <button class="modal-close" onclick="closeModal('formModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId"/>
+      <!-- SECTION 1 -->
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Coaching Type <span class="required">*</span></label>
+          <select id="fCoachingType">
+            <option value="">— Select —</option>
+            <option>Scheduled Coaching</option>
+            <option>Live Call Monitoring Feedback</option>
+            <option>Ad-Hoc / Spot Coaching</option>
+            <option>Behavioral Coaching</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date of Coaching <span class="required">*</span></label>
+          <input type="date" id="fDate" onchange="calcTenure()"/>
+        </div>
+        <div class="form-group">
+          <label>WK # <span class="required">*</span></label>
+          <select id="fWK"><option value="">— Select WK # —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Cluster</label>
+          <select id="fCluster" onchange="onFormClusterChange()">
+            <option value="">— All Clusters —</option>
+            <option>Jubee</option>
+            <option>Kendryck</option>
+            <option>Princess</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Team Lead <span class="required">*</span></label>
+          <select id="fTL" onchange="onFormTLChange()"></select>
+        </div>
+        <div class="form-group">
+          <label>Agent Name <span class="required">*</span></label>
+          <select id="fAgent" onchange="onAgentSelect()">
+            <option value="">— Select Agent —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tenure</label>
+          <div><span class="tenure-badge" id="tenureBadge">—</span></div>
+        </div>
+      </div>
+
+      <!-- FOCUS AREAS -->
+      <div class="form-section">
+        <h4>Focus Area(s)</h4>
+        <div class="checkbox-group" id="focusAreas">
+          <label><input type="checkbox" value="Quality / Accuracy"> Quality / Accuracy</label>
+          <label><input type="checkbox" value="Productivity / Efficiency"> Productivity / Efficiency</label>
+          <label><input type="checkbox" value="Attendance / Schedule Adherence"> Attendance / Schedule Adherence</label>
+          <label><input type="checkbox" value="Communication / Soft Skills"> Communication / Soft Skills</label>
+          <label><input type="checkbox" value="Compliance / Process Adherence"> Compliance / Process Adherence</label>
+          <label><input type="checkbox" value="Overall Performance Review"> Overall Performance Review</label>
+        </div>
+      </div>
+
+      <!-- 4-WEEK PERFORMANCE -->
+      <div class="form-section">
+        <h4>📊 4-Week Trailing Performance</h4>
+        <p style="font-size:.83rem;color:#555;margin-bottom:12px;line-height:1.5;">
+          Enter the week number and metric value for each of the 4 trailing weeks per metric below
+          <em>(example: if this week is WK552, enter performance from WK548 to WK551)</em>.
+        </p>
+        <table class="perf-table">
+          <colgroup>
+            <col class="col-week">
+            <col class="col-num"><col class="col-num"><col class="col-num">
+            <col class="col-wk1cvr">
+            <col class="col-pct"><col class="col-pct"><col class="col-pct">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Week</th>
+              <th>Leads Touched</th>
+              <th>Connected Calls</th>
+              <th>Sales</th>
+              <th style="background:#1a3353;color:#fff;line-height:1.3;">WK1 CVR%<br><span style="font-size:.68rem;font-weight:400;opacity:.85;">(Manual)</span></th>
+              <th>TCR%</th><th>CSR%</th><th>CVR%</th>
+            </tr>
+          </thead>
+          <tbody id="perfBody">
+            <tr>
+              <td style="text-align:left;padding-left:8px;">Week 1 (Most Recent)</td>
+              <td><input type="number" id="lt1" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="cc1" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="s1" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="wk1CvrManual" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
+              <td class="calc" id="tcr1">—</td><td class="calc" id="csr1">—</td><td class="calc" id="cvr1">—</td>
+            </tr>
+            <tr>
+              <td style="text-align:left;padding-left:8px;">Week 2</td>
+              <td><input type="number" id="lt2" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="cc2" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="s2" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="wk2CvrManual" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
+              <td class="calc" id="tcr2">—</td><td class="calc" id="csr2">—</td><td class="calc" id="cvr2">—</td>
+            </tr>
+            <tr>
+              <td style="text-align:left;padding-left:8px;">Week 3</td>
+              <td><input type="number" id="lt3" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="cc3" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="s3" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="wk3CvrManual" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
+              <td class="calc" id="tcr3">—</td><td class="calc" id="csr3">—</td><td class="calc" id="cvr3">—</td>
+            </tr>
+            <tr>
+              <td style="text-align:left;padding-left:8px;">Week 4</td>
+              <td><input type="number" id="lt4" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="cc4" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="s4" oninput="calcPerf()" min="0"/></td>
+              <td><input type="number" id="wk4CvrManual" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
+              <td class="calc" id="tcr4">—</td><td class="calc" id="csr4">—</td><td class="calc" id="cvr4">—</td>
+            </tr>
+            <tr style="background:#fffbef;font-weight:700">
+              <td style="text-align:left;padding-left:8px;">4-Week Avg</td>
+              <td id="avgLT">—</td><td id="avgCC">—</td><td id="avgS">—</td>
+              <td id="avgCvrManual" style="font-weight:700;color:#1a3353;">—</td>
+              <td id="avgTCR">—</td><td id="avgCSR">—</td><td id="avgCVR">—</td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- WK1 CVR% highlight -->
+        <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="background:#1a3353;color:#fff;border-radius:8px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:.95rem;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.18);">
+            <span>⭐ WK1 CVR% <span style="font-size:.78rem;font-weight:400;opacity:.8;">(Most Recent Week)</span></span>
+            <span id="wk1CvrHighlight" style="font-size:1.35rem;font-weight:800;color:#f9d423;letter-spacing:.5px;">—</span>
+          </div>
+          <div style="font-size:.82rem;color:#666;line-height:1.4;">
+            Most recent week's CVR% — Sales ÷ Leads Touched × 100
+          </div>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE PROJECTION -->
+      <div class="form-section" id="projectionSection">
+        <h4>🎯 Performance Projection</h4>
+        <div class="focus-on-bar">
+          <span class="focus-label">Focus On:</span>
+          <label><input type="radio" name="focusOn" value="TCR" onchange="calcProjection()"> TCR%</label>
+          <label><input type="radio" name="focusOn" value="CSR" onchange="calcProjection()"> CSR%</label>
+          <label><input type="radio" name="focusOn" value="CVR" onchange="calcProjection()"> CVR%</label>
+          <label><input type="radio" name="focusOn" value="WK1CVR" onchange="calcProjection()"> WK1 CVR%</label>
+        </div>
+        <table class="proj-table">
+          <thead>
+            <tr>
+              <th class="proj-row-header"></th>
+              <th class="proj-curr-header">CURRENT</th>
+              <th class="proj-tcr-header">🎯 TARGET TCR LEVER</th>
+              <th class="proj-csr-header">🎯 TARGET CSR LEVER</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="proj-label">TCR%</td>
+              <td class="proj-curr" id="projCurrTCR">—</td>
+              <td class="proj-tcr">
+                <input type="number" id="projTargetTCR" class="proj-input proj-tcr-input" placeholder="e.g. 15" min="0" max="100" step="0.1" oninput="calcProjection()">
+                <span class="proj-hint">✏️ editable</span>
+              </td>
+              <td class="proj-csr proj-dash" id="projCSRtcrCell">—</td>
+            </tr>
+            <tr>
+              <td class="proj-label">LEADS TOUCH</td>
+              <td class="proj-curr" id="projCurrLT">—</td>
+              <td class="proj-tcr">
+                <input type="number" id="projTargetLeads" class="proj-input proj-tcr-input" placeholder="auto" min="0" step="1" oninput="this.dataset.userEdited='1';calcProjection()">
+                <span class="proj-hint">or auto</span>
+              </td>
+              <td class="proj-csr proj-dash" id="projCSRleadsCell">—</td>
+            </tr>
+            <tr>
+              <td class="proj-label"># CONNECT</td>
+              <td class="proj-curr" id="projCurrCC">—</td>
+              <td class="proj-tcr proj-calc" id="projTCRconnect">—</td>
+              <td class="proj-csr proj-dash" id="projCSRconnectCell">—</td>
+            </tr>
+            <tr>
+              <td class="proj-label">CSR%</td>
+              <td class="proj-curr" id="projCurrCSR">—</td>
+              <td class="proj-tcr proj-dash" id="projTCRcsrCell">—</td>
+              <td class="proj-csr">
+                <input type="number" id="projTargetCSR" class="proj-input proj-csr-input" placeholder="e.g. 8" min="0" max="100" step="0.1" oninput="calcProjection()">
+                <span class="proj-hint">✏️ editable</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="proj-label"># SALES</td>
+              <td class="proj-curr" id="projCurrSales">—</td>
+              <td class="proj-tcr proj-calc" id="projTCRsales">—</td>
+              <td class="proj-csr proj-calc" id="projCSRsales">—</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="proj-footnote">💡 <em>Current column auto-fills from performance data above. Set a target TCR% to project connects &amp; sales; set a target CSR% to project sales impact. Target Leads auto-fills from your entry (override if needed).</em></p>
+      </div>
+
+      <!-- NOTES -->
+      <div class="form-section">
+        <h4>Coaching Notes</h4>
+        <div class="form-grid" style="grid-template-columns:1fr">
+          <div class="form-group">
+            <label>Highlights</label>
+            <input type="text" id="fHighlights" placeholder="Brief highlights for the table view"/>
+          </div>
+          <div class="form-group">
+            <label>Opportunities</label>
+            <input type="text" id="fOpportunities" placeholder="Brief opportunities for the table view"/>
+          </div>
+          <div class="form-group">
+            <label>Key Discussion</label>
+            <textarea id="fKeyDiscussion" placeholder="Key topics discussed during coaching..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Strength Identified</label>
+            <textarea id="fStrength" placeholder="Agent's strengths observed..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Areas of Improvement</label>
+            <textarea id="fAreas" placeholder="Areas the agent needs to improve..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIMITER & ACTION -->
+      <div class="form-section">
+        <h4>Action Plan</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Agent's Primary Limiter</label>
+            <select id="fLimiter">
+              <option value="">— Select —</option>
+              <option>Attendance</option>
+              <option>Speed-to-Lead</option>
+              <option>Call Cadence</option>
+              <option>Leads Touched</option>
+              <option>Idle Time</option>
+              <option>Call Tagging</option>
+              <option>Dial and Drop</option>
+              <option>Aircall Phone # Localization</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Follow-up Date</label>
+            <input type="date" id="fFollowUp"/>
+          </div>
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Action Plan / Next Steps</label>
+            <textarea id="fActionPlan" placeholder="Agreed action items and next steps..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- OUTCOME -->
+      <div class="form-section">
+        <h4>Coaching Outcome</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Agent's Receptiveness</label>
+            <select id="fReceptiveness">
+              <option value="">— Select —</option>
+              <option>Very Receptive</option>
+              <option>Receptive</option>
+              <option>Neutral</option>
+              <option>Resistant</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Coaching Outcome Status</label>
+            <select id="fStatus">
+              <option value="">— Select —</option>
+              <option>On Track</option>
+              <option>Needs Monitoring</option>
+              <option>Escalated / For HR Review</option>
+              <option>Resolved / Closed</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Additional Remarks / Notes</label>
+            <textarea id="fRemarks" placeholder="Any additional notes or remarks..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('formModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto" onclick="saveEntry()">Save Coaching Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ VIEW MODAL ══════════════════════════════════ -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Coaching Log Details</h3>
+      <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+    </div>
+    <div class="modal-body" id="viewModalBody"></div>
+    <div class="modal-footer">
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('viewModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ ROSTER MANAGER ══════════════════════════════════ -->
+<div class="roster-overlay" id="rosterOverlay">
+  <div class="roster-panel">
+    <div class="roster-header">
+      <h3>🗂️ Agent Roster Manager</h3>
+      <button class="modal-close" onclick="closeRosterManager()">✕</button>
+    </div>
+    <div class="roster-body">
+      <div class="roster-filter-bar">
+        <div>
+          <label style="font-size:.75rem;font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase">Search Agent</label>
+          <input type="text" id="rosterSearch" placeholder="Type agent name…" oninput="renderRosterTable()"/>
+        </div>
+        <div>
+          <label style="font-size:.75rem;font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase">Cluster</label>
+          <select id="rosterFilterCluster" onchange="onRosterClusterChange()">
+            <option value="">All Clusters</option>
+            <option>Jubee</option>
+            <option>Kendryck</option>
+            <option>Princess</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.75rem;font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase">Team Lead</label>
+          <select id="rosterFilterTL" onchange="renderRosterTable()">
+            <option value="">All TLs</option>
+          </select>
+        </div>
+        <span class="roster-count" id="rosterCount"></span>
+        <button class="btn-add-agent" onclick="openAgentForm()">+ Add Agent</button>
+      </div>
+      <div class="roster-table-wrap">
+        <table class="roster-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Agent Name</th><th>Start Date</th><th>Team Lead</th><th>Cluster</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rosterTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="roster-footer">
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeRosterManager()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agent Add/Edit Sub-modal -->
+<div class="agent-form-overlay" id="agentFormOverlay">
+  <div class="agent-form-panel">
+    <div class="agent-form-header">
+      <h3 id="agentFormTitle" style="font-weight:800;font-size:1rem">Add Agent</h3>
+      <button class="modal-close" onclick="closeAgentForm()">✕</button>
+    </div>
+    <div class="agent-form-body">
+      <input type="hidden" id="agentEditIdx"/>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Agent Name <span class="required">*</span></label>
+        <input type="text" id="agentFName" placeholder="Full name" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Start Date <span class="required">*</span></label>
+        <input type="date" id="agentFStart" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Cluster <span class="required">*</span></label>
+        <select id="agentFCluster" onchange="onAgentFormClusterChange()" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none">
+          <option value="">— Select Cluster —</option>
+          <option>Jubee</option>
+          <option>Kendryck</option>
+          <option>Princess</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Team Lead <span class="required">*</span></label>
+        <select id="agentFTL" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none">
+          <option value="">— Select TL —</option>
+        </select>
+      </div>
+      <div class="error-msg" id="agentFormError" style="margin-top:10px"></div>
+    </div>
+    <div class="agent-form-footer">
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 18px;font-weight:700;cursor:pointer" onclick="closeAgentForm()">Cancel</button>
+      <button class="btn-primary" style="width:auto" onclick="saveAgent()">Save Agent</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════════════════
+
+const TL_EMAILS = {
+  // ── Jubee Cluster ──────────────────────────────────────────────────────
+  'errollim@homeaglowsales.com':           {display:'TL Arielle', fullName:'Mark Errol Lim',         cluster:'Jubee'},
+  'kailelaquindanum@homeaglowsalestwo.com':{display:'TL Kaii',    fullName:'Kaile Laquindanum',      cluster:'Jubee'},
+  'leoniedeonaga@homeaglowsalesone.com':   {display:'TL Lei',     fullName:'Leonie Deonaga',         cluster:'Jubee'},
+  'kennethhistoriador@homeaglowsales.com': {display:'TL Kenneth', fullName:'Kenneth Historiador Jr.',cluster:'Jubee'},
+  'angelomararac@homeaglowsalestwo.com':   {display:'TL Angelo',  fullName:'Angelo Mararac',         cluster:'Jubee'},
+  'euniceolaguer@homeaglowsalestwo.com':   {display:'TL Eunice',  fullName:'Eunice Olaguer',         cluster:'Jubee'},
+  // ── Princess Cluster ───────────────────────────────────────────────────
+  'jovanjalandoni@homeaglowsales.com':     {display:'TL Jovan',   fullName:'Jovan Philip Jalandoni', cluster:'Princess'},
+  'jaydimiranda@homeaglowsalestwo.com':    {display:'TL Jaydi',   fullName:'Jaydi Miranda',          cluster:'Princess'},
+  'mariaglaizasy@homeaglowsales.com':      {display:'TL Glai',    fullName:'Maria Glaiza Sy',        cluster:'Princess'},
+  'catherinefuente@homeaglowsales.com':    {display:'TL Cath',    fullName:'Catherine Dela Fuente',  cluster:'Princess'},
+  'kimberlysabandal@homeaglowsalestwo.com':{display:'TL Kim',     fullName:'Kimberly Rose Sabandal', cluster:'Princess'},
+  // ── Kendryck Cluster ───────────────────────────────────────────────────
+  'mayclaveron@homeaglowsales.com':        {display:'TL Mhae',     fullName:'May Claveron',           cluster:'Kendryck'},
+  'karlovalencia@homeaglowsalestwo.com':   {display:'TL Karlo',    fullName:'Karlo Miccolai Valencia',cluster:'Kendryck'},
+  'basilllamedo@homeaglowsales.com':       {display:'TL Barbie',   fullName:'Basil Llamedo',          cluster:'Kendryck'},
+  'henrielyn@homeaglowsales.com':          {display:'TL Henrielyn',fullName:'Henrielyn Makiling',          cluster:'Kendryck'},
+  'asherbalway@homeaglowsalestwo.com':     {display:'TL Asher',   fullName:'Asher Jessica Faith Balway',   cluster:'Kendryck'},
+};
+
+const OM_EMAILS = {
+  'jubee@homeaglowsales.com':          {display:'OM Jubee',    cluster:'Jubee'},
+  'kendryck@homeaglowsales.com':       {display:'OM Kendryck', cluster:'Kendryck'},
+  'princesssimbahan@homeaglowsalesone.com':{display:'OM Princess',cluster:'Princess'},
+};
+
+// milettegaw is admin
+const ADMIN_EMAILS = ['milettegaw@homeaglowsales.com','milettegaw@homeaglowsalestwo.com','milettegaw@homeaglowsalesone.com','clayton@homeaglowsales.com'];
+
+const AGENTS = [
+  {email:'franklinpondang@homeaglowsalesone.com',   name:'Franklin Pondang',                 manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-09-01'},
+  {email:'khristypepino@homeaglowsales.com',        name:'Khristy Jones Pepino',             manager:'May Claveron',              cluster:'Kendryck', start:'2024-07-15'},
+  {email:'alvindoroy@homeaglowsales.com',           name:'Alvin Doroy',                      manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2024-08-12'},
+  {email:'jessicasiya@homeaglowsales.com',          name:'Jessica Romm Siya',                manager:'May Claveron',              cluster:'Kendryck', start:'2024-08-26'},
+  {email:'girliecorrales@homeaglowsales.com',       name:'Girlie Corrales',                  manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2024-09-09'},
+  {email:'jisellesantos@homeaglowsales.com',        name:'Jiselle Cayabyab-Santos',          manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2024-10-07'},
+  {email:'jimmybarnachea@homeaglowsales.com',       name:'Jimmy Barnachea',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2024-10-07'},
+  {email:'dulcejimenez@homeaglowsales.com',         name:'Dulce Jimenez',                    manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2024-10-21'},
+  {email:'rosevallespin@homeaglowsalesone.com',     name:'Rose Marie Vallespin',             manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2024-10-21'},
+  {email:'miguelescano@homeaglowsalesone.com',      name:'Miguel Philippi Escano',           manager:'Jaydi Miranda',             cluster:'Princess', start:'2024-11-18'},
+  {email:'johanaziejewski@homeaglowsalesone.com',   name:'Johana Marie B. Ziejewski',        manager:'May Claveron',              cluster:'Kendryck', start:'2024-11-18'},
+  {email:'pinkyromeo@homeaglowsales.com',           name:'Pinky Romeo',                      manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2024-12-02'},
+  {email:'marysotto@homeaglowsalesone.com',         name:'Mary Jaye Sotto',                  manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-01-06'},
+  {email:'catherinegayoso@homeaglowsales.com',      name:'Catherine Gayoso',                 manager:'May Claveron',              cluster:'Kendryck', start:'2025-01-06'},
+  {email:'rosetejedor@homeaglowsales.com',          name:'Rose Ann Tejedor',                 manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-01-06'},
+  {email:'vanessainocencio@homeaglowsalesone.com',  name:'Vanessa Sarah Inocencio',          manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-01-20'},
+  {email:'rinagalang@homeaglowsalestwo.com',        name:'Rina Galang',                      manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-04-07'},
+  {email:'arahsacro@homeaglowsales.com',            name:'Arah Mae Sacro',                   manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-02-10'},
+  {email:'carlynordona@homeaglowsales.com',         name:'Carlyn Ordona',                    manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-02-10'},
+  {email:'allanchuajr@homeaglowsales.com',          name:'Allan Chua Jr.',                   manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-02-10'},
+  {email:'trixiarobles@homeaglowsales.com',         name:'Trixia Marie Robles',              manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-02-24'},
+  {email:'noemigalon@homeaglowsalestwo.com',        name:'Noemi Galon',                      manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-02-24'},
+  {email:'joanestarez@homeaglowsalestwo.com',       name:'Joan Elizabeth Zendivina Estarez', manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-02-24'},
+  {email:'johnbabila@homeaglowsalestwo.com',        name:'John Anthony Babila',              manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-03-10'},
+  {email:'maryopena@homeaglowsalestwo.com',         name:'Mary Angelique Emeline Opeña',     manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-03-10'},
+  {email:'bernadetteespinas@homeaglowsalestwo.com', name:'Bernadette Espinas',               manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-03-17'},
+  {email:'michaelaleta@homeaglowsales.com',         name:'Michael Aleta',                    manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-03-24'},
+  {email:'aceamantiad@homeaglowsalesone.com',       name:'Ace York Amantiad',                manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2025-03-31'},
+  {email:'princessmamandis@homeaglowsalestwo.com',  name:'Princess Lorraine Mamandis',       manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-04-07'},
+  {email:'janellecasabuena@homeaglowsales.com',     name:'Janelle Adriana Casabuena',        manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-04-07'},
+  {email:'jovelyntomilloso@homeaglowsalestwo.com',  name:'Jovelyn Tomilloso',                manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-07-28'},
+  {email:'michaelsantiago@homeaglowsales.com',      name:'Michael Angelo Santiago',          manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-04-07'},
+  {email:'losetalabarro@homeaglowsales.com',        name:'Loseta Labarro',                   manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-04-07'},
+  {email:'wilrosemenguito@homeaglowsalestwo.com',   name:'Wilrose Menguito',                 manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-04-28'},
+  {email:'marylinsalas@homeaglowsalestwo.com',      name:'Marylin Salas',                    manager:'May Claveron',              cluster:'Kendryck', start:'2025-05-05'},
+  {email:'aarontuico@homeaglowsales.com',           name:'Aaron Louise Tuico',               manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-05-05'},
+  {email:'jenalynnpaya@homeaglowsales.com',         name:'Jenalynn Paya',                    manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2025-05-05'},
+  {email:'mervenpanganiban@homeaglowsales.com',     name:'Merven Panganiban',                manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-05-13'},
+  {email:'jennifertrinidad@homeaglowsalestwo.com',  name:'Jennifer M. Trinidad',             manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-05-19'},
+  {email:'jondellemiranda@homeaglowsalestwo.com',   name:'Jondelle Miranda',                 manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-05-19'},
+  {email:'melougynsaliot@homeaglowsalestwo.com',    name:'Melougyn Saliot',                  manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-05-19'},
+  {email:'odiroseamuyot@homeaglowsalestwo.com',     name:'Odirose Q. Amuyot',               manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-05-19'},
+  {email:'kellycruz@homeaglowsales.com',            name:'Kelly Vergel Cruz',                manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2025-05-26'},
+  {email:'supremocabalo@homeaglowsalestwo.com',     name:'Supremo A. Cabalo',               manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-05-26'},
+  {email:'emilynbuenafe@homeaglowsalestwo.com',     name:'Emilyn Buenafe',                   manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-05-26'},
+  {email:'joweeannebarbastro@homeaglowsalesone.com',name:'Jowee-Anne Barbastro',             manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-05-26'},
+  {email:'jannadriano@homeaglowsalesone.com',       name:'Jann Christian Danielle Adriano',  manager:'May Claveron',              cluster:'Kendryck', start:'2025-05-26'},
+  {email:'erwingarcia@homeaglowsalestwo.com',       name:'Erwin Jay Garcia',                 manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-06-02'},
+  {email:'richiesabado@homeaglowsalestwo.com',      name:'Richie Sabado',                    manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-02'},
+  {email:'elvismastejr@homeaglowsalestwo.com',      name:'Elvis Jr Maste',                   manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-06-02'},
+  {email:'lynnvillahermosa@homeaglowsalestwo.com',  name:'Lynn Villahermosa',                manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2025-06-02'},
+  {email:'irenevirgo@homeaglowsales.com',           name:'Irene Joy Virgo',                  manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-02'},
+  {email:'roxannebalcita@homeaglowsalestwo.com',    name:'Roxanne Balcita',                  manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-06-02'},
+  {email:'virnadaclan@homeaglowsales.com',          name:'Virna Daclan',                     manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-16'},
+  {email:'patriciajaniola@homeaglowsalesone.com',   name:'Patricia Rose Janiola',            manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-16'},
+  {email:'larahongayo@homeaglowsales.com',          name:'Ma. Lara Hongayo',                 manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-16'},
+  {email:'romeosandovaljr@homeaglowsalestwo.com',   name:'Romeo Jr Sandoval',                manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-16'},
+  {email:'kathrinatabaquin@homeaglowsalestwo.com',  name:'Kathrina Christine Tabaquin',      manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-16'},
+  {email:'angelicalorenzana@homeaglowsalestwo.com', name:'Angelica Joyce Lorenzana',         manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-16'},
+  {email:'krizelletaino@homeaglowsalesone.com',     name:'Krizelle Taiño',                   manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-06-23'},
+  {email:'michaeldometita@homeaglowsalestwo.com',   name:'Michael Dometita',                 manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-30'},
+  {email:'princesspunzalan@homeaglowsales.com',     name:'Princess May Punzalan',            manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-30'},
+  {email:'chrisantilegando@homeaglowsalestwo.com',  name:'Chris Antilegando',                manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2025-07-07'},
+  {email:'irisneri@homeaglowsalestwo.com',          name:'Iris Mariel Neri',                 manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-05-13'},
+  {email:'christophercampion@homeaglowsalestwo.com',name:'Christopher A. Campion',           manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-07-21'},
+  {email:'alvinreyes@homeaglowsalesone.com',        name:'Alvin Reyes',                      manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-07-14'},
+  {email:'neranelsapelino@homeaglowsalestwo.com',   name:'Neranel Sapelino',                 manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-07-28'},
+  {email:'suneilgilay@homeaglowsalestwo.com',       name:'Suneil Anthony Tarpin Gilay',      manager:'May Claveron',              cluster:'Kendryck', start:'2025-07-28'},
+  {email:'marylim@homeaglowsalestwo.com',           name:'Mary Joy Lim',                     manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-07-28'},
+  {email:'billygali@homeaglowsales.com',            name:'Billy Ray Ocay Gali',              manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-07-28'},
+  {email:'jemymorong@homeaglowsalestwo.com',        name:'Jemy Morong',                      manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-06-30'},
+  {email:'jessabalsamo@homeaglowsalesone.com',      name:'Jessa Balsamo',                    manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-09-01'},
+  {email:'abdallahdilna@homeaglowsalesone.com',     name:'Abdallah R. Dilna',               manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-09-01'},
+  {email:'micmenente@homeaglowsalesone.com',        name:'Mic Kevin Menente',                manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-09-01'},
+  {email:'anneignacio@homeaglowsalestwo.com',       name:'Anne Lorraine Ignacio',            manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-09-01'},
+  {email:'kimvitorillo@homeaglowsalesone.com',      name:'Kim Joy Vitorillo',                manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2025-09-01'},
+  {email:'appledomanico@homeaglowsalesone.com',     name:'Apple Domanico',                   manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-09-01'},
+  {email:'alexandrajaylo@homeaglowsalestwo.com',    name:'Alexandra Dennise Jaylo',          manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-09-29'},
+  {email:'penaramos@homeaglowsalestwo.com',         name:'Peña Rafaela Ramos',              manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2025-09-29'},
+  {email:'camilleelpedes@homeaglowsalestwo.com',    name:'Camille Jean Elpedes',             manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2025-11-10'},
+  {email:'scherujzbaid@homeaglowsalestwo.com',      name:'Scherujz Baid',                    manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-11-10'},
+  {email:'reymarklagdamat@homeaglowsalestwo.com',   name:'Reymark Lagdamat',                 manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2025-11-10'},
+  {email:'jojiereyes@homeaglowsalesone.com',        name:'Jojie Reyes',                      manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2025-11-24'},
+  {email:'andrewtrovillas@homeaglowsalesone.com',   name:'Andrew Trovillas',                 manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2025-11-24'},
+  {email:'jovydelavega@homeaglowsalesone.com',      name:'Jovy Dela Vega',                   manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2025-11-24'},
+  {email:'michaellebaste@homeaglowsalesone.com',    name:'Michael Rovillos Lebaste',         manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-11-24'},
+  {email:'lordcanlas@homeaglowsalesone.com',        name:'Lord Michael Anthony Canlas',      manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2025-11-24'},
+  {email:'destinealeta@homeaglowsalesone.com',      name:'Destine Aleta',                    manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2025-11-24'},
+  {email:'aprillucero@homeaglowsalesone.com',       name:'April Lucero',                     manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-11-24'},
+  {email:'carllargosa@homeaglowsalestwo.com',       name:'Carl Andrei Largosa',              manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-01-05'},
+  {email:'jesstergoco@homeaglowsalestwo.com',       name:'Jesster Goco',                     manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-01-05'},
+  {email:'flordelizatrajano@homeaglowsalestwo.com', name:'Flordeliza Chenilla Trajano',      manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-01-05'},
+  {email:'renalynarado@homeaglowsalestwo.com',      name:'Renalyn Arado',                    manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-01-05'},
+  {email:'mervanocang@homeaglowsalestwo.com',       name:'Mervan Ocang',                     manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-01-05'},
+  {email:'charoagustin@homeaglowsalestwo.com',      name:'Charo Agustin',                    manager:'May Claveron',              cluster:'Kendryck', start:'2026-01-05'},
+  {email:'angelicaaviles@homeaglowsalestwo.com',    name:'Angelica Mae Aviles',              manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2026-01-05'},
+  {email:'jeroshuarabasano@homeaglowsalestwo.com',  name:'Jeroshua Gabunada Rabasano',       manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-01-05'},
+  {email:'joeiroyo@homeaglowsalestwo.com',          name:'Joei Anne Royo',                   manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-01-05'},
+  {email:'mheldssierte@homeaglowsalestwo.com',      name:'Mhelds Sierte',                    manager:'May Claveron',              cluster:'Kendryck', start:'2026-01-05'},
+  {email:'ramonamanalo@homeaglowsalesone.com',      name:'Ramona Manalo',                    manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-01-19'},
+  {email:'noelanacor@homeaglowsalesone.com',        name:'Noela Nacor',                      manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-01-19'},
+  {email:'nicolecanlas@homeaglowsalesone.com',      name:'Nicole Archael B. Canlas',         manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-01-19'},
+  {email:'ryanllenarizas@homeaglowsalestwo.com',    name:'Ryan Llenarizas',                  manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2026-02-09'},
+  {email:'benidictoquizon@homeaglowsalestwo.com',   name:'Benidicto Quizon',                 manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-02-09'},
+  {email:'patrickrosales@homeaglowsalestwo.com',    name:'Patrick Jefferson Rosales',        manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-02-09'},
+  {email:'hannationgco@homeaglowsalestwo.com',      name:'Hanna Marie Tiongco',              manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-02-09'},
+  {email:'sheenagalo@homeaglowsalestwo.com',        name:'Sheena Marie Galo',                manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-02-09'},
+  {email:'patrickserrano@homeaglowsalestwo.com',    name:'Patrick John Serrano',             manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-02-09'},
+  {email:'milaedraera@homeaglowsalestwo.com',       name:'Mila Edraera',                     manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-02-09'},
+  {email:'jinkymalbas@homeaglowsalestwo.com',       name:'Jinky Malbas',                     manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-02-09'},
+  {email:'ramonhila@homeaglowsalestwo.com',         name:'Ramon Bong Hila',                  manager:'May Claveron',              cluster:'Kendryck', start:'2026-02-09'},
+  {email:'markbontia@homeaglowsalesone.com',        name:'Mark Angelo Bontia',               manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-03-02'},
+  {email:'loiecometa@homeaglowsalesone.com',        name:'Loie John Cometa',                 manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2026-03-02'},
+  {email:'briellesacorum@homeaglowsalesone.com',    name:'Brielle Jade Sacorum',             manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-03-02'},
+  {email:'eulaliozamorajr@homeaglowsalesone.com',   name:'Eulalio Zamora Jr',                manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-03-02'},
+  {email:'jestercorbo@homeaglowsalesone.com',       name:'Jester Pellejo Corbo',             manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-03-02'},
+  {email:'jocelynalcoran@homeaglowsalesone.com',    name:'Jocelyn S. Alcoran',               manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2026-03-02'},
+  {email:'darielmacasambat@homeaglowsalesone.com',  name:'Dariel Macasambat',                manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2026-03-02'},
+  {email:'abbigailvillanueva@homeaglowsalestwo.com',name:'Abbigail Villanueva',              manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'doendoronila@homeaglowsalestwo.com',      name:'Doen Doronila',                    manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'rickdula@homeaglowsalestwo.com',          name:'Rick Allen Dula',                  manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-03-09'},
+  {email:'christserveza@homeaglowsalestwo.com',     name:'Christ John Serveza',              manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'elisaarenas@homeaglowsalestwo.com',       name:'Elisa Arenas',                     manager:'Basil Llamedo',             cluster:'Kendryck', start:'2026-03-09'},
+  {email:'danicadionela@homeaglowsalestwo.com',     name:'Danica Dionela',                   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'mariejoeupalan@homeaglowsalestwo.com',    name:'Marie Jo Eupalan',                 manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-03-09'},
+  {email:'jersonatillaga@homeaglowsalesone.com',    name:'Jerson Atillaga',                  manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-03-16'},
+  {email:'joannaluganao@homeaglowsalestwo.com',     name:'Joanna Ynez Luganao',              manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-03-16'},
+  {email:'shienabagunoc@homeaglowsales.com',        name:'Shiena Mae Bagunoc',               manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-03-23'},
+  {email:'jessielynmarin@homeaglowsales.com',       name:'Jessielyn Marin',                  manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-23'},
+  {email:'jeaninebuendia@homeaglowsales.com',       name:'Jeanine Buendia',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
+  {email:'michaeldelacruz@homeaglowsales.com',      name:'John Michael Dela Cruz',           manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
+  {email:'manuelitocabillo@homeaglowsales.com',     name:'Manuelito Cabillo',                manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
+  {email:'monicaobrero@homeaglowsalestwo.com',      name:'Monica Obrero',                    manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-03-30'},
+  {email:'josefagela@homeaglowsales.com',           name:'Jose Marou Karl Laynesa Fagela',   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-04-06'},
+  {email:'donitaamaquin@homeaglowsalestwo.com',     name:'Donita Amaquin',                   manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-04-06'},
+  {email:'conradolaudenorio@homeaglowsalestwo.com', name:'Conrado Laudenorio Jr',            manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-04-20'},
+  {email:'josephdeasis@homeaglowsalestwo.com',      name:'Joseph Christ De Asis',            manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-04-20'},
+  {email:'arabelaagdeppa@homeaglowsalestwo.com',    name:'Arabela Datu Agdeppa',             manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-04-20'},
+  {email:'joanaporden@homeaglowsalestwo.com',       name:'Joana Marie Porden',               manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-04-20'},
+  {email:'zeddeligero@homeaglowsalestwo.com',       name:'Zed Deligero',                     manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2026-04-20'},
+  {email:'nolitorno@homeaglowsalestwo.com',         name:'Noli John Torno',                  manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-04-20'},
+  {email:'rammaala@homeaglowsalesone.com',          name:'Ram Karlo Maala',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-04-20'},
+  {email:'christiantorralba@homeaglowsalesone.com', name:'Christian Kurt Rafael Torralba',   manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-04-20'},
+  {email:'juliebesana@homeaglowsales.com',          name:'Julie Ann Besana',                 manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-04-20'},
+  {email:'jakebarnachea@homeaglowsales.com',        name:'Jake Vincent Barnachea',           manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-04-27'},
+  {email:'francisorosco@homeaglowsales.com',        name:'Francis Troi Orosco',              manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-04-27'},
+  {email:'johntacis@homeaglowsales.com',            name:'John March Tacis',                 manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2026-04-27'},
+  {email:'helenmejico@homeaglowsales.com',          name:'Helen Mejico',                     manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-04-27'},
+  {email:'paulvillaroman@homeaglowsales.com',       name:'Paul Deo Villaroman',              manager:'Basil Llamedo',             cluster:'Kendryck', start:'2026-04-27'},
+  {email:'cyrilalpajaro@homeaglowsales.com',        name:'Cyril Alpajaro',                   manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-04-27'},
+  {email:'charliegalendez@homeaglowsalestwo.com',   name:'Charlie Galendez',                 manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-04-27'},
+  {email:'ceahnsalinas@homeaglowsales.com',         name:'Ceahn Kylle Salinas',              manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2026-05-04'},
+  {email:'adrianellanto@homeaglowsales.com',        name:'Gb Adriane Llanto',                manager:'May Claveron',              cluster:'Kendryck', start:'2026-05-04'},
+  {email:'criezlpagunsan@homeaglowsales.com',       name:'Criezl Mae Pagunsan',              manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-05-04'},
+  {email:'josephinecorot@homeaglowsalesone.com',    name:'Josephine Corot',                  manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-05-04'},
+  {email:'alvinbacani@homeaglowsalestwo.com',       name:'Alvin Bacani',                     manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2026-05-04'},
+  {email:'isireabello@homeaglowsalestwo.com',       name:'Isire Abello',                     manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-05-04'},
+  {email:'giangranatin@homeaglowsales.com',         name:'Gian Carlo Granatin',              manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-05-18'},
+  {email:'fritzieflores@homeaglowsales.com',        name:'Fritzie Gille Flores',             manager:'Basil Llamedo',             cluster:'Kendryck', start:'2026-05-18'},
+  {email:'jessiejamesalgabre@homeaglowsales.com',   name:'JessieJames Algabre',              manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-05-18'},
+  {email:'markgantong@homeaglowsalesone.com',       name:'Mark Ivan Gantong',                manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-06-01'},
+  {email:'excelmalabago@homeaglowsalesone.com',     name:'Excel Lawrence Malabago',          manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-06-01'},
+  {email:'angelamigullas@homeaglowsalesone.com',    name:'Angela Migullas',                  manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-06-01'},
+  {email:'danahmicayabas@homeaglowsalesone.com',    name:'Danah Carol Micayabas',            manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-06-01'},
+  {email:'deancastro@homeaglowsalesone.com',        name:'Dean Rowell Castro',               manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-01'},
+  {email:'angeliqueubungen@homeaglowsalestwo.com',  name:'Angelique Ubungen',                manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
+  {email:'czarinamitra@homeaglowsalestwo.com',      name:'Czarina Mae Mitra',                manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
+  {email:'erickaperez@homeaglowsalestwo.com',       name:'Ericka Mae Perez',                 manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
+  {email:'henjiesonio@homeaglowsalesone.com',       name:'Henjie Sibug Sonio',               manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-06-08'},
+  {email:'robealuzgravador@homeaglowsalesone.com',  name:'Robealuz Gravador',                manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-06-08'},
+  {email:'charlstonestanes@homeaglowsalesone.com',  name:'Charlston Estanes',                manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-06-08'},
+  {email:'raymondbalaga@homeaglowsalesone.com',     name:'Raymond Balaga',                   manager:'Jaydi Miranda',             cluster:'Princess', start:'2026-06-08'},
+  {email:'hannaibanez@homeaglowsalesone.com',       name:'Hanna Alexie Ibanez',              manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-06-08'},
+  {email:'jesusapaso@homeaglowsales.com',           name:'Jesus Apaso III',                  manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2026-06-08'},
+  {email:'marygallentes@homeaglowsales.com',        name:'Mary Rose Gallentes',              manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
+  {email:'eunicesanchez@homeaglowsales.com',        name:'Eunice Sanchez',                   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
+  {email:'johncea@homeaglowsales.com',              name:'John Harvey Giva Cea',             manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-06-08'},
+];
+
+// Lookup maps
+const MANAGER_TO_TL_DISPLAY = {};
+Object.values(TL_EMAILS).forEach(t => { MANAGER_TO_TL_DISPLAY[t.fullName] = t.display; });
+
+// ══════════════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════════════
+let currentUser = null; // {email, role:'TL'|'OM'|'Admin'|'Agent', display, tlInfo?, omInfo?}
+let entries = [];
+let ROSTER = []; // live editable agent list (persisted in localStorage)
+
+function loadEntries() {
+  try { entries = JSON.parse(localStorage.getItem('apexCoachingLogs') || '[]'); } catch(e){ entries=[]; }
+}
+function saveEntries() {
+  localStorage.setItem('apexCoachingLogs', JSON.stringify(entries));
+}
+
+function loadRoster() {
+  try {
+    const saved = localStorage.getItem('apexRoster');
+    ROSTER = saved ? JSON.parse(saved) : AGENTS.map(a => ({...a, startDate: a.startDate || a.start || ''}));
+  } catch(e) { ROSTER = AGENTS.map(a => ({...a, startDate: a.startDate || a.start || ''})); }
+}
+function saveRoster() {
+  localStorage.setItem('apexRoster', JSON.stringify(ROSTER));
+}
+
+// OM roster-access guard — only these three emails
+const ROSTER_OM_EMAILS = [
+  'jubee@homeaglowsales.com',
+  'kendryck@homeaglowsales.com',
+  'princesssimbahan@homeaglowsalesone.com'
+];
+function canManageRoster() {
+  return currentUser && ROSTER_OM_EMAILS.includes(currentUser.email);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROSTER MANAGER UI
+// ══════════════════════════════════════════════════════════════════════════
+function openRosterManager() {
+  document.getElementById('rosterFilterCluster').value = '';
+  document.getElementById('rosterFilterTL').innerHTML = '<option value="">All TLs</option>';
+  document.getElementById('rosterSearch').value = '';
+  renderRosterTable();
+  document.getElementById('rosterOverlay').classList.add('open');
+}
+
+function closeRosterManager() {
+  document.getElementById('rosterOverlay').classList.remove('open');
+}
+
+function onRosterClusterChange() {
+  const cluster = document.getElementById('rosterFilterCluster').value;
+  const tlEl    = document.getElementById('rosterFilterTL');
+  tlEl.innerHTML = '<option value="">All TLs</option>';
+  Object.values(TL_EMAILS).sort((a,b)=>a.display.localeCompare(b.display)).forEach(t => {
+    if (!cluster || t.cluster === cluster) {
+      const o = document.createElement('option');
+      o.value = t.display; o.textContent = t.display;
+      tlEl.appendChild(o);
+    }
+  });
+  renderRosterTable();
+}
+
+function renderRosterTable() {
+  const search  = (document.getElementById('rosterSearch').value || '').toLowerCase();
+  const cluster = document.getElementById('rosterFilterCluster').value;
+  const tl      = document.getElementById('rosterFilterTL').value;
+
+  const filtered = ROSTER.filter(a => {
+    if (cluster && a.cluster !== cluster) return false;
+    if (tl) {
+      const tlEntry = Object.values(TL_EMAILS).find(t => t.display === tl);
+      if (tlEntry && a.manager !== tlEntry.fullName) return false;
+    }
+    if (search && !a.name.toLowerCase().includes(search)) return false;
+    return true;
+  }).sort((a,b) => a.name.localeCompare(b.name));
+
+  document.getElementById('rosterCount').textContent = filtered.length + ' agent' + (filtered.length !== 1 ? 's' : '');
+
+  const tbody = document.getElementById('rosterTableBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No agents found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((a, i) => {
+    const idx    = ROSTER.indexOf(a);
+    const tlDisp = Object.values(TL_EMAILS).find(t => t.fullName === a.manager)?.display || a.manager || '—';
+    return `<tr>
+      <td>${i + 1}</td>
+      <td><strong>${a.name}</strong></td>
+      <td>${a.startDate || a.start || '—'}</td>
+      <td>${tlDisp}</td>
+      <td>${a.cluster || '—'}</td>
+      <td class="action-btns">
+        <button class="btn-sm btn-edit" onclick="openAgentForm(${idx})">Edit</button>
+        <button class="btn-sm btn-del"  onclick="deleteAgent(${idx})">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let _editingAgentIdx = -1;
+
+function openAgentForm(idx) {
+  _editingAgentIdx = (idx !== undefined) ? idx : -1;
+  const isEdit = _editingAgentIdx >= 0;
+  document.getElementById('agentFormTitle').textContent = isEdit ? 'Edit Agent' : 'Add Agent';
+  document.getElementById('agentFormError').style.display = 'none';
+
+  if (isEdit) {
+    const a = ROSTER[_editingAgentIdx];
+    document.getElementById('agentFName').value    = a.name || '';
+    document.getElementById('agentFStart').value   = a.startDate || '';
+    document.getElementById('agentFCluster').value = a.cluster || '';
+    onAgentFormClusterChange();
+    const tlDisp = Object.values(TL_EMAILS).find(t => t.fullName === a.manager)?.display || '';
+    document.getElementById('agentFTL').value = tlDisp;
+  } else {
+    document.getElementById('agentFName').value    = '';
+    document.getElementById('agentFStart').value   = '';
+    document.getElementById('agentFCluster').value = '';
+    onAgentFormClusterChange();
+  }
+  document.getElementById('agentFormOverlay').classList.add('open');
+}
+
+function closeAgentForm() {
+  document.getElementById('agentFormOverlay').classList.remove('open');
+}
+
+function onAgentFormClusterChange() {
+  const cluster = document.getElementById('agentFCluster').value;
+  const tlEl    = document.getElementById('agentFTL');
+  tlEl.innerHTML = '<option value="">— Select TL —</option>';
+  Object.values(TL_EMAILS).sort((a,b)=>a.display.localeCompare(b.display)).forEach(t => {
+    if (!cluster || t.cluster === cluster) {
+      const o = document.createElement('option');
+      o.value = t.display; o.textContent = t.display;
+      tlEl.appendChild(o);
+    }
+  });
+}
+
+function saveAgent() {
+  const name      = document.getElementById('agentFName').value.trim();
+  const startDate = document.getElementById('agentFStart').value.trim();
+  const cluster   = document.getElementById('agentFCluster').value;
+  const tlDisp    = document.getElementById('agentFTL').value;
+  const errEl     = document.getElementById('agentFormError');
+  errEl.style.display = 'none';
+
+  if (!name)    { errEl.textContent = 'Agent name is required.';   errEl.style.display='block'; return; }
+  if (!cluster) { errEl.textContent = 'Please select a Cluster.';  errEl.style.display='block'; return; }
+  if (!tlDisp)  { errEl.textContent = 'Please select a Team Lead.';errEl.style.display='block'; return; }
+
+  const tlEntry  = Object.values(TL_EMAILS).find(t => t.display === tlDisp);
+  const manager  = tlEntry ? tlEntry.fullName : tlDisp;
+  const manager2 = tlEntry
+    ? (Object.entries(OM_EMAILS).find(([,o]) => o.cluster === tlEntry.cluster)?.[1]?.display || '')
+    : '';
+
+  const agentObj = { name, startDate, cluster, manager, manager2, email: '' };
+
+  if (_editingAgentIdx >= 0) {
+    agentObj.email = ROSTER[_editingAgentIdx].email || '';
+    ROSTER[_editingAgentIdx] = agentObj;
+  } else {
+    ROSTER.push(agentObj);
+  }
+
+  saveRoster();
+  closeAgentForm();
+  renderRosterTable();
+}
+
+function deleteAgent(idx) {
+  const a = ROSTER[idx];
+  if (!confirm('Delete "' + a.name + '" from the roster? This cannot be undone.')) return;
+  ROSTER.splice(idx, 1);
+  saveRoster();
+  renderRosterTable();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════════════════
+function isHomeaglowEmail(email) {
+  return /homeaglow/i.test(email);
+}
+
+function doLogin() {
+  const email = document.getElementById('emailInput').value.trim().toLowerCase();
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if (!email) { showErr('Please enter your email address.'); return; }
+  if (!isHomeaglowEmail(email)) { showErr('Only Homeaglow email addresses are allowed.'); return; }
+
+  let role, display, tlInfo = null, omInfo = null;
+
+  if (ADMIN_EMAILS.includes(email)) {
+    role = 'Admin'; display = 'Admin (' + email + ')';
+  } else if (TL_EMAILS[email]) {
+    role = 'TL'; tlInfo = TL_EMAILS[email]; display = tlInfo.display;
+  } else if (OM_EMAILS[email]) {
+    role = 'OM'; omInfo = OM_EMAILS[email]; display = omInfo.display;
+  } else if (isHomeaglowEmail(email)) {
+    // Check if agent
+    const agent = AGENTS.find(a => a.email === email);
+    if (agent) { role = 'Agent'; display = agent.name; }
+    else { role = 'Agent'; display = email.split('@')[0]; }
+  }
+
+  currentUser = { email, role, display, tlInfo, omInfo };
+  loadEntries();
+  initApp();
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  function showErr(msg) { errEl.textContent = msg; errEl.style.display = 'block'; }
+}
+
+document.getElementById('emailInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('emailInput').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// INIT APP
+// ══════════════════════════════════════════════════════════════════════════
+function initApp() {
+  loadRoster();
+  loadNTEEntries();
+
+  document.getElementById('userBadge').textContent = currentUser.display + ' · ' + currentUser.role;
+
+  const canCreate = ['TL','OM','Admin'].includes(currentUser.role);
+  document.getElementById('btnAddCoaching').style.display = canCreate ? 'inline-block' : 'none';
+  document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
+  document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
+
+  populateWKOptions();
+  populateFilterTLs();
+  populateLogFilterTLs();
+  populateNTEFilterTLs();
+  renderDashboard();
+  renderLogTable();
+  showView('dashboard');
+}
+
+function populateWKOptions() {
+  // Build option string once — fast innerHTML approach
+  let opts = '';
+  for (let i = 551; i <= 1000; i++) {
+    opts += `<option value="WK${i}">WK${i}</option>`;
+  }
+  const dash    = document.getElementById('filterWK');
+  const log     = document.getElementById('logFilterWK');
+  const form    = document.getElementById('fWK');
+  const nteDash = document.getElementById('nteFilterWK');
+  const nteForm = document.getElementById('nteFWK');
+  if (dash)    dash.innerHTML    = '<option value="">All Weeks</option>' + opts;
+  if (log)     log.innerHTML     = '<option value="">All</option>' + opts;
+  if (form)    form.innerHTML    = '<option value="">— Select WK # —</option>' + opts;
+  if (nteDash) nteDash.innerHTML = '<option value="">All Weeks</option>' + opts;
+  if (nteForm) nteForm.innerHTML = '<option value="">— Select WK # —</option>' + opts;
+}
+
+// Central TL list builder. Pass cluster='' for no cluster filter.
+// Handles all four roles: Admin, OM, TL, Agent.
+function getTLsForUser(cluster) {
+  let candidates = Object.values(TL_EMAILS);
+
+  // 1. Role scope
+  if (currentUser.role === 'TL') {
+    candidates = candidates.filter(t => t.display === currentUser.tlInfo.display);
+  } else if (currentUser.role === 'OM') {
+    candidates = candidates.filter(t => t.cluster === currentUser.omInfo.cluster);
+  } else if (currentUser.role === 'Agent') {
+    const agentInfo = AGENTS.find(a => a.email === currentUser.email);
+    if (agentInfo) {
+      candidates = candidates.filter(t => t.fullName === agentInfo.manager);
+    } else {
+      candidates = [];
+    }
+  }
+  // Admin: no role filter — all candidates remain
+
+  // 2. Optional cluster filter (e.g. when user picks a cluster in a filter bar)
+  if (cluster) candidates = candidates.filter(t => t.cluster === cluster);
+
+  // 3. Deduplicate display names and sort
+  return [...new Set(candidates.map(t => t.display))].sort();
+}
+
+function buildTLOptions(elId, names, placeholder) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const prev = el.value;
+  el.innerHTML = '';
+  const first = document.createElement('option');
+  first.value = ''; first.textContent = placeholder || 'All TLs';
+  el.appendChild(first);
+  names.forEach(name => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    el.appendChild(o);
+  });
+  // Restore previous selection if still valid
+  if (prev && names.includes(prev)) el.value = prev;
+}
+
+function populateFilterTLs(cluster) {
+  buildTLOptions('filterTL', getTLsForUser(cluster), 'All TLs');
+}
+
+function populateLogFilterTLs() {
+  buildTLOptions('logFilterTL', getTLsForUser(), 'All TLs');
+}
+
+function getAgentsForTL(tlDisplay) {
+  if (!tlDisplay) return ROSTER;
+  const tlEntry = Object.values(TL_EMAILS).find(t => t.display === tlDisplay);
+  if (!tlEntry) return [];
+  return ROSTER.filter(a => a.manager === tlEntry.fullName);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// VIEW SWITCHING
+// ══════════════════════════════════════════════════════════════════════════
+function showView(view) {
+  document.getElementById('viewDashboard').style.display = view==='dashboard' ? 'block' : 'none';
+  document.getElementById('viewLog').style.display       = view==='log'        ? 'block' : 'none';
+  document.getElementById('viewNTE').style.display       = view==='nte'        ? 'block' : 'none';
+  document.getElementById('navDashboard').classList.toggle('active', view==='dashboard');
+  document.getElementById('navLog').classList.toggle('active', view==='log');
+  document.getElementById('navNTE').classList.toggle('active', view==='nte');
+  if (view==='nte') renderNTETable();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════════════════════════════════════════
+function onClusterChange() {
+  const cluster = document.getElementById('filterCluster').value;
+  populateFilterTLs(cluster);
+  // Reset TL selection so onTLChange uses cluster-only scope
+  document.getElementById('filterTL').value = '';
+  onTLChange();  // will populate agents for cluster (no TL selected)
+}
+
+function onTLChange() {
+  const tl      = document.getElementById('filterTL').value;
+  const cluster = document.getElementById('filterCluster').value;
+  const agEl    = document.getElementById('filterAgent');
+  agEl.innerHTML = '<option value="">All Agents</option>';
+
+  let list;
+  if (tl) {
+    list = getAgentsForTL(tl);
+  } else if (cluster) {
+    list = ROSTER.filter(a => a.cluster === cluster);
+  } else {
+    list = [];   // no filter selected — agent dropdown stays empty (use TL or cluster first)
+  }
+  list.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => {
+    const o=document.createElement('option');o.value=a.name;o.textContent=a.name;agEl.appendChild(o);
+  });
+  renderDashboard();
+}
+
+function onLogTLChange() {
+  const tl   = document.getElementById('logFilterTL').value;
+  const agEl = document.getElementById('logFilterAgent');
+  agEl.innerHTML = '<option value="">All</option>';
+  getAgentsForTL(tl).sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => {
+    const o=document.createElement('option');o.value=a.name;o.textContent=a.name;agEl.appendChild(o);
+  });
+  renderLogTable();
+}
+
+function clearFilters() {
+  document.getElementById('filterWK').value = '';
+  document.getElementById('filterCluster').value = '';
+  document.getElementById('filterAgent').innerHTML = '<option value="">All Agents</option>';
+  populateFilterTLs(); // no cluster = show all TLs
+  renderDashboard();
+}
+
+function clearLogFilters() {
+  document.getElementById('logFilterWK').value = '';
+  document.getElementById('logFilterTL').value = '';
+  document.getElementById('logFilterAgent').innerHTML = '<option value="">All</option>';
+  renderLogTable();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// FILTER ENTRIES
+// ══════════════════════════════════════════════════════════════════════════
+function getVisibleEntries() {
+  // Role-based visibility
+  if (currentUser.role === 'Agent') {
+    const agentName = ROSTER.find(a=>a.email===currentUser.email)?.name || currentUser.display;
+    return entries.filter(e => e.agentName === agentName);
+  }
+  if (currentUser.role === 'TL') {
+    return entries.filter(e => e.teamLead === currentUser.tlInfo.display);
+  }
+  if (currentUser.role === 'OM') {
+    const clusterTLNames = Object.values(TL_EMAILS)
+      .filter(t=>t.cluster===currentUser.omInfo.cluster)
+      .map(t=>t.display);
+    return entries.filter(e => clusterTLNames.includes(e.teamLead));
+  }
+  return entries; // Admin sees all
+}
+
+function applyDashFilters(list) {
+  const wk = document.getElementById('filterWK')?.value || '';
+  const tl = document.getElementById('filterTL')?.value || '';
+  const ag = document.getElementById('filterAgent')?.value || '';
+  const cl = document.getElementById('filterCluster')?.value || '';
+  return list.filter(e => {
+    if (wk && e.wkNumber !== wk) return false;
+    if (tl && e.teamLead !== tl) return false;
+    if (ag && e.agentName !== ag) return false;
+    if (cl) {
+      const tlEntry = Object.values(TL_EMAILS).find(t=>t.display===e.teamLead);
+      if (!tlEntry || tlEntry.cluster !== cl) return false;
+    }
+    return true;
+  });
+}
+
+function applyLogFilters(list) {
+  const wk = document.getElementById('logFilterWK')?.value || '';
+  const tl = document.getElementById('logFilterTL')?.value || '';
+  const ag = document.getElementById('logFilterAgent')?.value || '';
+  return list.filter(e => {
+    if (wk && e.wkNumber !== wk) return false;
+    if (tl && e.teamLead !== tl) return false;
+    if (ag && e.agentName !== ag) return false;
+    return true;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════════════════════════
+function renderDashboard() {
+  const filtered = applyDashFilters(getVisibleEntries());
+  const wkSel = document.getElementById('filterWK').value;
+
+  // Stats
+  let wkEntries = wkSel ? filtered.filter(e=>e.wkNumber===wkSel) : filtered;
+  // If no WK filter, group by WK and show latest week stats
+  if (!wkSel && filtered.length > 0) {
+    const wks = [...new Set(filtered.map(e=>e.wkNumber))].sort();
+    const latestWK = wks[wks.length-1];
+    wkEntries = filtered.filter(e=>e.wkNumber===latestWK);
+  }
+
+  document.getElementById('statCount').textContent = wkEntries.length;
+
+  const tcrVals = wkEntries.filter(e=>e.avgTCR!=null).map(e=>parseFloat(e.avgTCR));
+  const csrVals = wkEntries.filter(e=>e.avgCSR!=null).map(e=>parseFloat(e.avgCSR));
+  const cvrVals = wkEntries.filter(e=>e.avgCVR!=null).map(e=>parseFloat(e.avgCVR));
+
+  document.getElementById('statTCR').textContent = tcrVals.length ? (tcrVals.reduce((a,b)=>a+b,0)/tcrVals.length).toFixed(1)+'%' : '—';
+  document.getElementById('statCSR').textContent = csrVals.length ? (csrVals.reduce((a,b)=>a+b,0)/csrVals.length).toFixed(1)+'%' : '—';
+  document.getElementById('statCVR').textContent = cvrVals.length ? (cvrVals.reduce((a,b)=>a+b,0)/cvrVals.length).toFixed(1)+'%' : '—';
+
+  renderTable('dashTableBody', filtered.slice(0,50));
+}
+
+function renderLogTable() {
+  const filtered = applyLogFilters(getVisibleEntries());
+  renderTable('logTableBody', filtered, true);
+}
+
+function renderTable(tbodyId, list, showType=false) {
+  const tbody = document.getElementById(tbodyId);
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No coaching entries found.</td></tr>`;
+    return;
+  }
+  const canDelete = ['TL','OM','Admin'].includes(currentUser.role);
+  const canEdit   = ['TL','OM','Admin'].includes(currentUser.role);
+  tbody.innerHTML = list.map((e, idx) => {
+    const statusBadge = getStatusBadge(getCommitmentStatus(e));
+    const dateStr = e.dateOfCoaching ? e.dateOfCoaching : '—';
+    const col5    = showType ? (e.coachingType||'—') : truncate(e.highlights||'—', 30);
+    const col6    = showType ? truncate(e.highlights||'—',28) : truncate(e.opportunities||'—',28);
+    const limiter = e.limiter ? (e.limiter.length>22 ? e.limiter.substring(0,22)+'…' : e.limiter) : '—';
+    return `<tr>
+      <td>${dateStr}</td>
+      <td>${e.wkNumber||'—'}</td>
+      <td title="${esc(e.agentName||'')}"><a href="#" onclick="openCommitmentView('${e.id}');return false;" style="color:#1565c0;text-decoration:underline;font-weight:600;cursor:pointer">${truncate(e.agentName||'—',22)}</a></td>
+      <td>${e.teamLead||'—'}</td>
+      <td title="${esc(col5)}">${truncate(col5,28)}</td>
+      <td title="${esc(col6)}">${col6}</td>
+      <td title="${esc(e.limiter||'')}">${limiter}</td>
+      <td>${e.followUpDate||'—'}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-sm btn-view" onclick="viewEntry('${e.id}')">View</button>
+          ${canEdit?`<button class="btn-sm btn-edit" onclick="editEntry('${e.id}')">Edit</button>`:''}
+          ${canDelete?`<button class="btn-sm btn-del" onclick="deleteEntry('${e.id}')">Delete</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function getCommitmentStatus(e) {
+  if (!e.star || !e.star.status) return e.coachingStatus || 'Pending';
+  return e.star.status;
+}
+
+function getStatusBadge(status) {
+  if (!status) return '<span class="badge badge-gray">—</span>';
+  if (status === 'On Track') return `<span class="badge badge-green">${status}</span>`;
+  if (status === 'Needs Monitoring') return `<span class="badge badge-yellow">${status}</span>`;
+  if (status.includes('Escalated')) return `<span class="badge badge-red">${status}</span>`;
+  if (status.includes('Resolved')) return `<span class="badge badge-blue">${status}</span>`;
+  if (status === 'Completed') return `<span class="badge badge-green">${status}</span>`;
+  if (status === 'In Progress') return `<span class="badge badge-yellow">${status}</span>`;
+  if (status === 'Not Met') return `<span class="badge badge-red">${status}</span>`;
+  if (status === 'Pending') return `<span class="badge badge-gray">${status}</span>`;
+  return `<span class="badge badge-gray">${status}</span>`;
+}
+
+function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s}
+function esc(s){return (s||'').replace(/"/g,'&quot;')}
+function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+
+// ══════════════════════════════════════════════════════════════════════════
+// FORM – OPEN / POPULATE
+// ══════════════════════════════════════════════════════════════════════════
+function openAddModal() {
+  document.getElementById('formModalTitle').textContent = 'New Coaching Log';
+  document.getElementById('editId').value = '';
+  clearForm();
+  // Pre-set cluster for TL/OM users
+  if (currentUser.role === 'TL') {
+    document.getElementById('fCluster').value = currentUser.tlInfo.cluster;
+  } else if (currentUser.role === 'OM') {
+    document.getElementById('fCluster').value = currentUser.omInfo.cluster;
+  }
+  populateFormTLs(document.getElementById('fCluster').value);
+  populateFormAgents();
+  openModal('formModal');
+}
+
+function editEntry(id) {
+  const e = entries.find(x=>x.id===id);
+  if (!e) return;
+  document.getElementById('formModalTitle').textContent = 'Edit Coaching Log';
+  document.getElementById('editId').value = id;
+  clearForm();
+  // Restore cluster from entry's TL
+  const tlEntry = Object.values(TL_EMAILS).find(t => t.display === e.teamLead);
+  if (tlEntry) document.getElementById('fCluster').value = tlEntry.cluster;
+  populateFormTLs(document.getElementById('fCluster').value);
+  populateFormAgents(e.teamLead);
+
+  // Fill fields
+  setVal('fCoachingType', e.coachingType);
+  setVal('fDate', e.dateOfCoaching);
+  setVal('fWK', e.wkNumber);
+  setVal('fTL', e.teamLead);
+  setVal('fAgent', e.agentName);
+  setVal('fHighlights', e.highlights);
+  setVal('fOpportunities', e.opportunities);
+  setVal('fKeyDiscussion', e.keyDiscussion);
+  setVal('fStrength', e.strength);
+  setVal('fAreas', e.areas);
+  setVal('fLimiter', e.limiter);
+  setVal('fFollowUp', e.followUpDate);
+  setVal('fActionPlan', e.actionPlan);
+  setVal('fReceptiveness', e.receptiveness);
+  setVal('fStatus', e.coachingStatus);
+  setVal('fRemarks', e.remarks);
+
+  // Focus areas checkboxes
+  document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb => {
+    cb.checked = (e.focusAreas||[]).includes(cb.value);
+  });
+
+  // Perf data
+  (e.perfData||[]).forEach((row,i)=>{
+    const n = i+1;
+    setVal('lt'+n, row.lt); setVal('cc'+n, row.cc); setVal('s'+n, row.s);
+  });
+  setVal('wk1CvrManual', e.wk1CvrManual||'');
+  setVal('wk2CvrManual', e.wk2CvrManual||'');
+  setVal('wk3CvrManual', e.wk3CvrManual||'');
+  setVal('wk4CvrManual', e.wk4CvrManual||'');
+  // avgCvrManual is auto-calculated — recalculates when calcPerf() runs below
+  calcPerf();
+
+  // Projection data
+  const proj = e.projection || {};
+  if (proj.focusOn) {
+    const radio = document.querySelector(`input[name="focusOn"][value="${proj.focusOn}"]`);
+    if (radio) radio.checked = true;
+  }
+  const leadsEl = document.getElementById('projTargetLeads');
+  leadsEl.value = proj.targetLeads || '';
+  if (proj.targetLeads) leadsEl.dataset.userEdited = '1';
+  else delete leadsEl.dataset.userEdited;
+  document.getElementById('projTargetTCR').value = proj.targetTCR || '';
+  document.getElementById('projTargetCSR').value = proj.targetCSR || '';
+  calcProjection();
+
+  calcTenure();
+  document.getElementById('tenureBadge').textContent = e.tenure || '—';
+  openModal('formModal');
+}
+
+function clearForm() {
+  ['fCoachingType','fDate','fWK','fCluster','fTL','fAgent','fHighlights','fOpportunities',
+   'fKeyDiscussion','fStrength','fAreas','fLimiter','fFollowUp','fActionPlan',
+   'fReceptiveness','fStatus','fRemarks'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb=>cb.checked=false);
+  for(let i=1;i<=4;i++){
+    ['lt','cc','s'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.value=''; });
+    ['tcr','csr','cvr'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.textContent='—'; });
+  }
+  ['avgLT','avgCC','avgS','avgTCR','avgCSR','avgCVR'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent='—';
+  });
+  // Clear projection
+  document.querySelectorAll('input[name="focusOn"]').forEach(r=>r.checked=false);
+  ['projTargetTCR','projTargetCSR','projTargetLeads'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.value=''; delete el.dataset.userEdited; }
+  });
+  ['projCurrTCR','projCurrLT','projCurrCC','projCurrCSR','projCurrSales',
+   'projTCRconnect','projTCRsales','projTCRcsrCell','projCSRtcrCell',
+   'projCSRleadsCell','projCSRconnectCell','projCSRsales'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent='—';
+  });
+  document.getElementById('tenureBadge').textContent='—';
+  document.getElementById('editId').value='';
+}
+
+function populateFormTLs(cluster) {
+  const el = document.getElementById('fTL');
+  const prev = el.value;
+  el.innerHTML = '<option value="">— Select TL —</option>';
+  let names = getTLsForUser();
+  if (cluster) {
+    const cSet = new Set(
+      Object.values(TL_EMAILS).filter(t => t.cluster === cluster).map(t => t.display)
+    );
+    names = names.filter(n => cSet.has(n));
+  }
+  names.forEach(name => {
+    const o=document.createElement('option');o.value=name;o.textContent=name;el.appendChild(o);
+  });
+  // Restore or pre-set
+  if (currentUser.role === 'TL') {
+    el.value = currentUser.tlInfo.display;
+  } else if (prev && names.includes(prev)) {
+    el.value = prev;
+  }
+  // Always use onchange (avoids stacking addEventListener on repeated modal opens)
+  el.onchange = onFormTLChange;
+}
+
+function onFormClusterChange() {
+  const cluster = document.getElementById('fCluster').value;
+  populateFormTLs(cluster);
+  populateFormAgents();  // reset agent list based on new TL selection
+}
+
+function onFormTLChange() {
+  populateFormAgents(document.getElementById('fTL').value);
+}
+
+function populateFormAgents(tlDisplay) {
+  const tl = tlDisplay !== undefined ? tlDisplay : document.getElementById('fTL').value;
+  const cluster = document.getElementById('fCluster').value;
+  const el = document.getElementById('fAgent');
+  const curVal = el.value;
+  el.innerHTML = '<option value="">— Select Agent —</option>';
+
+  let agentList;
+  if (currentUser.role === 'TL') {
+    agentList = getAgentsForTL(currentUser.tlInfo.display);
+  } else if (tl) {
+    agentList = getAgentsForTL(tl);
+  } else if (cluster) {
+    // No TL selected but cluster is — show all agents in cluster
+    agentList = ROSTER.filter(a => a.cluster === cluster);
+  } else {
+    agentList = ROSTER;
+  }
+
+  agentList.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => {
+    const o=document.createElement('option');o.value=a.name;o.textContent=a.name;el.appendChild(o);
+  });
+  if (curVal) el.value = curVal;
+}
+
+function onAgentSelect() {
+  calcTenure();
+}
+
+function calcTenure() {
+  const agentName = document.getElementById('fAgent').value;
+  const coachDate = document.getElementById('fDate').value;
+  const badge = document.getElementById('tenureBadge');
+  if (!agentName || !coachDate) { badge.textContent = '—'; return; }
+  const agent = ROSTER.find(a=>a.name===agentName);
+  if (!agent) { badge.textContent = '—'; return; }
+  const start = new Date(agent.startDate || agent.start);
+  const coach = new Date(coachDate);
+  const days = Math.floor((coach - start) / (1000*60*60*24));
+  const weeks = Math.floor(days / 7);
+  let tenure;
+  if (weeks < 3) tenure = '< 3w';
+  else if (weeks <= 4) tenure = '3-4w';
+  else if (weeks <= 6) tenure = '5-6w';
+  else if (weeks <= 10) tenure = '7-10w';
+  else tenure = '11+w';
+  badge.textContent = tenure;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PERF CALC
+// ══════════════════════════════════════════════════════════════════════════
+function calcPerf() {
+  let totalLT=0,totalCC=0,totalS=0,validRows=0;
+  for(let i=1;i<=4;i++){
+    const lt=parseFloat(document.getElementById('lt'+i).value)||0;
+    const cc=parseFloat(document.getElementById('cc'+i).value)||0;
+    const s=parseFloat(document.getElementById('s'+i).value)||0;
+    const tcr = lt>0 ? (cc/lt*100).toFixed(1)+'%' : '—';
+    const csr = cc>0 ? (s/cc*100).toFixed(1)+'%' : '—';
+    const cvr = lt>0 ? (s/lt*100).toFixed(1)+'%' : '—';
+    document.getElementById('tcr'+i).textContent=tcr;
+    document.getElementById('csr'+i).textContent=csr;
+    document.getElementById('cvr'+i).textContent=cvr;
+    if(lt||cc||s){totalLT+=lt;totalCC+=cc;totalS+=s;validRows++;}
+  }
+  document.getElementById('avgLT').textContent = validRows?totalLT:'—';
+  document.getElementById('avgCC').textContent = validRows?totalCC:'—';
+  document.getElementById('avgS').textContent = validRows?totalS:'—';
+  document.getElementById('avgTCR').textContent = validRows&&totalLT>0?(totalCC/totalLT*100).toFixed(1)+'%':'—';
+  document.getElementById('avgCSR').textContent = validRows&&totalCC>0?(totalS/totalCC*100).toFixed(1)+'%':'—';
+  document.getElementById('avgCVR').textContent = validRows&&totalLT>0?(totalS/totalLT*100).toFixed(1)+'%':'—';
+  // WK1 CVR% highlight (most recent week)
+  const wk1lt = parseFloat(document.getElementById('lt1').value)||0;
+  const wk1s  = parseFloat(document.getElementById('s1').value)||0;
+  const wk1cvr = wk1lt > 0 ? (wk1s/wk1lt*100).toFixed(1)+'%' : '—';
+  const wk1El = document.getElementById('wk1CvrHighlight');
+  if (wk1El) wk1El.textContent = wk1cvr;
+  // Avg CVR% (Manual) — auto average of whichever weeks have a value
+  const manualVals = [1,2,3,4]
+    .map(n => parseFloat(document.getElementById('wk'+n+'CvrManual')?.value))
+    .filter(v => !isNaN(v) && v !== null);
+  const avgCvrEl = document.getElementById('avgCvrManual');
+  if (avgCvrEl) avgCvrEl.textContent = manualVals.length ? (manualVals.reduce((a,b)=>a+b,0)/manualVals.length).toFixed(2)+'%' : '—';
+  updateProjectionCurrent();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PROJECTION CALC
+// ══════════════════════════════════════════════════════════════════════════
+function updateProjectionCurrent() {
+  const lt  = parseFloat(document.getElementById('avgLT').textContent)  || 0;
+  const cc  = parseFloat(document.getElementById('avgCC').textContent)  || 0;
+  const s   = parseFloat(document.getElementById('avgS').textContent)   || 0;
+  const tcr = lt > 0 ? (cc / lt * 100) : 0;
+  const csr = cc > 0 ? (s  / cc * 100) : 0;
+
+  document.getElementById('projCurrTCR').textContent   = lt ? tcr.toFixed(1)+'%' : '—';
+  document.getElementById('projCurrLT').textContent    = lt || '—';
+  document.getElementById('projCurrCC').textContent    = cc || '—';
+  document.getElementById('projCurrCSR').textContent   = cc ? csr.toFixed(1)+'%' : '—';
+  document.getElementById('projCurrSales').textContent = s  || '—';
+
+  // Auto-fill leads input only if user hasn't manually overridden it
+  const leadsEl = document.getElementById('projTargetLeads');
+  if (!leadsEl.dataset.userEdited) leadsEl.value = lt || '';
+
+  calcProjection();
+}
+
+function calcProjection() {
+  const lt  = parseFloat(document.getElementById('avgLT').textContent)  || 0;
+  const cc  = parseFloat(document.getElementById('avgCC').textContent)  || 0;
+  const s   = parseFloat(document.getElementById('avgS').textContent)   || 0;
+  const csrRate = cc > 0 ? (s / cc) : 0;
+  const tcrCurr = lt > 0 ? (cc / lt * 100) : 0;
+  const csrCurr = cc > 0 ? (s  / cc * 100) : 0;
+
+  const targetTCR   = parseFloat(document.getElementById('projTargetTCR').value);
+  const targetCSR   = parseFloat(document.getElementById('projTargetCSR').value);
+  const overrideLT  = parseFloat(document.getElementById('projTargetLeads').value);
+  const leadsTouch  = overrideLT > 0 ? overrideLT : lt;
+
+  // ─── TCR Lever column ───
+  // Always show current CSR in the CSR% cell (unchanged by this lever)
+  document.getElementById('projTCRcsrCell').textContent = cc ? csrCurr.toFixed(1)+'%' : '—';
+
+  if (!isNaN(targetTCR) && targetTCR > 0 && leadsTouch > 0) {
+    const newCC = (targetTCR / 100) * leadsTouch;
+    const newS  = csrRate * newCC;
+    document.getElementById('projTCRconnect').textContent = Math.round(newCC);
+    document.getElementById('projTCRsales').textContent   = newS.toFixed(1);
+  } else {
+    document.getElementById('projTCRconnect').textContent = '—';
+    document.getElementById('projTCRsales').textContent   = '—';
+  }
+
+  // ─── CSR Lever column ───
+  // Always show current TCR in TCR% cell (unchanged by this lever)
+  document.getElementById('projCSRtcrCell').textContent = lt ? tcrCurr.toFixed(1)+'%' : '—';
+  // Leads and connects don't change in CSR lever
+  document.getElementById('projCSRleadsCell').textContent  = lt || '—';
+  document.getElementById('projCSRconnectCell').textContent = cc || '—';
+
+  if (!isNaN(targetCSR) && targetCSR > 0 && cc > 0) {
+    document.getElementById('projCSRsales').textContent = ((targetCSR / 100) * cc).toFixed(1);
+  } else {
+    document.getElementById('projCSRsales').textContent = '—';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SHEETDB SYNC  (same service used by Phoenix Coaching Log)
+// ══════════════════════════════════════════════════════════════════════════
+// One SheetDB API for the whole sheet — tabs are targeted automatically
+const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/ixzx7y2t9qbfi';
+
+function syncToSheets(entry, type) {
+  if (!SHEETDB_API_URL) return;
+  const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
+  const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
+  fetch(SHEETDB_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ data: [data], sheet: tabName })
+  }).catch(err => console.warn('SheetDB sync error:', err));
+}
+
+function buildCoachingRow(e) {
+  const p = e.perfData || [];
+  const wkCols = (n) => {
+    const r = p[n-1] || {};
+    const lt = parseFloat(r.lt)||0, cc = parseFloat(r.cc)||0, s = parseFloat(r.s)||0;
+    return {
+      [`WK${n} LT`]: lt||'', [`WK${n} CC`]: cc||'', [`WK${n} Sales`]: s||'',
+      [`WK${n} TCR%`]: lt>0?(cc/lt*100).toFixed(1):'',
+      [`WK${n} CSR%`]: cc>0?(s/cc*100).toFixed(1):'',
+      [`WK${n} CVR%`]: lt>0?(s/lt*100).toFixed(1):''
+    };
+  };
+  const cluster = (Object.values(TL_EMAILS).find(t=>t.display===e.teamLead)||{}).cluster||'';
+  return {
+    'Entry ID': e.id||'',
+    'Date': e.dateOfCoaching,
+    'WK#': e.wkNumber,
+    'Cluster': cluster,
+    'Team Lead': e.teamLead,
+    'Agent': e.agentName,
+    'Coaching Type': e.coachingType,
+    'Tenure': e.tenure||'',
+    'Focus Areas': (e.focusAreas||[]).join(', '),
+    ...wkCols(1), ...wkCols(2), ...wkCols(3), ...wkCols(4),
+    'Avg TCR%': e.avgTCR||'',
+    'Avg CSR%': e.avgCSR||'',
+    'Avg CVR%': e.avgCVR||'',
+    'WK1 CVR% (Manual)': e.wk1CvrManual||'',
+    'WK2 CVR% (Manual)': e.wk2CvrManual||'',
+    'WK3 CVR% (Manual)': e.wk3CvrManual||'',
+    'WK4 CVR% (Manual)': e.wk4CvrManual||'',
+    'Avg CVR% (Manual)': e.avgCvrManual||'',
+    'Highlights': e.highlights||'',
+    'Opportunities': e.opportunities||'',
+    'Key Discussion': e.keyDiscussion||'',
+    'Strength': e.strength||'',
+    'Areas': e.areas||'',
+    'Limiter': e.limiter||'',
+    'Follow Up': e.followUpDate||'',
+    'Action Plan': e.actionPlan||'',
+    'Receptiveness': e.receptiveness||'',
+    'Status': e.coachingStatus||'',
+    'Remarks': e.remarks||'',
+    'Logged By': e.loggedBy||'',
+    'Updated At': e.updatedAt||'',
+    'Commitment Situation': e.star?.situation||'',
+    'Commitment Task': e.star?.task||'',
+    'Commitment Action': e.star?.action||'',
+    'Commitment Result': e.star?.result||'',
+    'Commitment Timeline': e.star?.timeline||'',
+    'Commitment Status': e.star?.status||''
+  };
+}
+
+function buildNTERow(n) {
+  return {
+    'Entry ID': n.id||'',
+    'Date Logged': n.dateLogged,
+    'WK#': n.wkNumber,
+    'Cluster': n.cluster,
+    'Team Lead': n.teamLead,
+    'Agent': n.agentName,
+    'NTE Type': n.nteType,
+    'NTE Link': n.nteLink,
+    'Logged By': n.loggedBy||'',
+    'Acknowledged': n.acknowledgement?.checked ? 'Yes' : 'No',
+    'Signature': n.acknowledgement?.signature||'',
+    'Acknowledged At': n.acknowledgement?.acknowledgedAt||'',
+    'Created At': n.createdAt||'',
+    'Updated At': n.updatedAt||''
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// CSV EXPORT
+// ══════════════════════════════════════════════════════════════════════════
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r =>
+    r.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')
+  ).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCoachingCSV() {
+  const visible = getVisibleEntries();
+  const cl = document.getElementById('filterCluster').value;
+  const tl = document.getElementById('filterTL').value;
+  const ag = document.getElementById('filterAgent').value;
+  const wk = document.getElementById('filterWK').value;
+  const filtered = visible.filter(e => {
+    const cluster = (Object.values(TL_EMAILS).find(t=>t.display===e.teamLead)||{}).cluster||'';
+    return (!cl||cluster===cl) && (!tl||e.teamLead===tl) && (!ag||e.agentName===ag) && (!wk||e.wkNumber===wk);
+  });
+  const headers = ['Date','WK#','Cluster','Team Lead','Agent','Coaching Type','Tenure',
+    'WK1 LT','WK1 CC','WK1 Sales','WK1 TCR%','WK1 CSR%','WK1 CVR%',
+    'WK2 LT','WK2 CC','WK2 Sales','WK2 TCR%','WK2 CSR%','WK2 CVR%',
+    'WK3 LT','WK3 CC','WK3 Sales','WK3 TCR%','WK3 CSR%','WK3 CVR%',
+    'WK4 LT','WK4 CC','WK4 Sales','WK4 TCR%','WK4 CSR%','WK4 CVR%',
+    'Avg TCR%','Avg CSR%','Avg CVR%',
+    'Highlights','Opportunities','Status','Focus Areas'];
+  const rows = filtered.map(e => {
+    const p = e.perfData || [];
+    const wkCols = (n) => {
+      const r = p[n-1]||{}; const lt=parseFloat(r.lt)||0, cc=parseFloat(r.cc)||0, s=parseFloat(r.s)||0;
+      return [lt||'', cc||'', s||'', lt>0?(cc/lt*100).toFixed(1):'', cc>0?(s/cc*100).toFixed(1):'', lt>0?(s/lt*100).toFixed(1):''];
+    };
+    const cluster = (Object.values(TL_EMAILS).find(t=>t.display===e.teamLead)||{}).cluster||'';
+    return [
+      e.dateOfCoaching, e.wkNumber, cluster, e.teamLead, e.agentName, e.coachingType, e.tenure||'',
+      ...wkCols(1), ...wkCols(2), ...wkCols(3), ...wkCols(4),
+      e.avgTCR||'', e.avgCSR||'', e.avgCVR||'',
+      e.highlights||'', e.opportunities||'', e.coachingStatus||'',
+      (e.focusAreas||[]).join('; ')
+    ];
+  });
+  downloadCSV([headers, ...rows], 'coaching-log-' + new Date().toISOString().slice(0,10) + '.csv');
+}
+
+function exportNTECSV() {
+  const visible = getVisibleNTEEntries();
+  const cl = document.getElementById('nteFilterCluster').value;
+  const tl = document.getElementById('nteFilterTL').value;
+  const ag = document.getElementById('nteFilterAgent').value;
+  const wk = document.getElementById('nteFilterWK').value;
+  const filtered = visible.filter(n =>
+    (!cl||n.cluster===cl) && (!tl||n.teamLead===tl) && (!ag||n.agentName===ag) && (!wk||n.wkNumber===wk)
+  );
+  const headers = ['Date Logged','WK#','Cluster','Team Lead','Agent','NTE Type','NTE Link',
+    'Logged By','Acknowledged','Signature','Acknowledged At'];
+  const rows = filtered.map(n => [
+    n.dateLogged, n.wkNumber, n.cluster, n.teamLead, n.agentName, n.nteType, n.nteLink,
+    n.loggedBy||'',
+    n.acknowledgement?.checked ? 'Yes' : 'No',
+    n.acknowledgement?.signature||'',
+    n.acknowledgement?.acknowledgedAt||''
+  ]);
+  downloadCSV([headers, ...rows], 'nte-log-' + new Date().toISOString().slice(0,10) + '.csv');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SAVE
+// ══════════════════════════════════════════════════════════════════════════
+function saveEntry() {
+  const req = ['fDate','fAgent','fTL'];
+  for(const id of req){
+    if(!document.getElementById(id).value){
+      alert('Please fill in all required fields (Date, Agent Name, Team Lead).'); return;
+    }
+  }
+
+  const perfData = [];
+  for(let i=1;i<=4;i++){
+    perfData.push({
+      lt: document.getElementById('lt'+i).value,
+      cc: document.getElementById('cc'+i).value,
+      s:  document.getElementById('s'+i).value,
+    });
+  }
+
+  const totalLT=perfData.reduce((a,r)=>a+(parseFloat(r.lt)||0),0);
+  const totalCC=perfData.reduce((a,r)=>a+(parseFloat(r.cc)||0),0);
+  const totalS =perfData.reduce((a,r)=>a+(parseFloat(r.s )||0),0);
+
+  const entry = {
+    id: document.getElementById('editId').value || crypto.randomUUID(),
+    coachingType: document.getElementById('fCoachingType').value,
+    dateOfCoaching: document.getElementById('fDate').value,
+    wkNumber: document.getElementById('fWK').value,
+    teamLead: document.getElementById('fTL').value,
+    agentName: document.getElementById('fAgent').value,
+    tenure: document.getElementById('tenureBadge').textContent,
+    focusAreas: [...document.querySelectorAll('#focusAreas input:checked')].map(c=>c.value),
+    highlights: document.getElementById('fHighlights').value,
+    opportunities: document.getElementById('fOpportunities').value,
+    keyDiscussion: document.getElementById('fKeyDiscussion').value,
+    strength: document.getElementById('fStrength').value,
+    areas: document.getElementById('fAreas').value,
+    limiter: document.getElementById('fLimiter').value,
+    followUpDate: document.getElementById('fFollowUp').value,
+    actionPlan: document.getElementById('fActionPlan').value,
+    receptiveness: document.getElementById('fReceptiveness').value,
+    coachingStatus: document.getElementById('fStatus').value,
+    remarks: document.getElementById('fRemarks').value,
+    perfData,
+    wk1CvrManual: document.getElementById('wk1CvrManual').value || '',
+    wk2CvrManual: document.getElementById('wk2CvrManual').value || '',
+    wk3CvrManual: document.getElementById('wk3CvrManual').value || '',
+    wk4CvrManual: document.getElementById('wk4CvrManual').value || '',
+    avgCvrManual: document.getElementById('avgCvrManual').textContent.replace('%','').trim() || '',
+    avgTCR: totalLT>0 ? (totalCC/totalLT*100).toFixed(1) : null,
+    avgCSR: totalCC>0 ? (totalS/totalCC*100).toFixed(1) : null,
+    avgCVR: totalLT>0 ? (totalS/totalLT*100).toFixed(1) : null,
+    projection: {
+      focusOn: (document.querySelector('input[name="focusOn"]:checked')||{}).value || null,
+      targetTCR: document.getElementById('projTargetTCR').value || null,
+      targetCSR: document.getElementById('projTargetCSR').value || null,
+      targetLeads: document.getElementById('projTargetLeads').value || null,
+    },
+    loggedBy: currentUser.email,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const idx = entries.findIndex(x=>x.id===entry.id);
+  if(idx>=0){
+    const existingStar = entries[idx].star;
+    entries[idx] = entry;
+    if(existingStar) entries[idx].star = existingStar; // preserve commitment
+  } else {
+    entries.unshift(entry);
+  }
+  saveEntries();
+  syncToSheets(entry, 'coaching');
+  closeModal('formModal');
+  renderDashboard();
+  renderLogTable();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// VIEW
+// ══════════════════════════════════════════════════════════════════════════
+function viewEntry(id) {
+  const e = entries.find(x=>x.id===id);
+  if (!e) return;
+  const perf = (e.perfData||[]).map((r,i)=>`
+    <tr>
+      <td>Week ${i+1}</td>
+      <td>${r.lt||'—'}</td><td>${r.cc||'—'}</td><td>${r.s||'—'}</td>
+      <td>${r.lt>0?(parseFloat(r.cc||0)/parseFloat(r.lt)*100).toFixed(1)+'%':'—'}</td>
+      <td>${r.cc>0?(parseFloat(r.s||0)/parseFloat(r.cc)*100).toFixed(1)+'%':'—'}</td>
+      <td>${r.lt>0?(parseFloat(r.s||0)/parseFloat(r.lt)*100).toFixed(1)+'%':'—'}</td>
+    </tr>`).join('');
+
+  document.getElementById('viewModalBody').innerHTML = `
+    <div class="info-row" style="margin-bottom:16px">
+      <span class="info-chip">📅 ${e.dateOfCoaching||'—'}</span>
+      <span class="info-chip">📋 ${e.wkNumber||'—'}</span>
+      <span class="info-chip">👤 ${e.agentName||'—'}</span>
+      <span class="info-chip">🏷️ ${e.teamLead||'—'}</span>
+      <span class="info-chip">⏱️ ${e.tenure||'—'}</span>
+      ${getStatusBadge(e.coachingStatus)}
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Coaching Type</label><div class="view-field">${e.coachingType||'—'}</div></div>
+      <div class="form-group"><label>Agent's Receptiveness</label><div class="view-field">${e.receptiveness||'—'}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Focus Areas</label>
+        <div class="view-field">${(e.focusAreas||[]).join(', ')||'—'}</div></div>
+      <div class="form-group"><label>Highlights</label><div class="view-field">${e.highlights||'—'}</div></div>
+      <div class="form-group"><label>Opportunities</label><div class="view-field">${e.opportunities||'—'}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Key Discussion</label><div class="view-field big">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Strength Identified</label><div class="view-field big">${(e.strength||'—').replace(/\n/g,'<br>')}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Areas of Improvement</label><div class="view-field big">${(e.areas||'—').replace(/\n/g,'<br>')}</div></div>
+    </div>
+    <div class="form-section">
+      <h4>4-Week Performance</h4>
+      <table class="perf-table">
+        <thead><tr><th>Week</th><th>Leads</th><th>Connected</th><th>Sales</th><th>TCR%</th><th>CSR%</th><th>CVR%</th></tr></thead>
+        <tbody>${perf}<tr style="font-weight:700;background:#fffbef">
+          <td>Avg</td>
+          <td>${e.perfData?.reduce((a,r)=>a+(parseFloat(r.lt)||0),0)||'—'}</td>
+          <td>${e.perfData?.reduce((a,r)=>a+(parseFloat(r.cc)||0),0)||'—'}</td>
+          <td>${e.perfData?.reduce((a,r)=>a+(parseFloat(r.s)||0),0)||'—'}</td>
+          <td>${e.avgTCR!=null?e.avgTCR+'%':'—'}</td>
+          <td>${e.avgCSR!=null?e.avgCSR+'%':'—'}</td>
+          <td>${e.avgCVR!=null?e.avgCVR+'%':'—'}</td>
+        </tr></tbody>
+      </table>
+    </div>
+    <div class="form-section">
+      <div class="form-grid">
+        <div class="form-group"><label>Primary Limiter</label><div class="view-field">${e.limiter||'—'}</div></div>
+        <div class="form-group"><label>Follow-up Date</label><div class="view-field">${e.followUpDate||'—'}</div></div>
+        <div class="form-group" style="grid-column:1/-1"><label>Action Plan / Next Steps</label><div class="view-field big">${(e.actionPlan||'—').replace(/\n/g,'<br>')}</div></div>
+        <div class="form-group" style="grid-column:1/-1"><label>Additional Remarks</label><div class="view-field big">${(e.remarks||'—').replace(/\n/g,'<br>')}</div></div>
+      </div>
+    </div>
+    <div style="font-size:.75rem;color:#aaa;margin-top:12px">Logged by: ${e.loggedBy||'—'} · ${e.updatedAt?new Date(e.updatedAt).toLocaleString():'—'}</div>
+  `;
+  openModal('viewModal');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════════════════════════════════════
+function deleteFromSheets(entryId, type) {
+  if (!SHEETDB_API_URL) return;
+  const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
+  fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/Entry ID/${encodeURIComponent(entryId)}`, {
+    method: 'DELETE',
+    headers: { 'Accept': 'application/json' }
+  }).catch(err => console.warn('SheetDB delete error:', err));
+}
+
+function deleteEntry(id) {
+  if (!confirm('Are you sure you want to delete this coaching log?')) return;
+  deleteFromSheets(id, 'coaching');
+  entries = entries.filter(x=>x.id!==id);
+  saveEntries();
+  renderDashboard();
+  renderLogTable();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modal on overlay click
+['formModal','viewModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e){
+    if(e.target===this) closeModal(id);
+  });
+});
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el && val !== undefined && val !== null) el.value = val;
+}
+
+// Keyboard: Escape closes modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['formModal','viewModal'].forEach(closeModal);
+    closeCommitmentModal();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// COMMITMENT VIEW (TABBED — Coaching Content + STAR Commitment)
+// ══════════════════════════════════════════════════════════════════════════
+let _commitmentEntryId = null;
+
+function openCommitmentView(entryId) {
+  const e = entries.find(x => String(x.id) === String(entryId));
+  if (!e) return;
+  _commitmentEntryId = entryId;
+  const star = e.star || {};
+
+  // ── Tab 1: Coaching Content ──────────────────────────────────────────
+  const perfRows = (e.perfData || []).map((p,i) => `
+    <tr>
+      <td style="padding:5px 8px;border:1px solid #ddd;font-weight:600">Week ${i+1}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.lt||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.cc||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.sales||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.tcr||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.csr||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.cvr||'—'}</td>
+    </tr>`).join('');
+
+  const tab1 = `
+    <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid #eee">
+      <div style="font-size:1.05rem;font-weight:800;margin-bottom:4px">${esc(e.agentName||'—')}</div>
+      <div style="font-size:.82rem;color:#666">${esc(e.teamLead||'—')} &nbsp;·&nbsp; ${e.dateOfCoaching||'—'} &nbsp;·&nbsp; ${e.wkNumber||'—'}</div>
+      ${e.coachingType ? `<div style="margin-top:6px"><span style="background:#fff3cd;border-radius:12px;padding:3px 10px;font-size:.78rem;font-weight:700">${esc(e.coachingType)}</span></div>` : ''}
+    </div>
+    <div class="coaching-detail-grid">
+      <div class="coaching-detail-item">
+        <div class="cd-label">⭐ Highlights</div>
+        <div class="cd-val">${(e.highlights||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item">
+        <div class="cd-label">🔧 Opportunities</div>
+        <div class="cd-val">${(e.opportunities||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item full">
+        <div class="cd-label">💬 Key Discussion Points</div>
+        <div class="cd-val">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item">
+        <div class="cd-label">💪 Strengths</div>
+        <div class="cd-val">${(e.strengths||e.strength||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item">
+        <div class="cd-label">📈 Areas for Improvement</div>
+        <div class="cd-val">${(e.areas||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item full">
+        <div class="cd-label">📋 Action Plan</div>
+        <div class="cd-val">${(e.actionPlan||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      ${e.limiter ? `<div class="coaching-detail-item" style="background:#fff8e1">
+        <div class="cd-label">⚠️ Primary Limiter</div>
+        <div class="cd-val">${esc(e.limiter)}</div>
+      </div>` : ''}
+      ${e.followUpDate ? `<div class="coaching-detail-item" style="background:#e3f2fd">
+        <div class="cd-label">📅 Follow-up Date</div>
+        <div class="cd-val">${e.followUpDate}</div>
+      </div>` : ''}
+      ${e.remarks ? `<div class="coaching-detail-item full">
+        <div class="cd-label">📝 Remarks</div>
+        <div class="cd-val">${(e.remarks||'—').replace(/\n/g,'<br>')}</div>
+      </div>` : ''}
+    </div>
+    ${perfRows ? `
+    <div style="margin-top:16px">
+      <div class="cd-label" style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:8px">📊 4-Week Trailing Performance</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <thead><tr style="background:#f5f5f5">
+            <th style="padding:5px 8px;border:1px solid #ddd;text-align:left">Week</th>
+            <th style="padding:5px 8px;border:1px solid #ddd">LT</th>
+            <th style="padding:5px 8px;border:1px solid #ddd">CC</th>
+            <th style="padding:5px 8px;border:1px solid #ddd">Sales</th>
+            <th style="padding:5px 8px;border:1px solid #ddd">TCR</th>
+            <th style="padding:5px 8px;border:1px solid #ddd">CSR</th>
+            <th style="padding:5px 8px;border:1px solid #ddd">CVR</th>
+          </tr></thead>
+          <tbody>${perfRows}</tbody>
+        </table>
+      </div>
+    </div>` : ''}
+  `;
+
+  // ── Tab 2: STAR Commitment (editable) ───────────────────────────────
+  const currentStatus = getCommitmentStatus(e);
+  const statusColor = currentStatus==='Completed'?'#388e3c':currentStatus==='In Progress'?'#f57c00':currentStatus==='Not Met'?'#d32f2f':'#888';
+
+  const tab2 = `
+    <div id="commitSaveMsg" style="display:none;margin-bottom:12px;background:#e8f5e9;border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:700;color:#388e3c">✅ Commitment submitted! Status updated to <strong>Completed</strong>.</div>
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:.78rem;color:#666">Current Status:</span>
+      <span id="commitStatusBadge" style="background:${statusColor};color:#fff;border-radius:12px;padding:3px 12px;font-size:.78rem;font-weight:700">${currentStatus}</span>
+    </div>
+    <div class="star-field">
+      <label>📍 Situation — What is the current performance situation?</label>
+      <textarea id="cSituation" rows="3" placeholder="Describe the current situation...">${esc(star.situation||'')}</textarea>
+    </div>
+    <div class="star-field">
+      <label>🎯 Task — What is the goal or target to achieve?</label>
+      <textarea id="cTask" rows="3" placeholder="Describe the task or goal...">${esc(star.task||'')}</textarea>
+    </div>
+    <div class="star-field">
+      <label>⚡ Action — What specific actions will you take?</label>
+      <textarea id="cAction" rows="3" placeholder="List the actions you commit to...">${esc(star.action||'')}</textarea>
+    </div>
+    <div class="star-field">
+      <label>✅ Result — What measurable result do you commit to?</label>
+      <textarea id="cResult" rows="3" placeholder="Define the expected result...">${esc(star.result||'')}</textarea>
+    </div>
+    <div class="star-field">
+      <label>📅 Timeline — Target completion date</label>
+      <input type="date" id="cTimeline" value="${star.timeline||''}">
+    </div>
+    <div style="margin-top:18px;text-align:right">
+      <button class="btn-primary" style="width:auto;padding:10px 32px" onclick="saveCommitment('${entryId}')">💾 Submit Commitment</button>
+    </div>
+  `;
+
+  // ── Build modal body with tabs ───────────────────────────────────────
+  document.getElementById('agentModalName').textContent = e.agentName || '—';
+  document.getElementById('agentTab1Content').innerHTML = tab1;
+  document.getElementById('agentTab2Content').innerHTML = tab2;
+  switchAgentTab(1);
+  document.getElementById('agentCommitmentModal').classList.add('open');
+}
+
+function switchAgentTab(n) {
+  document.querySelectorAll('.agent-tab').forEach((t,i) => t.classList.toggle('active', i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i+1===n));
+}
+
+function saveCommitment(entryId) {
+  const e = entries.find(x => String(x.id) === String(entryId));
+  if (!e) return;
+  e.star = {
+    situation : (document.getElementById('cSituation')||{}).value?.trim() || '',
+    task      : (document.getElementById('cTask')||{}).value?.trim() || '',
+    action    : (document.getElementById('cAction')||{}).value?.trim() || '',
+    result    : (document.getElementById('cResult')||{}).value?.trim() || '',
+    timeline  : (document.getElementById('cTimeline')||{}).value || '',
+    status    : 'Completed'   // submitting commitment always marks as Completed
+  };
+  saveEntries();
+  renderDashboard();
+  renderLogTable();
+  // Sync commitment to Google Sheet — PATCH the existing row by Entry ID
+  if (SHEETDB_API_URL && e.id) {
+    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/Entry ID/${encodeURIComponent(e.id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ data: {
+        'Commitment Situation': e.star.situation,
+        'Commitment Task'     : e.star.task,
+        'Commitment Action'   : e.star.action,
+        'Commitment Result'   : e.star.result,
+        'Commitment Timeline' : e.star.timeline,
+        'Commitment Status'   : e.star.status
+      }})
+    }).catch(err => console.warn('SheetDB commitment sync error:', err));
+  }
+  // update the live status badge inside the modal
+  const badge = document.getElementById('commitStatusBadge');
+  if (badge) { badge.textContent='Completed'; badge.style.background='#388e3c'; }
+  const msg = document.getElementById('commitSaveMsg');
+  if (msg) { msg.style.display='block'; setTimeout(()=>{ msg.style.display='none'; },4000); }
+}
+
+function closeAgentCommitmentModal() {
+  document.getElementById('agentCommitmentModal').classList.remove('open');
+}
+
+// keep old alias in case referenced elsewhere
+function closeCommitmentModal() { closeAgentCommitmentModal(); }
+
+// ══════════════════════════════════════════════════════════════════════════
+// NTE MODULE
+// ══════════════════════════════════════════════════════════════════════════
+
+let nteEntries = [];
+
+function loadNTEEntries() {
+  try { nteEntries = JSON.parse(localStorage.getItem('apexNTELogs') || '[]'); }
+  catch(e) { nteEntries = []; }
+}
+
+function saveNTEEntries() {
+  localStorage.setItem('apexNTELogs', JSON.stringify(nteEntries));
+}
+
+function getNTEStatus(n) {
+  return (n.acknowledgement && n.acknowledgement.checked) ? 'Completed' : 'Pending';
+}
+
+// ── NTE Filter helpers ──────────────────────────────────────────────────
+
+function populateNTEFilterTLs(cluster) {
+  buildTLOptions('nteFilterTL', getTLsForUser(cluster), 'All TLs');
+}
+
+function onNTEClusterChange() {
+  const cluster  = document.getElementById('nteFilterCluster').value;
+
+  // Rebuild TL dropdown via central function (role + cluster aware)
+  populateNTEFilterTLs(cluster);
+  document.getElementById('nteFilterTL').value = '';
+
+  // Rebuild Agent dropdown filtered by cluster (and scoped to user's visible agents)
+  const agentSel = document.getElementById('nteFilterAgent');
+  agentSel.innerHTML = '<option value="">All Agents</option>';
+  let agentPool = ROSTER;
+  if (cluster) {
+    agentPool = ROSTER.filter(a => {
+      const tl = Object.values(TL_EMAILS).find(t => t.fullName === a.manager);
+      return tl && tl.cluster === cluster;
+    });
+  }
+  // OM: further limit to their cluster agents
+  if (currentUser.role === 'OM') {
+    agentPool = agentPool.filter(a => a.cluster === currentUser.omInfo.cluster);
+  }
+  agentPool.sort((x,y)=>x.name.localeCompare(y.name)).forEach(a => {
+    const o = document.createElement('option');
+    o.value = a.name; o.textContent = a.name;
+    agentSel.appendChild(o);
+  });
+
+  renderNTETable();
+}
+
+function onNTETLChange() {
+  const tl = document.getElementById('nteFilterTL').value;
+  const agentSel = document.getElementById('nteFilterAgent');
+  agentSel.innerHTML = '<option value="">All Agents</option>';
+  const agents = tl ? getAgentsForTL(tl) : ROSTER;
+  agents.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a.name; o.textContent = a.name;
+    agentSel.appendChild(o);
+  });
+  renderNTETable();
+}
+
+function clearNTEFilters() {
+  document.getElementById('nteFilterWK').value      = '';
+  document.getElementById('nteFilterCluster').value = '';
+  populateNTEFilterTLs();
+  document.getElementById('nteFilterTL').value      = '';
+  document.getElementById('nteFilterAgent').innerHTML = '<option value="">All Agents</option>';
+  ROSTER.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a.name; o.textContent = a.name;
+    document.getElementById('nteFilterAgent').appendChild(o);
+  });
+  renderNTETable();
+}
+
+function getVisibleNTEEntries() {
+  if (currentUser.role === 'Agent') {
+    return nteEntries.filter(n => n.agentName === currentUser.display);
+  }
+  if (currentUser.role === 'TL') {
+    const tl = currentUser.tlInfo.display;
+    return nteEntries.filter(n => n.teamLead === tl);
+  }
+  if (currentUser.role === 'OM') {
+    const cluster = currentUser.omInfo.cluster;
+    return nteEntries.filter(n => n.cluster === cluster);
+  }
+  return nteEntries; // Admin
+}
+
+function applyNTEFilters(list) {
+  const wk      = document.getElementById('nteFilterWK')?.value || '';
+  const cluster = document.getElementById('nteFilterCluster')?.value || '';
+  const tl      = document.getElementById('nteFilterTL')?.value || '';
+  const agent   = document.getElementById('nteFilterAgent')?.value || '';
+  return list.filter(n => {
+    if (wk      && n.wkNumber  !== wk)      return false;
+    if (cluster && n.cluster   !== cluster)  return false;
+    if (tl      && n.teamLead  !== tl)       return false;
+    if (agent   && n.agentName !== agent)    return false;
+    return true;
+  });
+}
+
+// ── NTE Table Render ────────────────────────────────────────────────────
+
+function renderNTETable() {
+  const body = document.getElementById('nteTableBody');
+  if (!body) return;
+  const visible  = getVisibleNTEEntries();
+  const filtered = applyNTEFilters(visible);
+
+  if (!filtered.length) {
+    body.innerHTML = '<tr><td colspan="8" class="empty-state">No NTE entries found.</td></tr>';
+    return;
+  }
+
+  const canEdit = ['TL','OM','Admin'].includes(currentUser.role);
+  const rows = filtered.map(n => {
+    const status   = getNTEStatus(n);
+    const badgeCls = status === 'Completed' ? 'badge-green' : 'badge-yellow';
+    const link     = n.nteLink
+      ? `<a href="${escHtml(n.nteLink)}" target="_blank" rel="noopener" style="color:#1565c0;text-decoration:none;font-weight:600">📄 View</a>`
+      : '—';
+    const editBtns = canEdit
+      ? `<button class="btn-sm btn-edit" onclick="editNTE('${n.id}')">Edit</button>
+         <button class="btn-sm btn-del"  onclick="deleteNTE('${n.id}')">Delete</button>`
+      : '';
+    return `
+      <tr>
+        <td>${escHtml(n.dateLogged)}</td>
+        <td>${escHtml(n.wkNumber)}</td>
+        <td><a href="#" onclick="openNTEAck('${n.id}');return false;" style="color:#1565c0;text-decoration:underline;font-weight:600;cursor:pointer">${escHtml(n.agentName)}</a></td>
+        <td>${escHtml(n.teamLead)}</td>
+        <td>${link}</td>
+        <td>${escHtml(n.nteType)}</td>
+        <td><span class="badge ${badgeCls}">${status}</span></td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-sm btn-view" onclick="viewNTE('${n.id}')">View</button>
+            ${editBtns}
+          </div>
+        </td>
+      </tr>`;
+  });
+  body.innerHTML = rows.join('');
+}
+
+// ── NTE CRUD ────────────────────────────────────────────────────────────
+
+function openNTEForm(id) {
+  document.getElementById('nteFormError').style.display = 'none';
+  document.getElementById('nteFormTitle').textContent = id ? 'Edit NTE Entry' : 'New NTE Entry';
+  document.getElementById('nteEditId').value = id || '';
+
+  if (id) {
+    const n = nteEntries.find(x => x.id === id);
+    if (!n) return;
+    document.getElementById('nteFDate').value    = n.dateLogged;
+    document.getElementById('nteFWK').value      = n.wkNumber;
+    document.getElementById('nteFCluster').value = n.cluster;
+    onNTEFormClusterChange();
+    document.getElementById('nteFTL').value      = n.teamLead;
+    onNTEFormTLChange();
+    document.getElementById('nteFAgent').value   = n.agentName;
+    document.getElementById('nteFType').value    = n.nteType;
+    document.getElementById('nteFLink').value    = n.nteLink;
+  } else {
+    document.getElementById('nteFDate').value    = new Date().toISOString().slice(0,10);
+    document.getElementById('nteFWK').value      = '';
+    // Pre-select cluster/TL for TL users
+    if (currentUser.role === 'TL') {
+      document.getElementById('nteFCluster').value = currentUser.tlInfo.cluster;
+      onNTEFormClusterChange();
+      document.getElementById('nteFTL').value = currentUser.tlInfo.display;
+      onNTEFormTLChange();
+    } else {
+      document.getElementById('nteFCluster').value = '';
+      document.getElementById('nteFTL').innerHTML = '<option value="">— Select TL —</option>';
+      document.getElementById('nteFAgent').innerHTML = '<option value="">— Select Agent —</option>';
+    }
+    document.getElementById('nteFType').value    = '';
+    document.getElementById('nteFLink').value    = '';
+  }
+
+  document.getElementById('nteFormModal').classList.add('open');
+}
+
+function closeNTEForm() {
+  document.getElementById('nteFormModal').classList.remove('open');
+}
+
+function onNTEFormClusterChange() {
+  const cluster = document.getElementById('nteFCluster').value;
+  const tlSel   = document.getElementById('nteFTL');
+  tlSel.innerHTML = '<option value="">— Select TL —</option>';
+  document.getElementById('nteFAgent').innerHTML = '<option value="">— Select Agent —</option>';
+  if (!cluster) return;
+  const tls = Object.values(TL_EMAILS)
+    .filter(t => t.cluster === cluster)
+    .map(t => t.display)
+    .filter((v,i,a)=>a.indexOf(v)===i).sort();
+  tls.forEach(name => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    tlSel.appendChild(o);
+  });
+}
+
+function onNTEFormTLChange() {
+  const tl       = document.getElementById('nteFTL').value;
+  const agentSel = document.getElementById('nteFAgent');
+  agentSel.innerHTML = '<option value="">— Select Agent —</option>';
+  if (!tl) return;
+  const agents = getAgentsForTL(tl);
+  agents.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a.name; o.textContent = a.name;
+    agentSel.appendChild(o);
+  });
+}
+
+function saveNTE() {
+  const errEl = document.getElementById('nteFormError');
+  errEl.style.display = 'none';
+
+  const dateLogged = document.getElementById('nteFDate').value;
+  const wkNumber   = document.getElementById('nteFWK').value;
+  const cluster    = document.getElementById('nteFCluster').value;
+  const teamLead   = document.getElementById('nteFTL').value;
+  const agentName  = document.getElementById('nteFAgent').value;
+  const nteType    = document.getElementById('nteFType').value;
+  const nteLink    = document.getElementById('nteFLink').value.trim();
+
+  if (!dateLogged || !wkNumber || !cluster || !teamLead || !agentName || !nteType || !nteLink) {
+    errEl.textContent = 'Please fill in all required fields.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const editId = document.getElementById('nteEditId').value;
+  const now    = new Date().toISOString();
+
+  if (editId) {
+    const idx = nteEntries.findIndex(x => x.id === editId);
+    if (idx >= 0) {
+      const existing = nteEntries[idx];
+      nteEntries[idx] = { ...existing, dateLogged, wkNumber, cluster, teamLead, agentName, nteType, nteLink, updatedAt: now };
+    }
+  } else {
+    nteEntries.unshift({
+      id: crypto.randomUUID(),
+      dateLogged, wkNumber, cluster, teamLead, agentName, nteType, nteLink,
+      loggedBy: currentUser.email,
+      createdAt: now,
+      updatedAt: now,
+      acknowledgement: { checked: false, signature: '', acknowledgedAt: '' }
+    });
+  }
+
+  saveNTEEntries();
+  // sync the saved entry (look it up so we get the full object including id/createdAt)
+  const savedNTE = nteEntries.find(x => x.dateLogged===dateLogged && x.teamLead===teamLead && x.agentName===agentName && x.nteLink===nteLink);
+  if (savedNTE) syncToSheets(savedNTE, 'nte');
+  closeNTEForm();
+  renderNTETable();
+}
+
+function viewNTE(id) {
+  const n = nteEntries.find(x => x.id === id);
+  if (!n) return;
+  const status   = getNTEStatus(n);
+  const badgeCls = status === 'Completed' ? 'badge-green' : 'badge-yellow';
+  const ack      = n.acknowledgement || {};
+  const ackSection = status === 'Completed'
+    ? `<div style="margin-top:20px;padding:14px;background:#e8f5e9;border-radius:8px;border:1.5px solid #a5d6a7">
+         <div style="font-weight:800;color:#2e7d32;margin-bottom:6px">✅ Acknowledged</div>
+         <div style="font-size:.85rem;color:#388e3c">Signed on: ${ack.acknowledgedAt ? new Date(ack.acknowledgedAt).toLocaleString() : '—'}</div>
+         ${ack.signature ? `<div style="margin-top:10px"><img src="${ack.signature}" style="max-width:100%;border:1px solid #ccc;border-radius:6px" alt="Signature"/></div>` : ''}
+       </div>`
+    : `<div style="margin-top:20px;padding:14px;background:#fff8e1;border-radius:8px;border:1.5px solid #ffe082">
+         <div style="font-weight:700;color:#f57f17">⏳ Awaiting Agent Acknowledgement</div>
+       </div>`;
+  document.getElementById('nteViewBody').innerHTML = `
+    <div class="coaching-detail-grid">
+      <div class="coaching-detail-item"><div class="cd-label">Date</div><div class="cd-val">${escHtml(n.dateLogged)}</div></div>
+      <div class="coaching-detail-item"><div class="cd-label">WK #</div><div class="cd-val">${escHtml(n.wkNumber)}</div></div>
+      <div class="coaching-detail-item"><div class="cd-label">Cluster</div><div class="cd-val">${escHtml(n.cluster)}</div></div>
+      <div class="coaching-detail-item"><div class="cd-label">Team Lead</div><div class="cd-val">${escHtml(n.teamLead)}</div></div>
+      <div class="coaching-detail-item full"><div class="cd-label">Agent Name</div><div class="cd-val">${escHtml(n.agentName)}</div></div>
+      <div class="coaching-detail-item"><div class="cd-label">NTE Type</div><div class="cd-val">${escHtml(n.nteType)}</div></div>
+      <div class="coaching-detail-item"><div class="cd-label">Status</div><div class="cd-val"><span class="badge ${badgeCls}">${status}</span></div></div>
+      <div class="coaching-detail-item full"><div class="cd-label">NTE Document</div><div class="cd-val"><a href="${escHtml(n.nteLink)}" target="_blank" rel="noopener" style="color:#1565c0;font-weight:600">📄 Open NTE Document</a></div></div>
+    </div>
+    ${ackSection}`;
+  document.getElementById('nteViewModal').classList.add('open');
+}
+
+function editNTE(id) {
+  closeModal('nteViewModal');
+  openNTEForm(id);
+}
+
+function deleteNTE(id) {
+  if (!confirm('Delete this NTE entry? This action cannot be undone.')) return;
+  deleteFromSheets(id, 'nte');
+  nteEntries = nteEntries.filter(x => x.id !== id);
+  saveNTEEntries();
+  renderNTETable();
+}
+
+// ── NTE Acknowledgement Modal ───────────────────────────────────────────
+
+let _nteAckCanvas = null;
+let _nteAckDrawing = false;
+let _nteAckLastX = 0;
+let _nteAckLastY = 0;
+
+function openNTEAck(id) {
+  const n = nteEntries.find(x => x.id === id);
+  if (!n) return;
+  const ack        = n.acknowledgement || {};
+  const isComplete = ack.checked && ack.signature;
+  const status     = getNTEStatus(n);
+  const badgeCls   = status === 'Completed' ? 'badge-green' : 'badge-yellow';
+
+  // Build receipt content
+  const receiptHtml = `
+    <div style="background:#fffde7;border:1.5px solid var(--yellow);border-radius:8px;padding:18px;margin-bottom:20px">
+      <div style="font-weight:800;font-size:1rem;margin-bottom:12px;color:#111">📋 NTE Acknowledgement Receipt</div>
+      <div class="coaching-detail-grid" style="gap:10px">
+        <div class="coaching-detail-item"><div class="cd-label">Agent</div><div class="cd-val">${escHtml(n.agentName)}</div></div>
+        <div class="coaching-detail-item"><div class="cd-label">Team Lead</div><div class="cd-val">${escHtml(n.teamLead)}</div></div>
+        <div class="coaching-detail-item"><div class="cd-label">Date</div><div class="cd-val">${escHtml(n.dateLogged)}</div></div>
+        <div class="coaching-detail-item"><div class="cd-label">WK #</div><div class="cd-val">${escHtml(n.wkNumber)}</div></div>
+        <div class="coaching-detail-item full"><div class="cd-label">NTE Type</div><div class="cd-val">${escHtml(n.nteType)}</div></div>
+        <div class="coaching-detail-item full"><div class="cd-label">NTE Document</div><div class="cd-val"><a href="${escHtml(n.nteLink)}" target="_blank" rel="noopener" style="color:#1565c0;font-weight:600">📄 View NTE</a></div></div>
+        <div class="coaching-detail-item full"><div class="cd-label">Status</div><div class="cd-val"><span class="badge ${badgeCls}" id="nteAckStatusBadge">${status}</span></div></div>
+      </div>
+    </div>`;
+
+  let ackFormHtml = '';
+  if (isComplete) {
+    ackFormHtml = `
+      <div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:1.5rem;margin-bottom:8px">✅</div>
+        <div style="font-weight:800;color:#2e7d32;margin-bottom:6px">Already Acknowledged</div>
+        <div style="font-size:.85rem;color:#388e3c">Signed on ${new Date(ack.acknowledgedAt).toLocaleString()}</div>
+        ${ack.signature ? `<div style="margin-top:12px"><img src="${ack.signature}" style="max-width:100%;max-height:120px;border:1px solid #ccc;border-radius:6px" alt="Signature"/></div>` : ''}
+      </div>`;
+  } else {
+    ackFormHtml = `
+      <div style="margin-bottom:14px">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px;background:#f9f9f9;border-radius:8px;border:1.5px solid var(--border)">
+          <input type="checkbox" id="nteAckCheck" style="width:18px;height:18px;margin-top:1px;accent-color:var(--yellow);cursor:pointer" onchange="onNTEAckCheckChange()"/>
+          <span style="font-size:.88rem;line-height:1.5;color:#222">
+            I, <strong>${escHtml(n.agentName)}</strong>, acknowledge that I have read and understood the contents of this Notice to Explain (NTE) and that I have received a copy of this document.
+          </span>
+        </label>
+      </div>
+      <div id="nteAckSignSection" style="display:none">
+        <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:8px">Signature <span style="color:#d32f2f">*</span></div>
+        <div style="border:2px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;cursor:crosshair;position:relative">
+          <canvas id="nteAckCanvas" width="620" height="160" style="display:block;width:100%;touch-action:none"></canvas>
+        </div>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end">
+          <button onclick="clearNTEAckCanvas()" style="background:#f5f5f5;border:1px solid var(--border);border-radius:5px;padding:5px 14px;font-size:.82rem;font-weight:700;cursor:pointer">🗑 Clear Signature</button>
+        </div>
+        <div id="nteAckError" style="color:#d32f2f;font-size:.83rem;margin-top:8px;display:none"></div>
+        <div style="margin-top:16px;text-align:right">
+          <button class="btn-primary" style="width:auto;padding:10px 32px" onclick="saveNTEAck('${n.id}')">✅ Submit Acknowledgement</button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('nteAckBody').innerHTML = receiptHtml + ackFormHtml;
+  document.getElementById('nteAckModal').classList.add('open');
+
+  // Init canvas if shown
+  if (!isComplete) {
+    _nteAckCanvas = null;
+    requestAnimationFrame(() => { initNTEAckCanvas(); });
+  }
+}
+
+function onNTEAckCheckChange() {
+  const checked = document.getElementById('nteAckCheck').checked;
+  document.getElementById('nteAckSignSection').style.display = checked ? 'block' : 'none';
+  if (checked) {
+    requestAnimationFrame(() => { initNTEAckCanvas(); });
+  }
+}
+
+function initNTEAckCanvas() {
+  const canvas = document.getElementById('nteAckCanvas');
+  if (!canvas || _nteAckCanvas === canvas) return;
+  _nteAckCanvas = canvas;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth   = 2.2;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top)  * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top)  * scaleY
+    };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    _nteAckDrawing = true;
+    const p = getPos(e);
+    _nteAckLastX = p.x; _nteAckLastY = p.y;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  }
+  function draw(e) {
+    if (!_nteAckDrawing) return;
+    e.preventDefault();
+    const p = getPos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    _nteAckLastX = p.x; _nteAckLastY = p.y;
+  }
+  function stopDraw(e) { _nteAckDrawing = false; ctx.beginPath(); }
+
+  canvas.addEventListener('mousedown',  startDraw, {passive:false});
+  canvas.addEventListener('mousemove',  draw,      {passive:false});
+  canvas.addEventListener('mouseup',    stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+  canvas.addEventListener('touchstart', startDraw, {passive:false});
+  canvas.addEventListener('touchmove',  draw,      {passive:false});
+  canvas.addEventListener('touchend',   stopDraw);
+}
+
+function clearNTEAckCanvas() {
+  const canvas = document.getElementById('nteAckCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function isCanvasEmpty(canvas) {
+  const ctx  = canvas.getContext('2d');
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] > 0) return false;
+  }
+  return true;
+}
+
+function saveNTEAck(id) {
+  const errEl = document.getElementById('nteAckError');
+  if (errEl) errEl.style.display = 'none';
+
+  const check  = document.getElementById('nteAckCheck');
+  const canvas = document.getElementById('nteAckCanvas');
+
+  if (!check || !check.checked) {
+    if (errEl) { errEl.textContent = 'Please check the acknowledgement checkbox.'; errEl.style.display='block'; }
+    return;
+  }
+  if (!canvas || isCanvasEmpty(canvas)) {
+    if (errEl) { errEl.textContent = 'Please provide your signature before submitting.'; errEl.style.display='block'; }
+    return;
+  }
+
+  const signature = canvas.toDataURL('image/png');
+  const idx = nteEntries.findIndex(x => x.id === id);
+  if (idx < 0) return;
+
+  nteEntries[idx].acknowledgement = {
+    checked        : true,
+    signature      : signature,
+    acknowledgedAt : new Date().toISOString()
+  };
+  nteEntries[idx].updatedAt = new Date().toISOString();
+
+  saveNTEEntries();
+  renderNTETable();
+
+  // Update badge inside still-open modal
+  const badge = document.getElementById('nteAckStatusBadge');
+  if (badge) {
+    badge.textContent  = 'Completed';
+    badge.className    = 'badge badge-green';
+  }
+  // Replace form with success message
+  const signSection = document.getElementById('nteAckSignSection');
+  if (signSection) {
+    signSection.innerHTML = `
+      <div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:16px;text-align:center;margin-top:12px">
+        <div style="font-size:1.5rem;margin-bottom:6px">✅</div>
+        <div style="font-weight:800;color:#2e7d32">Acknowledgement Submitted!</div>
+        <div style="font-size:.85rem;color:#388e3c;margin-top:4px">Your signature has been saved.</div>
+      </div>`;
+  }
+  if (check) check.disabled = true;
+}
+</script>
+
+<!-- NTE FORM MODAL -->
+<div class="modal-overlay" id="nteFormModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3 id="nteFormTitle">New NTE Entry</h3>
+      <button class="modal-close" onclick="closeNTEForm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="nteEditId"/>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date <span class="required">*</span></label>
+          <input type="date" id="nteFDate"/>
+        </div>
+        <div class="form-group">
+          <label>WK # <span class="required">*</span></label>
+          <select id="nteFWK"><option value="">— Select WK # —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Cluster <span class="required">*</span></label>
+          <select id="nteFCluster" onchange="onNTEFormClusterChange()">
+            <option value="">— Select Cluster —</option>
+            <option>Jubee</option>
+            <option>Kendryck</option>
+            <option>Princess</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Team Lead <span class="required">*</span></label>
+          <select id="nteFTL" onchange="onNTEFormTLChange()"><option value="">— Select TL —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Agent Name <span class="required">*</span></label>
+          <select id="nteFAgent"><option value="">— Select Agent —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Type of NTE <span class="required">*</span></label>
+          <select id="nteFType">
+            <option value="">— Select Type —</option>
+            <option>Attendance</option>
+            <option>Adherence</option>
+            <option>Idle Time</option>
+            <option>Performance</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>NTE Link <span class="required">*</span></label>
+          <input type="url" id="nteFLink" placeholder="https://docs.google.com/..."/>
+        </div>
+      </div>
+      <div id="nteFormError" style="color:#d32f2f;font-size:.83rem;margin-top:8px;display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeNTEForm()">Cancel</button>
+      <button class="btn-primary" style="width:auto" onclick="saveNTE()">Save NTE</button>
+    </div>
+  </div>
+</div>
+
+<!-- NTE VIEW MODAL -->
+<div class="modal-overlay" id="nteViewModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3>📝 NTE Details</h3>
+      <button class="modal-close" onclick="closeModal('nteViewModal')">✕</button>
+    </div>
+    <div class="modal-body" id="nteViewBody"></div>
+    <div class="modal-footer">
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('nteViewModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- NTE ACKNOWLEDGEMENT MODAL -->
+<div class="modal-overlay" id="nteAckModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <h3>📋 NTE Acknowledgement Receipt</h3>
+      <button class="modal-close" onclick="closeModal('nteAckModal')">✕</button>
+    </div>
+    <div class="modal-body" id="nteAckBody"></div>
+    <div class="modal-footer">
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('nteAckModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT COMMITMENT MODAL (TABBED) -->
+<div class="modal-overlay" id="agentCommitmentModal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <h3 id="agentModalName" style="font-size:1.05rem">Agent Coaching &amp; Commitment</h3>
+      <button class="modal-close" onclick="closeAgentCommitmentModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:0">
+      <div class="agent-tabs">
+        <button class="agent-tab active" onclick="switchAgentTab(1)">📋 Coaching Content</button>
+        <button class="agent-tab" onclick="switchAgentTab(2)">⭐ My Commitment</button>
+      </div>
+      <div class="tab-panel active" id="agentTab1Content"></div>
+      <div class="tab-panel" id="agentTab2Content"></div>
+    </div>
+    <div class="modal-footer">
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeAgentCommitmentModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
