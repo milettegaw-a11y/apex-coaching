@@ -8,7 +8,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;min-height:100vh}
 :root{--yellow:#FFD600;--dark:#111;--light:#fff;--border:#ddd;--hover:#FFF8DC;--red:#d32f2f;--green:#388e3c}
-
+ 
 /* ── LOGIN ── */
 #loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f9f9f9}
 .login-card{background:#fff;border:2px solid var(--yellow);border-radius:12px;padding:48px 40px;width:420px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.10)}
@@ -23,7 +23,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;min-heig
 .error-msg{color:var(--red);font-size:.85rem;margin-bottom:12px;display:none}
 .apex-logo{display:flex;align-items:center;gap:10px;margin-bottom:20px}
 .apex-logo .logo-box{background:var(--yellow);border-radius:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem}
-
+ 
 /* ── MAIN APP ── */
 #app{display:none;flex-direction:column;min-height:100vh}
 header{background:var(--yellow);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.10);position:sticky;top:0;z-index:100}
@@ -31,14 +31,14 @@ header .brand{font-weight:900;font-size:1.15rem;color:var(--dark)}
 header .user-area{display:flex;align-items:center;gap:12px}
 header .user-badge{background:#fff;border-radius:20px;padding:4px 14px;font-size:.82rem;font-weight:600}
 header .btn-logout{background:var(--dark);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600}
-
+ 
 nav{background:#fff;border-bottom:2px solid var(--yellow);padding:0 24px;display:flex;gap:0}
 nav button{background:none;border:none;padding:14px 20px;font-size:.9rem;font-weight:600;cursor:pointer;color:#555;border-bottom:3px solid transparent;transition:all .2s}
 nav button.active{color:var(--dark);border-bottom-color:var(--yellow)}
 nav button:hover{color:var(--dark);background:var(--hover)}
-
+ 
 main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
-
+ 
 /* ── DASHBOARD ── */
 .dashboard-title{font-size:1.3rem;font-weight:800;margin-bottom:18px}
 .filter-bar{background:#f9f9f9;border:1.5px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px;align-items:flex-end}
@@ -46,19 +46,19 @@ main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
 .filter-bar select,.filter-bar input{padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem;min-width:150px;outline:none}
 .filter-bar select:focus,.filter-bar input:focus{border-color:var(--yellow)}
 .filter-btn{background:var(--yellow);border:none;border-radius:5px;padding:7px 16px;font-weight:700;font-size:.87rem;cursor:pointer}
-
+ 
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:26px}
 .stat-card{background:#fff;border:2px solid var(--yellow);border-radius:10px;padding:20px 24px}
 .stat-card .label{font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
 .stat-card .value{font-size:2rem;font-weight:900;color:var(--dark)}
 .stat-card .sublabel{font-size:.75rem;color:#888;margin-top:2px}
-
+ 
 /* ── TABLE ── */
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .section-header h2{font-size:1.1rem;font-weight:800}
 .btn-add{background:var(--yellow);border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer}
 .btn-add:hover{opacity:.88}
-
+ 
 .table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px}
 table{width:100%;border-collapse:collapse;font-size:.87rem}
 thead th{background:var(--yellow);color:var(--dark);padding:10px 12px;text-align:left;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
@@ -71,16 +71,16 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .badge-red{background:#ffebee;color:var(--red)}
 .badge-blue{background:#e3f2fd;color:#1565c0}
 .badge-gray{background:#f5f5f5;color:#555}
-
+ 
 .action-btns{display:flex;gap:6px}
 .btn-sm{padding:4px 10px;border-radius:4px;border:none;font-size:.77rem;font-weight:700;cursor:pointer;transition:opacity .2s}
 .btn-sm:hover{opacity:.8}
 .btn-view{background:#e3f2fd;color:#1565c0}
 .btn-edit{background:#fff8e1;color:#f57f17}
 .btn-del{background:#ffebee;color:var(--red)}
-
+ 
 .empty-state{text-align:center;padding:48px 20px;color:#aaa;font-size:.95rem}
-
+ 
 /* ── MODAL ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 .modal-overlay.open{display:flex}
@@ -90,7 +90,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;font-weight:700;line-height:1}
 .modal-body{padding:24px}
 .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-
+ 
 /* ── FORM ── */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .form-grid.full{grid-template-columns:1fr}
@@ -154,13 +154,13 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .view-field.big{min-height:60px}
 .info-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
 .info-chip{background:#f0f0f0;border-radius:4px;padding:2px 8px;font-size:.8rem;font-weight:600}
-
+ 
 @media(max-width:600px){
   .form-grid{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:1fr 1fr}
   main{padding:12px}
 }
-
+ 
 /* ── AGENT VIEW TABS ── */
 .agent-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px}
 .agent-tab{background:none;border:none;padding:10px 22px;font-size:.9rem;font-weight:600;cursor:pointer;color:#777;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
@@ -176,11 +176,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .coaching-detail-item.full{grid-column:1/-1}
 .coaching-detail-item .cd-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:5px}
 .coaching-detail-item .cd-val{font-size:.88rem;line-height:1.5;color:#222}
-
+ 
 /* ── BURGER / ROSTER ── */
 .btn-burger{background:var(--dark);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:1.1rem;cursor:pointer;font-weight:700;line-height:1;transition:opacity .2s}
 .btn-burger:hover{opacity:.8}
-
+ 
 .roster-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 .roster-overlay.open{display:flex}
 .roster-panel{background:#fff;border-radius:12px;width:100%;max-width:1000px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)}
@@ -202,7 +202,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .roster-table tbody tr:hover{background:var(--hover)}
 .roster-table td{padding:9px 12px;vertical-align:middle}
 .roster-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
-
+ 
 /* agent sub-modal inside roster */
 .agent-form-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1200;align-items:center;justify-content:center;padding:20px}
 .agent-form-overlay.open{display:flex}
@@ -213,7 +213,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 </style>
 </head>
 <body>
-
+ 
 <!-- ══════════════════════════════════ LOGIN ══════════════════════════════════ -->
 <div id="loginPage">
   <div class="login-card">
@@ -232,7 +232,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <button class="btn-primary" onclick="doLogin()">Sign In</button>
   </div>
 </div>
-
+ 
 <!-- ══════════════════════════════════ APP ══════════════════════════════════ -->
 <div id="app" style="display:none;flex-direction:column;min-height:100vh">
   <header>
@@ -314,7 +314,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         </table>
       </div>
     </div>
-
+ 
     <!-- COACHING LOG -->
     <div id="viewLog" style="display:none">
       <div class="section-header">
@@ -348,7 +348,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         </table>
       </div>
     </div>
-
+ 
     <!-- NTE DASHBOARD -->
     <div id="viewNTE" style="display:none">
       <div class="section-header">
@@ -393,7 +393,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </main>
 </div>
-
+ 
 <!-- ══════════════════════════════════ ADD/EDIT MODAL ══════════════════════════════════ -->
 <div class="modal-overlay" id="formModal">
   <div class="modal">
@@ -447,7 +447,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div><span class="tenure-badge" id="tenureBadge">—</span></div>
         </div>
       </div>
-
+ 
       <!-- FOCUS AREAS -->
       <div class="form-section">
         <h4>Focus Area(s)</h4>
@@ -460,7 +460,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <label><input type="checkbox" value="Overall Performance Review"> Overall Performance Review</label>
         </div>
       </div>
-
+ 
       <!-- 4-WEEK PERFORMANCE -->
       <div class="form-section">
         <h4>📊 4-Week Trailing Performance</h4>
@@ -537,7 +537,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
         </div>
       </div>
-
+ 
       <!-- PERFORMANCE PROJECTION -->
       <div class="form-section" id="projectionSection">
         <h4>🎯 Performance Projection</h4>
@@ -601,7 +601,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         </table>
         <p class="proj-footnote">💡 <em>Current column auto-fills from performance data above. Set a target TCR% to project connects &amp; sales; set a target CSR% to project sales impact. Target Leads auto-fills from your entry (override if needed).</em></p>
       </div>
-
+ 
       <!-- NOTES -->
       <div class="form-section">
         <h4>Coaching Notes</h4>
@@ -628,7 +628,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
         </div>
       </div>
-
+ 
       <!-- LIMITER & ACTION -->
       <div class="form-section">
         <h4>Action Plan</h4>
@@ -657,7 +657,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
         </div>
       </div>
-
+ 
       <!-- OUTCOME -->
       <div class="form-section">
         <h4>Coaching Outcome</h4>
@@ -695,7 +695,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
+ 
 <!-- ══════════════════════════════════ VIEW MODAL ══════════════════════════════════ -->
 <div class="modal-overlay" id="viewModal">
   <div class="modal">
@@ -709,7 +709,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
+ 
 <!-- ══════════════════════════════════ ROSTER MANAGER ══════════════════════════════════ -->
 <div class="roster-overlay" id="rosterOverlay">
   <div class="roster-panel">
@@ -757,7 +757,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
+ 
 <!-- Agent Add/Edit Sub-modal -->
 <div class="agent-form-overlay" id="agentFormOverlay">
   <div class="agent-form-panel">
@@ -798,12 +798,12 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
+ 
 <script>
 // ══════════════════════════════════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════════════════════════════════
-
+ 
 const TL_EMAILS = {
   // ── Jubee Cluster ──────────────────────────────────────────────────────
   'errollim@homeaglowsales.com':           {display:'TL Arielle', fullName:'Mark Errol Lim',         cluster:'Jubee'},
@@ -825,16 +825,16 @@ const TL_EMAILS = {
   'henrielyn@homeaglowsales.com':          {display:'TL Henrielyn',fullName:'Henrielyn Makiling',          cluster:'Kendryck'},
   'asherbalway@homeaglowsalestwo.com':     {display:'TL Asher',   fullName:'Asher Jessica Faith Balway',   cluster:'Kendryck'},
 };
-
+ 
 const OM_EMAILS = {
   'jubee@homeaglowsales.com':          {display:'OM Jubee',    cluster:'Jubee'},
   'kendryck@homeaglowsales.com':       {display:'OM Kendryck', cluster:'Kendryck'},
   'princesssimbahan@homeaglowsalesone.com':{display:'OM Princess',cluster:'Princess'},
 };
-
+ 
 // milettegaw is admin
 const ADMIN_EMAILS = ['milettegaw@homeaglowsales.com','milettegaw@homeaglowsalestwo.com','milettegaw@homeaglowsalesone.com','clayton@homeaglowsales.com'];
-
+ 
 const AGENTS = [
   {email:'franklinpondang@homeaglowsalesone.com',   name:'Franklin Pondang',                 manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-09-01'},
   {email:'khristypepino@homeaglowsales.com',        name:'Khristy Jones Pepino',             manager:'May Claveron',              cluster:'Kendryck', start:'2024-07-15'},
@@ -1014,25 +1014,25 @@ const AGENTS = [
   {email:'eunicesanchez@homeaglowsales.com',        name:'Eunice Sanchez',                   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
   {email:'johncea@homeaglowsales.com',              name:'John Harvey Giva Cea',             manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-06-08'},
 ];
-
+ 
 // Lookup maps
 const MANAGER_TO_TL_DISPLAY = {};
 Object.values(TL_EMAILS).forEach(t => { MANAGER_TO_TL_DISPLAY[t.fullName] = t.display; });
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════════════════════
 let currentUser = null; // {email, role:'TL'|'OM'|'Admin'|'Agent', display, tlInfo?, omInfo?}
 let entries = [];
 let ROSTER = []; // live editable agent list (persisted in localStorage)
-
+ 
 function loadEntries() {
   try { entries = JSON.parse(localStorage.getItem('apexCoachingLogs') || '[]'); } catch(e){ entries=[]; }
 }
 function saveEntries() {
   localStorage.setItem('apexCoachingLogs', JSON.stringify(entries));
 }
-
+ 
 function loadRoster() {
   try {
     const saved = localStorage.getItem('apexRoster');
@@ -1042,7 +1042,7 @@ function loadRoster() {
 function saveRoster() {
   localStorage.setItem('apexRoster', JSON.stringify(ROSTER));
 }
-
+ 
 // OM roster-access guard — only these three emails
 const ROSTER_OM_EMAILS = [
   'jubee@homeaglowsales.com',
@@ -1052,7 +1052,7 @@ const ROSTER_OM_EMAILS = [
 function canManageRoster() {
   return currentUser && ROSTER_OM_EMAILS.includes(currentUser.email);
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // ROSTER MANAGER UI
 // ══════════════════════════════════════════════════════════════════════════
@@ -1063,11 +1063,11 @@ function openRosterManager() {
   renderRosterTable();
   document.getElementById('rosterOverlay').classList.add('open');
 }
-
+ 
 function closeRosterManager() {
   document.getElementById('rosterOverlay').classList.remove('open');
 }
-
+ 
 function onRosterClusterChange() {
   const cluster = document.getElementById('rosterFilterCluster').value;
   const tlEl    = document.getElementById('rosterFilterTL');
@@ -1081,12 +1081,12 @@ function onRosterClusterChange() {
   });
   renderRosterTable();
 }
-
+ 
 function renderRosterTable() {
   const search  = (document.getElementById('rosterSearch').value || '').toLowerCase();
   const cluster = document.getElementById('rosterFilterCluster').value;
   const tl      = document.getElementById('rosterFilterTL').value;
-
+ 
   const filtered = ROSTER.filter(a => {
     if (cluster && a.cluster !== cluster) return false;
     if (tl) {
@@ -1096,15 +1096,15 @@ function renderRosterTable() {
     if (search && !a.name.toLowerCase().includes(search)) return false;
     return true;
   }).sort((a,b) => a.name.localeCompare(b.name));
-
+ 
   document.getElementById('rosterCount').textContent = filtered.length + ' agent' + (filtered.length !== 1 ? 's' : '');
-
+ 
   const tbody = document.getElementById('rosterTableBody');
   if (!filtered.length) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No agents found.</td></tr>';
     return;
   }
-
+ 
   tbody.innerHTML = filtered.map((a, i) => {
     const idx    = ROSTER.indexOf(a);
     const tlDisp = Object.values(TL_EMAILS).find(t => t.fullName === a.manager)?.display || a.manager || '—';
@@ -1121,15 +1121,15 @@ function renderRosterTable() {
     </tr>`;
   }).join('');
 }
-
+ 
 let _editingAgentIdx = -1;
-
+ 
 function openAgentForm(idx) {
   _editingAgentIdx = (idx !== undefined) ? idx : -1;
   const isEdit = _editingAgentIdx >= 0;
   document.getElementById('agentFormTitle').textContent = isEdit ? 'Edit Agent' : 'Add Agent';
   document.getElementById('agentFormError').style.display = 'none';
-
+ 
   if (isEdit) {
     const a = ROSTER[_editingAgentIdx];
     document.getElementById('agentFName').value    = a.name || '';
@@ -1146,11 +1146,11 @@ function openAgentForm(idx) {
   }
   document.getElementById('agentFormOverlay').classList.add('open');
 }
-
+ 
 function closeAgentForm() {
   document.getElementById('agentFormOverlay').classList.remove('open');
 }
-
+ 
 function onAgentFormClusterChange() {
   const cluster = document.getElementById('agentFCluster').value;
   const tlEl    = document.getElementById('agentFTL');
@@ -1163,7 +1163,7 @@ function onAgentFormClusterChange() {
     }
   });
 }
-
+ 
 function saveAgent() {
   const name      = document.getElementById('agentFName').value.trim();
   const startDate = document.getElementById('agentFStart').value.trim();
@@ -1171,31 +1171,31 @@ function saveAgent() {
   const tlDisp    = document.getElementById('agentFTL').value;
   const errEl     = document.getElementById('agentFormError');
   errEl.style.display = 'none';
-
+ 
   if (!name)    { errEl.textContent = 'Agent name is required.';   errEl.style.display='block'; return; }
   if (!cluster) { errEl.textContent = 'Please select a Cluster.';  errEl.style.display='block'; return; }
   if (!tlDisp)  { errEl.textContent = 'Please select a Team Lead.';errEl.style.display='block'; return; }
-
+ 
   const tlEntry  = Object.values(TL_EMAILS).find(t => t.display === tlDisp);
   const manager  = tlEntry ? tlEntry.fullName : tlDisp;
   const manager2 = tlEntry
     ? (Object.entries(OM_EMAILS).find(([,o]) => o.cluster === tlEntry.cluster)?.[1]?.display || '')
     : '';
-
+ 
   const agentObj = { name, startDate, cluster, manager, manager2, email: '' };
-
+ 
   if (_editingAgentIdx >= 0) {
     agentObj.email = ROSTER[_editingAgentIdx].email || '';
     ROSTER[_editingAgentIdx] = agentObj;
   } else {
     ROSTER.push(agentObj);
   }
-
+ 
   saveRoster();
   closeAgentForm();
   renderRosterTable();
 }
-
+ 
 function deleteAgent(idx) {
   const a = ROSTER[idx];
   if (!confirm('Delete "' + a.name + '" from the roster? This cannot be undone.')) return;
@@ -1203,24 +1203,24 @@ function deleteAgent(idx) {
   saveRoster();
   renderRosterTable();
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════════════════════════════
 function isHomeaglowEmail(email) {
   return /homeaglow/i.test(email);
 }
-
+ 
 function doLogin() {
   const email = document.getElementById('emailInput').value.trim().toLowerCase();
   const errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
-
+ 
   if (!email) { showErr('Please enter your email address.'); return; }
   if (!isHomeaglowEmail(email)) { showErr('Only Homeaglow email addresses are allowed.'); return; }
-
+ 
   let role, display, tlInfo = null, omInfo = null;
-
+ 
   if (ADMIN_EMAILS.includes(email)) {
     role = 'Admin'; display = 'Admin (' + email + ')';
   } else if (TL_EMAILS[email]) {
@@ -1233,39 +1233,41 @@ function doLogin() {
     if (agent) { role = 'Agent'; display = agent.name; }
     else { role = 'Agent'; display = email.split('@')[0]; }
   }
-
+ 
   currentUser = { email, role, display, tlInfo, omInfo };
   loadEntries();
   initApp();
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-
+  // Pull entries from SheetDB so the same logs appear on any device
+  fetchFromSheets();
+ 
   function showErr(msg) { errEl.textContent = msg; errEl.style.display = 'block'; }
 }
-
+ 
 document.getElementById('emailInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-
+ 
 function doLogout() {
   currentUser = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginPage').style.display = 'flex';
   document.getElementById('emailInput').value = '';
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // INIT APP
 // ══════════════════════════════════════════════════════════════════════════
 function initApp() {
   loadRoster();
   loadNTEEntries();
-
+ 
   document.getElementById('userBadge').textContent = currentUser.display + ' · ' + currentUser.role;
-
+ 
   const canCreate = ['TL','OM','Admin'].includes(currentUser.role);
   document.getElementById('btnAddCoaching').style.display = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
-
+ 
   populateWKOptions();
   populateFilterTLs();
   populateLogFilterTLs();
@@ -1274,7 +1276,7 @@ function initApp() {
   renderLogTable();
   showView('dashboard');
 }
-
+ 
 function populateWKOptions() {
   // Build option string once — fast innerHTML approach
   let opts = '';
@@ -1292,12 +1294,12 @@ function populateWKOptions() {
   if (nteDash) nteDash.innerHTML = '<option value="">All Weeks</option>' + opts;
   if (nteForm) nteForm.innerHTML = '<option value="">— Select WK # —</option>' + opts;
 }
-
+ 
 // Central TL list builder. Pass cluster='' for no cluster filter.
 // Handles all four roles: Admin, OM, TL, Agent.
 function getTLsForUser(cluster) {
   let candidates = Object.values(TL_EMAILS);
-
+ 
   // 1. Role scope
   if (currentUser.role === 'TL') {
     candidates = candidates.filter(t => t.display === currentUser.tlInfo.display);
@@ -1312,14 +1314,14 @@ function getTLsForUser(cluster) {
     }
   }
   // Admin: no role filter — all candidates remain
-
+ 
   // 2. Optional cluster filter (e.g. when user picks a cluster in a filter bar)
   if (cluster) candidates = candidates.filter(t => t.cluster === cluster);
-
+ 
   // 3. Deduplicate display names and sort
   return [...new Set(candidates.map(t => t.display))].sort();
 }
-
+ 
 function buildTLOptions(elId, names, placeholder) {
   const el = document.getElementById(elId);
   if (!el) return;
@@ -1336,22 +1338,22 @@ function buildTLOptions(elId, names, placeholder) {
   // Restore previous selection if still valid
   if (prev && names.includes(prev)) el.value = prev;
 }
-
+ 
 function populateFilterTLs(cluster) {
   buildTLOptions('filterTL', getTLsForUser(cluster), 'All TLs');
 }
-
+ 
 function populateLogFilterTLs() {
   buildTLOptions('logFilterTL', getTLsForUser(), 'All TLs');
 }
-
+ 
 function getAgentsForTL(tlDisplay) {
   if (!tlDisplay) return ROSTER;
   const tlEntry = Object.values(TL_EMAILS).find(t => t.display === tlDisplay);
   if (!tlEntry) return [];
   return ROSTER.filter(a => a.manager === tlEntry.fullName);
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // VIEW SWITCHING
 // ══════════════════════════════════════════════════════════════════════════
@@ -1364,7 +1366,7 @@ function showView(view) {
   document.getElementById('navNTE').classList.toggle('active', view==='nte');
   if (view==='nte') renderNTETable();
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // FILTERS
 // ══════════════════════════════════════════════════════════════════════════
@@ -1375,13 +1377,13 @@ function onClusterChange() {
   document.getElementById('filterTL').value = '';
   onTLChange();  // will populate agents for cluster (no TL selected)
 }
-
+ 
 function onTLChange() {
   const tl      = document.getElementById('filterTL').value;
   const cluster = document.getElementById('filterCluster').value;
   const agEl    = document.getElementById('filterAgent');
   agEl.innerHTML = '<option value="">All Agents</option>';
-
+ 
   let list;
   if (tl) {
     list = getAgentsForTL(tl);
@@ -1395,7 +1397,7 @@ function onTLChange() {
   });
   renderDashboard();
 }
-
+ 
 function onLogTLChange() {
   const tl   = document.getElementById('logFilterTL').value;
   const agEl = document.getElementById('logFilterAgent');
@@ -1405,7 +1407,7 @@ function onLogTLChange() {
   });
   renderLogTable();
 }
-
+ 
 function clearFilters() {
   document.getElementById('filterWK').value = '';
   document.getElementById('filterCluster').value = '';
@@ -1413,14 +1415,14 @@ function clearFilters() {
   populateFilterTLs(); // no cluster = show all TLs
   renderDashboard();
 }
-
+ 
 function clearLogFilters() {
   document.getElementById('logFilterWK').value = '';
   document.getElementById('logFilterTL').value = '';
   document.getElementById('logFilterAgent').innerHTML = '<option value="">All</option>';
   renderLogTable();
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // FILTER ENTRIES
 // ══════════════════════════════════════════════════════════════════════════
@@ -1441,7 +1443,7 @@ function getVisibleEntries() {
   }
   return entries; // Admin sees all
 }
-
+ 
 function applyDashFilters(list) {
   const wk = document.getElementById('filterWK')?.value || '';
   const tl = document.getElementById('filterTL')?.value || '';
@@ -1458,7 +1460,7 @@ function applyDashFilters(list) {
     return true;
   });
 }
-
+ 
 function applyLogFilters(list) {
   const wk = document.getElementById('logFilterWK')?.value || '';
   const tl = document.getElementById('logFilterTL')?.value || '';
@@ -1470,14 +1472,14 @@ function applyLogFilters(list) {
     return true;
   });
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════════════════════════════════════
 function renderDashboard() {
   const filtered = applyDashFilters(getVisibleEntries());
   const wkSel = document.getElementById('filterWK').value;
-
+ 
   // Stats
   let wkEntries = wkSel ? filtered.filter(e=>e.wkNumber===wkSel) : filtered;
   // If no WK filter, group by WK and show latest week stats
@@ -1486,25 +1488,25 @@ function renderDashboard() {
     const latestWK = wks[wks.length-1];
     wkEntries = filtered.filter(e=>e.wkNumber===latestWK);
   }
-
+ 
   document.getElementById('statCount').textContent = wkEntries.length;
-
+ 
   const tcrVals = wkEntries.filter(e=>e.avgTCR!=null).map(e=>parseFloat(e.avgTCR));
   const csrVals = wkEntries.filter(e=>e.avgCSR!=null).map(e=>parseFloat(e.avgCSR));
   const cvrVals = wkEntries.filter(e=>e.avgCVR!=null).map(e=>parseFloat(e.avgCVR));
-
+ 
   document.getElementById('statTCR').textContent = tcrVals.length ? (tcrVals.reduce((a,b)=>a+b,0)/tcrVals.length).toFixed(1)+'%' : '—';
   document.getElementById('statCSR').textContent = csrVals.length ? (csrVals.reduce((a,b)=>a+b,0)/csrVals.length).toFixed(1)+'%' : '—';
   document.getElementById('statCVR').textContent = cvrVals.length ? (cvrVals.reduce((a,b)=>a+b,0)/cvrVals.length).toFixed(1)+'%' : '—';
-
+ 
   renderTable('dashTableBody', filtered.slice(0,50));
 }
-
+ 
 function renderLogTable() {
   const filtered = applyLogFilters(getVisibleEntries());
   renderTable('logTableBody', filtered, true);
 }
-
+ 
 function renderTable(tbodyId, list, showType=false) {
   const tbody = document.getElementById(tbodyId);
   if (!list.length) {
@@ -1539,12 +1541,12 @@ function renderTable(tbodyId, list, showType=false) {
     </tr>`;
   }).join('');
 }
-
+ 
 function getCommitmentStatus(e) {
   if (!e.star || !e.star.status) return e.coachingStatus || 'Pending';
   return e.star.status;
 }
-
+ 
 function getStatusBadge(status) {
   if (!status) return '<span class="badge badge-gray">—</span>';
   if (status === 'On Track') return `<span class="badge badge-green">${status}</span>`;
@@ -1557,11 +1559,11 @@ function getStatusBadge(status) {
   if (status === 'Pending') return `<span class="badge badge-gray">${status}</span>`;
   return `<span class="badge badge-gray">${status}</span>`;
 }
-
+ 
 function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s}
 function esc(s){return (s||'').replace(/"/g,'&quot;')}
 function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // FORM – OPEN / POPULATE
 // ══════════════════════════════════════════════════════════════════════════
@@ -1579,7 +1581,7 @@ function openAddModal() {
   populateFormAgents();
   openModal('formModal');
 }
-
+ 
 function editEntry(id) {
   const e = entries.find(x=>x.id===id);
   if (!e) return;
@@ -1591,7 +1593,7 @@ function editEntry(id) {
   if (tlEntry) document.getElementById('fCluster').value = tlEntry.cluster;
   populateFormTLs(document.getElementById('fCluster').value);
   populateFormAgents(e.teamLead);
-
+ 
   // Fill fields
   setVal('fCoachingType', e.coachingType);
   setVal('fDate', e.dateOfCoaching);
@@ -1609,12 +1611,12 @@ function editEntry(id) {
   setVal('fReceptiveness', e.receptiveness);
   setVal('fStatus', e.coachingStatus);
   setVal('fRemarks', e.remarks);
-
+ 
   // Focus areas checkboxes
   document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb => {
     cb.checked = (e.focusAreas||[]).includes(cb.value);
   });
-
+ 
   // Perf data
   (e.perfData||[]).forEach((row,i)=>{
     const n = i+1;
@@ -1626,7 +1628,7 @@ function editEntry(id) {
   setVal('wk4CvrManual', e.wk4CvrManual||'');
   // avgCvrManual is auto-calculated — recalculates when calcPerf() runs below
   calcPerf();
-
+ 
   // Projection data
   const proj = e.projection || {};
   if (proj.focusOn) {
@@ -1640,12 +1642,12 @@ function editEntry(id) {
   document.getElementById('projTargetTCR').value = proj.targetTCR || '';
   document.getElementById('projTargetCSR').value = proj.targetCSR || '';
   calcProjection();
-
+ 
   calcTenure();
   document.getElementById('tenureBadge').textContent = e.tenure || '—';
   openModal('formModal');
 }
-
+ 
 function clearForm() {
   ['fCoachingType','fDate','fWK','fCluster','fTL','fAgent','fHighlights','fOpportunities',
    'fKeyDiscussion','fStrength','fAreas','fLimiter','fFollowUp','fActionPlan',
@@ -1673,7 +1675,7 @@ function clearForm() {
   document.getElementById('tenureBadge').textContent='—';
   document.getElementById('editId').value='';
 }
-
+ 
 function populateFormTLs(cluster) {
   const el = document.getElementById('fTL');
   const prev = el.value;
@@ -1697,24 +1699,24 @@ function populateFormTLs(cluster) {
   // Always use onchange (avoids stacking addEventListener on repeated modal opens)
   el.onchange = onFormTLChange;
 }
-
+ 
 function onFormClusterChange() {
   const cluster = document.getElementById('fCluster').value;
   populateFormTLs(cluster);
   populateFormAgents();  // reset agent list based on new TL selection
 }
-
+ 
 function onFormTLChange() {
   populateFormAgents(document.getElementById('fTL').value);
 }
-
+ 
 function populateFormAgents(tlDisplay) {
   const tl = tlDisplay !== undefined ? tlDisplay : document.getElementById('fTL').value;
   const cluster = document.getElementById('fCluster').value;
   const el = document.getElementById('fAgent');
   const curVal = el.value;
   el.innerHTML = '<option value="">— Select Agent —</option>';
-
+ 
   let agentList;
   if (currentUser.role === 'TL') {
     agentList = getAgentsForTL(currentUser.tlInfo.display);
@@ -1726,17 +1728,17 @@ function populateFormAgents(tlDisplay) {
   } else {
     agentList = ROSTER;
   }
-
+ 
   agentList.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => {
     const o=document.createElement('option');o.value=a.name;o.textContent=a.name;el.appendChild(o);
   });
   if (curVal) el.value = curVal;
 }
-
+ 
 function onAgentSelect() {
   calcTenure();
 }
-
+ 
 function calcTenure() {
   const agentName = document.getElementById('fAgent').value;
   const coachDate = document.getElementById('fDate').value;
@@ -1756,7 +1758,7 @@ function calcTenure() {
   else tenure = '11+w';
   badge.textContent = tenure;
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // PERF CALC
 // ══════════════════════════════════════════════════════════════════════════
@@ -1774,9 +1776,9 @@ function calcPerf() {
     document.getElementById('cvr'+i).textContent=cvr;
     if(lt||cc||s){totalLT+=lt;totalCC+=cc;totalS+=s;validRows++;}
   }
-  document.getElementById('avgLT').textContent = validRows?totalLT:'—';
-  document.getElementById('avgCC').textContent = validRows?totalCC:'—';
-  document.getElementById('avgS').textContent = validRows?totalS:'—';
+  document.getElementById('avgLT').textContent = validRows?Math.round(totalLT/validRows):'—';
+  document.getElementById('avgCC').textContent = validRows?Math.round(totalCC/validRows):'—';
+  document.getElementById('avgS').textContent = validRows?Math.round(totalS/validRows):'—';
   document.getElementById('avgTCR').textContent = validRows&&totalLT>0?(totalCC/totalLT*100).toFixed(1)+'%':'—';
   document.getElementById('avgCSR').textContent = validRows&&totalCC>0?(totalS/totalCC*100).toFixed(1)+'%':'—';
   document.getElementById('avgCVR').textContent = validRows&&totalLT>0?(totalS/totalLT*100).toFixed(1)+'%':'—';
@@ -1794,47 +1796,47 @@ function calcPerf() {
   if (avgCvrEl) avgCvrEl.textContent = manualVals.length ? (manualVals.reduce((a,b)=>a+b,0)/manualVals.length).toFixed(2)+'%' : '—';
   updateProjectionCurrent();
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // PROJECTION CALC
 // ══════════════════════════════════════════════════════════════════════════
 function updateProjectionCurrent() {
-  const lt  = parseFloat(document.getElementById('avgLT').textContent)  || 0;
-  const cc  = parseFloat(document.getElementById('avgCC').textContent)  || 0;
-  const s   = parseFloat(document.getElementById('avgS').textContent)   || 0;
+  const lt  = parseFloat(document.getElementById('lt1').value)  || 0;
+  const cc  = parseFloat(document.getElementById('cc1').value)  || 0;
+  const s   = parseFloat(document.getElementById('s1').value)   || 0;
   const tcr = lt > 0 ? (cc / lt * 100) : 0;
   const csr = cc > 0 ? (s  / cc * 100) : 0;
-
+ 
   document.getElementById('projCurrTCR').textContent   = lt ? tcr.toFixed(1)+'%' : '—';
   document.getElementById('projCurrLT').textContent    = lt || '—';
   document.getElementById('projCurrCC').textContent    = cc || '—';
   document.getElementById('projCurrCSR').textContent   = cc ? csr.toFixed(1)+'%' : '—';
   document.getElementById('projCurrSales').textContent = s  || '—';
-
+ 
   // Auto-fill leads input only if user hasn't manually overridden it
   const leadsEl = document.getElementById('projTargetLeads');
   if (!leadsEl.dataset.userEdited) leadsEl.value = lt || '';
-
+ 
   calcProjection();
 }
-
+ 
 function calcProjection() {
-  const lt  = parseFloat(document.getElementById('avgLT').textContent)  || 0;
-  const cc  = parseFloat(document.getElementById('avgCC').textContent)  || 0;
-  const s   = parseFloat(document.getElementById('avgS').textContent)   || 0;
+  const lt  = parseFloat(document.getElementById('lt1').value)  || 0;
+  const cc  = parseFloat(document.getElementById('cc1').value)  || 0;
+  const s   = parseFloat(document.getElementById('s1').value)   || 0;
   const csrRate = cc > 0 ? (s / cc) : 0;
   const tcrCurr = lt > 0 ? (cc / lt * 100) : 0;
   const csrCurr = cc > 0 ? (s  / cc * 100) : 0;
-
+ 
   const targetTCR   = parseFloat(document.getElementById('projTargetTCR').value);
   const targetCSR   = parseFloat(document.getElementById('projTargetCSR').value);
   const overrideLT  = parseFloat(document.getElementById('projTargetLeads').value);
   const leadsTouch  = overrideLT > 0 ? overrideLT : lt;
-
+ 
   // ─── TCR Lever column ───
   // Always show current CSR in the CSR% cell (unchanged by this lever)
   document.getElementById('projTCRcsrCell').textContent = cc ? csrCurr.toFixed(1)+'%' : '—';
-
+ 
   if (!isNaN(targetTCR) && targetTCR > 0 && leadsTouch > 0) {
     const newCC = (targetTCR / 100) * leadsTouch;
     const newS  = csrRate * newCC;
@@ -1844,27 +1846,27 @@ function calcProjection() {
     document.getElementById('projTCRconnect').textContent = '—';
     document.getElementById('projTCRsales').textContent   = '—';
   }
-
+ 
   // ─── CSR Lever column ───
   // Always show current TCR in TCR% cell (unchanged by this lever)
   document.getElementById('projCSRtcrCell').textContent = lt ? tcrCurr.toFixed(1)+'%' : '—';
   // Leads and connects don't change in CSR lever
   document.getElementById('projCSRleadsCell').textContent  = lt || '—';
   document.getElementById('projCSRconnectCell').textContent = cc || '—';
-
+ 
   if (!isNaN(targetCSR) && targetCSR > 0 && cc > 0) {
     document.getElementById('projCSRsales').textContent = ((targetCSR / 100) * cc).toFixed(1);
   } else {
     document.getElementById('projCSRsales').textContent = '—';
   }
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // SHEETDB SYNC  (same service used by Phoenix Coaching Log)
 // ══════════════════════════════════════════════════════════════════════════
 // One SheetDB API for the whole sheet — tabs are targeted automatically
 const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/ixzx7y2t9qbfi';
-
+ 
 function syncToSheets(entry, type) {
   if (!SHEETDB_API_URL) return;
   const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
@@ -1875,7 +1877,7 @@ function syncToSheets(entry, type) {
     body: JSON.stringify({ data: [data], sheet: tabName })
   }).catch(err => console.warn('SheetDB sync error:', err));
 }
-
+ 
 function buildCoachingRow(e) {
   const p = e.perfData || [];
   const wkCols = (n) => {
@@ -1929,7 +1931,7 @@ function buildCoachingRow(e) {
     'Commitment Status': e.star?.status||''
   };
 }
-
+ 
 function buildNTERow(n) {
   return {
     'Entry ID': n.id||'',
@@ -1948,7 +1950,97 @@ function buildNTERow(n) {
     'Updated At': n.updatedAt||''
   };
 }
-
+ 
+// ══════════════════════════════════════════════════════════════════════════
+// CROSS-DEVICE SYNC — fetch entries from SheetDB on login
+// ══════════════════════════════════════════════════════════════════════════
+function parseSheetRow(row) {
+  const perfData = [1,2,3,4].map(n => ({
+    lt: row[`WK${n} LT`]||'',
+    cc: row[`WK${n} CC`]||'',
+    s:  row[`WK${n} Sales`]||''
+  }));
+  return {
+    id:             row['Entry ID']||'',
+    dateOfCoaching: row['Date']||'',
+    wkNumber:       row['WK#']||'',
+    teamLead:       row['Team Lead']||'',
+    agentName:      row['Agent']||'',
+    coachingType:   row['Coaching Type']||'',
+    tenure:         row['Tenure']||'',
+    focusAreas:     (row['Focus Areas']||'').split(',').map(s=>s.trim()).filter(Boolean),
+    perfData,
+    avgTCR:         row['Avg TCR%']||'',
+    avgCSR:         row['Avg CSR%']||'',
+    avgCVR:         row['Avg CVR%']||'',
+    wk1CvrManual:   row['WK1 CVR% (Manual)']||'',
+    wk2CvrManual:   row['WK2 CVR% (Manual)']||'',
+    wk3CvrManual:   row['WK3 CVR% (Manual)']||'',
+    wk4CvrManual:   row['WK4 CVR% (Manual)']||'',
+    avgCvrManual:   row['Avg CVR% (Manual)']||'',
+    highlights:     row['Highlights']||'',
+    opportunities:  row['Opportunities']||'',
+    keyDiscussion:  row['Key Discussion']||'',
+    strength:       row['Strength']||'',
+    areas:          row['Areas']||'',
+    limiter:        row['Limiter']||'',
+    followUpDate:   row['Follow Up']||'',
+    actionPlan:     row['Action Plan']||'',
+    receptiveness:  row['Receptiveness']||'',
+    coachingStatus: row['Status']||'',
+    remarks:        row['Remarks']||'',
+    loggedBy:       row['Logged By']||'',
+    updatedAt:      row['Updated At']||'',
+    star: {
+      situation: row['Commitment Situation']||'',
+      task:      row['Commitment Task']||'',
+      action:    row['Commitment Action']||'',
+      result:    row['Commitment Result']||'',
+      timeline:  row['Commitment Timeline']||'',
+      status:    row['Commitment Status']||''
+    }
+  };
+}
+ 
+async function fetchFromSheets() {
+  if (!SHEETDB_API_URL || !currentUser) return;
+  try {
+    let url;
+    if (currentUser.role === 'TL' && currentUser.tlInfo) {
+      const tlDisplay = encodeURIComponent(currentUser.tlInfo.display);
+      url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Team%20Lead=${tlDisplay}`;
+    } else if (currentUser.role === 'Admin' || currentUser.role === 'OM') {
+      url = `${SHEETDB_API_URL}?sheet=Coaching%20Logs`;
+    } else {
+      return; // Agents don't sync coaching logs
+    }
+    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!resp.ok) return;
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || rows.length === 0) return;
+ 
+    // Build map from existing local entries (keyed by Entry ID)
+    const merged = {};
+    entries.forEach(e => { if (e.id) merged[e.id] = e; });
+ 
+    // SheetDB is the cross-device source of truth — overwrite/add
+    rows.forEach(row => {
+      const parsed = parseSheetRow(row);
+      if (parsed.id) merged[parsed.id] = parsed;
+    });
+ 
+    entries = Object.values(merged).sort((a, b) => {
+      const da = a.updatedAt || a.dateOfCoaching || '';
+      const db = b.updatedAt || b.dateOfCoaching || '';
+      return db.localeCompare(da);
+    });
+    saveEntries();
+    renderLogTable(); // Refresh displayed list with merged data
+  } catch (err) {
+    console.warn('fetchFromSheets error:', err);
+  }
+}
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // CSV EXPORT
 // ══════════════════════════════════════════════════════════════════════════
@@ -1962,7 +2054,7 @@ function downloadCSV(rows, filename) {
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
-
+ 
 function exportCoachingCSV() {
   const visible = getVisibleEntries();
   const cl = document.getElementById('filterCluster').value;
@@ -1997,7 +2089,7 @@ function exportCoachingCSV() {
   });
   downloadCSV([headers, ...rows], 'coaching-log-' + new Date().toISOString().slice(0,10) + '.csv');
 }
-
+ 
 function exportNTECSV() {
   const visible = getVisibleNTEEntries();
   const cl = document.getElementById('nteFilterCluster').value;
@@ -2018,7 +2110,7 @@ function exportNTECSV() {
   ]);
   downloadCSV([headers, ...rows], 'nte-log-' + new Date().toISOString().slice(0,10) + '.csv');
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // SAVE
 // ══════════════════════════════════════════════════════════════════════════
@@ -2029,7 +2121,7 @@ function saveEntry() {
       alert('Please fill in all required fields (Date, Agent Name, Team Lead).'); return;
     }
   }
-
+ 
   const perfData = [];
   for(let i=1;i<=4;i++){
     perfData.push({
@@ -2038,11 +2130,11 @@ function saveEntry() {
       s:  document.getElementById('s'+i).value,
     });
   }
-
+ 
   const totalLT=perfData.reduce((a,r)=>a+(parseFloat(r.lt)||0),0);
   const totalCC=perfData.reduce((a,r)=>a+(parseFloat(r.cc)||0),0);
   const totalS =perfData.reduce((a,r)=>a+(parseFloat(r.s )||0),0);
-
+ 
   const entry = {
     id: document.getElementById('editId').value || crypto.randomUUID(),
     coachingType: document.getElementById('fCoachingType').value,
@@ -2081,7 +2173,7 @@ function saveEntry() {
     loggedBy: currentUser.email,
     updatedAt: new Date().toISOString(),
   };
-
+ 
   const idx = entries.findIndex(x=>x.id===entry.id);
   if(idx>=0){
     const existingStar = entries[idx].star;
@@ -2096,7 +2188,7 @@ function saveEntry() {
   renderDashboard();
   renderLogTable();
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // VIEW
 // ══════════════════════════════════════════════════════════════════════════
@@ -2111,7 +2203,7 @@ function viewEntry(id) {
       <td>${r.cc>0?(parseFloat(r.s||0)/parseFloat(r.cc)*100).toFixed(1)+'%':'—'}</td>
       <td>${r.lt>0?(parseFloat(r.s||0)/parseFloat(r.lt)*100).toFixed(1)+'%':'—'}</td>
     </tr>`).join('');
-
+ 
   document.getElementById('viewModalBody').innerHTML = `
     <div class="info-row" style="margin-bottom:16px">
       <span class="info-chip">📅 ${e.dateOfCoaching||'—'}</span>
@@ -2159,7 +2251,7 @@ function viewEntry(id) {
   `;
   openModal('viewModal');
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // DELETE
 // ══════════════════════════════════════════════════════════════════════════
@@ -2171,7 +2263,7 @@ function deleteFromSheets(entryId, type) {
     headers: { 'Accept': 'application/json' }
   }).catch(err => console.warn('SheetDB delete error:', err));
 }
-
+ 
 function deleteEntry(id) {
   if (!confirm('Are you sure you want to delete this coaching log?')) return;
   deleteFromSheets(id, 'coaching');
@@ -2180,25 +2272,25 @@ function deleteEntry(id) {
   renderDashboard();
   renderLogTable();
 }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // MODAL HELPERS
 // ══════════════════════════════════════════════════════════════════════════
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
+ 
 // Close modal on overlay click
 ['formModal','viewModal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e){
     if(e.target===this) closeModal(id);
   });
 });
-
+ 
 function setVal(id, val) {
   const el = document.getElementById(id);
   if (el && val !== undefined && val !== null) el.value = val;
 }
-
+ 
 // Keyboard: Escape closes modal
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
@@ -2206,18 +2298,18 @@ document.addEventListener('keydown', e => {
     closeCommitmentModal();
   }
 });
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // COMMITMENT VIEW (TABBED — Coaching Content + STAR Commitment)
 // ══════════════════════════════════════════════════════════════════════════
 let _commitmentEntryId = null;
-
+ 
 function openCommitmentView(entryId) {
   const e = entries.find(x => String(x.id) === String(entryId));
   if (!e) return;
   _commitmentEntryId = entryId;
   const star = e.star || {};
-
+ 
   // ── Tab 1: Coaching Content ──────────────────────────────────────────
   const perfRows = (e.perfData || []).map((p,i) => `
     <tr>
@@ -2229,7 +2321,7 @@ function openCommitmentView(entryId) {
       <td style="padding:5px 8px;border:1px solid #ddd">${p.csr||'—'}</td>
       <td style="padding:5px 8px;border:1px solid #ddd">${p.cvr||'—'}</td>
     </tr>`).join('');
-
+ 
   const tab1 = `
     <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid #eee">
       <div style="font-size:1.05rem;font-weight:800;margin-bottom:4px">${esc(e.agentName||'—')}</div>
@@ -2293,11 +2385,11 @@ function openCommitmentView(entryId) {
       </div>
     </div>` : ''}
   `;
-
+ 
   // ── Tab 2: STAR Commitment (editable) ───────────────────────────────
   const currentStatus = getCommitmentStatus(e);
   const statusColor = currentStatus==='Completed'?'#388e3c':currentStatus==='In Progress'?'#f57c00':currentStatus==='Not Met'?'#d32f2f':'#888';
-
+ 
   const tab2 = `
     <div id="commitSaveMsg" style="display:none;margin-bottom:12px;background:#e8f5e9;border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:700;color:#388e3c">✅ Commitment submitted! Status updated to <strong>Completed</strong>.</div>
     <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px">
@@ -2328,7 +2420,7 @@ function openCommitmentView(entryId) {
       <button class="btn-primary" style="width:auto;padding:10px 32px" onclick="saveCommitment('${entryId}')">💾 Submit Commitment</button>
     </div>
   `;
-
+ 
   // ── Build modal body with tabs ───────────────────────────────────────
   document.getElementById('agentModalName').textContent = e.agentName || '—';
   document.getElementById('agentTab1Content').innerHTML = tab1;
@@ -2336,12 +2428,12 @@ function openCommitmentView(entryId) {
   switchAgentTab(1);
   document.getElementById('agentCommitmentModal').classList.add('open');
 }
-
+ 
 function switchAgentTab(n) {
   document.querySelectorAll('.agent-tab').forEach((t,i) => t.classList.toggle('active', i+1===n));
   document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i+1===n));
 }
-
+ 
 function saveCommitment(entryId) {
   const e = entries.find(x => String(x.id) === String(entryId));
   if (!e) return;
@@ -2377,46 +2469,46 @@ function saveCommitment(entryId) {
   const msg = document.getElementById('commitSaveMsg');
   if (msg) { msg.style.display='block'; setTimeout(()=>{ msg.style.display='none'; },4000); }
 }
-
+ 
 function closeAgentCommitmentModal() {
   document.getElementById('agentCommitmentModal').classList.remove('open');
 }
-
+ 
 // keep old alias in case referenced elsewhere
 function closeCommitmentModal() { closeAgentCommitmentModal(); }
-
+ 
 // ══════════════════════════════════════════════════════════════════════════
 // NTE MODULE
 // ══════════════════════════════════════════════════════════════════════════
-
+ 
 let nteEntries = [];
-
+ 
 function loadNTEEntries() {
   try { nteEntries = JSON.parse(localStorage.getItem('apexNTELogs') || '[]'); }
   catch(e) { nteEntries = []; }
 }
-
+ 
 function saveNTEEntries() {
   localStorage.setItem('apexNTELogs', JSON.stringify(nteEntries));
 }
-
+ 
 function getNTEStatus(n) {
   return (n.acknowledgement && n.acknowledgement.checked) ? 'Completed' : 'Pending';
 }
-
+ 
 // ── NTE Filter helpers ──────────────────────────────────────────────────
-
+ 
 function populateNTEFilterTLs(cluster) {
   buildTLOptions('nteFilterTL', getTLsForUser(cluster), 'All TLs');
 }
-
+ 
 function onNTEClusterChange() {
   const cluster  = document.getElementById('nteFilterCluster').value;
-
+ 
   // Rebuild TL dropdown via central function (role + cluster aware)
   populateNTEFilterTLs(cluster);
   document.getElementById('nteFilterTL').value = '';
-
+ 
   // Rebuild Agent dropdown filtered by cluster (and scoped to user's visible agents)
   const agentSel = document.getElementById('nteFilterAgent');
   agentSel.innerHTML = '<option value="">All Agents</option>';
@@ -2436,10 +2528,10 @@ function onNTEClusterChange() {
     o.value = a.name; o.textContent = a.name;
     agentSel.appendChild(o);
   });
-
+ 
   renderNTETable();
 }
-
+ 
 function onNTETLChange() {
   const tl = document.getElementById('nteFilterTL').value;
   const agentSel = document.getElementById('nteFilterAgent');
@@ -2452,7 +2544,7 @@ function onNTETLChange() {
   });
   renderNTETable();
 }
-
+ 
 function clearNTEFilters() {
   document.getElementById('nteFilterWK').value      = '';
   document.getElementById('nteFilterCluster').value = '';
@@ -2466,7 +2558,7 @@ function clearNTEFilters() {
   });
   renderNTETable();
 }
-
+ 
 function getVisibleNTEEntries() {
   if (currentUser.role === 'Agent') {
     return nteEntries.filter(n => n.agentName === currentUser.display);
@@ -2481,7 +2573,7 @@ function getVisibleNTEEntries() {
   }
   return nteEntries; // Admin
 }
-
+ 
 function applyNTEFilters(list) {
   const wk      = document.getElementById('nteFilterWK')?.value || '';
   const cluster = document.getElementById('nteFilterCluster')?.value || '';
@@ -2495,20 +2587,20 @@ function applyNTEFilters(list) {
     return true;
   });
 }
-
+ 
 // ── NTE Table Render ────────────────────────────────────────────────────
-
+ 
 function renderNTETable() {
   const body = document.getElementById('nteTableBody');
   if (!body) return;
   const visible  = getVisibleNTEEntries();
   const filtered = applyNTEFilters(visible);
-
+ 
   if (!filtered.length) {
     body.innerHTML = '<tr><td colspan="8" class="empty-state">No NTE entries found.</td></tr>';
     return;
   }
-
+ 
   const canEdit = ['TL','OM','Admin'].includes(currentUser.role);
   const rows = filtered.map(n => {
     const status   = getNTEStatus(n);
@@ -2539,14 +2631,14 @@ function renderNTETable() {
   });
   body.innerHTML = rows.join('');
 }
-
+ 
 // ── NTE CRUD ────────────────────────────────────────────────────────────
-
+ 
 function openNTEForm(id) {
   document.getElementById('nteFormError').style.display = 'none';
   document.getElementById('nteFormTitle').textContent = id ? 'Edit NTE Entry' : 'New NTE Entry';
   document.getElementById('nteEditId').value = id || '';
-
+ 
   if (id) {
     const n = nteEntries.find(x => x.id === id);
     if (!n) return;
@@ -2576,14 +2668,14 @@ function openNTEForm(id) {
     document.getElementById('nteFType').value    = '';
     document.getElementById('nteFLink').value    = '';
   }
-
+ 
   document.getElementById('nteFormModal').classList.add('open');
 }
-
+ 
 function closeNTEForm() {
   document.getElementById('nteFormModal').classList.remove('open');
 }
-
+ 
 function onNTEFormClusterChange() {
   const cluster = document.getElementById('nteFCluster').value;
   const tlSel   = document.getElementById('nteFTL');
@@ -2600,7 +2692,7 @@ function onNTEFormClusterChange() {
     tlSel.appendChild(o);
   });
 }
-
+ 
 function onNTEFormTLChange() {
   const tl       = document.getElementById('nteFTL').value;
   const agentSel = document.getElementById('nteFAgent');
@@ -2613,11 +2705,11 @@ function onNTEFormTLChange() {
     agentSel.appendChild(o);
   });
 }
-
+ 
 function saveNTE() {
   const errEl = document.getElementById('nteFormError');
   errEl.style.display = 'none';
-
+ 
   const dateLogged = document.getElementById('nteFDate').value;
   const wkNumber   = document.getElementById('nteFWK').value;
   const cluster    = document.getElementById('nteFCluster').value;
@@ -2625,16 +2717,16 @@ function saveNTE() {
   const agentName  = document.getElementById('nteFAgent').value;
   const nteType    = document.getElementById('nteFType').value;
   const nteLink    = document.getElementById('nteFLink').value.trim();
-
+ 
   if (!dateLogged || !wkNumber || !cluster || !teamLead || !agentName || !nteType || !nteLink) {
     errEl.textContent = 'Please fill in all required fields.';
     errEl.style.display = 'block';
     return;
   }
-
+ 
   const editId = document.getElementById('nteEditId').value;
   const now    = new Date().toISOString();
-
+ 
   if (editId) {
     const idx = nteEntries.findIndex(x => x.id === editId);
     if (idx >= 0) {
@@ -2651,7 +2743,7 @@ function saveNTE() {
       acknowledgement: { checked: false, signature: '', acknowledgedAt: '' }
     });
   }
-
+ 
   saveNTEEntries();
   // sync the saved entry (look it up so we get the full object including id/createdAt)
   const savedNTE = nteEntries.find(x => x.dateLogged===dateLogged && x.teamLead===teamLead && x.agentName===agentName && x.nteLink===nteLink);
@@ -2659,7 +2751,7 @@ function saveNTE() {
   closeNTEForm();
   renderNTETable();
 }
-
+ 
 function viewNTE(id) {
   const n = nteEntries.find(x => x.id === id);
   if (!n) return;
@@ -2689,12 +2781,12 @@ function viewNTE(id) {
     ${ackSection}`;
   document.getElementById('nteViewModal').classList.add('open');
 }
-
+ 
 function editNTE(id) {
   closeModal('nteViewModal');
   openNTEForm(id);
 }
-
+ 
 function deleteNTE(id) {
   if (!confirm('Delete this NTE entry? This action cannot be undone.')) return;
   deleteFromSheets(id, 'nte');
@@ -2702,14 +2794,14 @@ function deleteNTE(id) {
   saveNTEEntries();
   renderNTETable();
 }
-
+ 
 // ── NTE Acknowledgement Modal ───────────────────────────────────────────
-
+ 
 let _nteAckCanvas = null;
 let _nteAckDrawing = false;
 let _nteAckLastX = 0;
 let _nteAckLastY = 0;
-
+ 
 function openNTEAck(id) {
   const n = nteEntries.find(x => x.id === id);
   if (!n) return;
@@ -2717,7 +2809,7 @@ function openNTEAck(id) {
   const isComplete = ack.checked && ack.signature;
   const status     = getNTEStatus(n);
   const badgeCls   = status === 'Completed' ? 'badge-green' : 'badge-yellow';
-
+ 
   // Build receipt content
   const receiptHtml = `
     <div style="background:#fffde7;border:1.5px solid var(--yellow);border-radius:8px;padding:18px;margin-bottom:20px">
@@ -2732,7 +2824,7 @@ function openNTEAck(id) {
         <div class="coaching-detail-item full"><div class="cd-label">Status</div><div class="cd-val"><span class="badge ${badgeCls}" id="nteAckStatusBadge">${status}</span></div></div>
       </div>
     </div>`;
-
+ 
   let ackFormHtml = '';
   if (isComplete) {
     ackFormHtml = `
@@ -2766,17 +2858,17 @@ function openNTEAck(id) {
         </div>
       </div>`;
   }
-
+ 
   document.getElementById('nteAckBody').innerHTML = receiptHtml + ackFormHtml;
   document.getElementById('nteAckModal').classList.add('open');
-
+ 
   // Init canvas if shown
   if (!isComplete) {
     _nteAckCanvas = null;
     requestAnimationFrame(() => { initNTEAckCanvas(); });
   }
 }
-
+ 
 function onNTEAckCheckChange() {
   const checked = document.getElementById('nteAckCheck').checked;
   document.getElementById('nteAckSignSection').style.display = checked ? 'block' : 'none';
@@ -2784,7 +2876,7 @@ function onNTEAckCheckChange() {
     requestAnimationFrame(() => { initNTEAckCanvas(); });
   }
 }
-
+ 
 function initNTEAckCanvas() {
   const canvas = document.getElementById('nteAckCanvas');
   if (!canvas || _nteAckCanvas === canvas) return;
@@ -2794,7 +2886,7 @@ function initNTEAckCanvas() {
   ctx.lineWidth   = 2.2;
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
-
+ 
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width  / rect.width;
@@ -2810,7 +2902,7 @@ function initNTEAckCanvas() {
       y: (e.clientY - rect.top)  * scaleY
     };
   }
-
+ 
   function startDraw(e) {
     e.preventDefault();
     _nteAckDrawing = true;
@@ -2828,7 +2920,7 @@ function initNTEAckCanvas() {
     _nteAckLastX = p.x; _nteAckLastY = p.y;
   }
   function stopDraw(e) { _nteAckDrawing = false; ctx.beginPath(); }
-
+ 
   canvas.addEventListener('mousedown',  startDraw, {passive:false});
   canvas.addEventListener('mousemove',  draw,      {passive:false});
   canvas.addEventListener('mouseup',    stopDraw);
@@ -2837,14 +2929,14 @@ function initNTEAckCanvas() {
   canvas.addEventListener('touchmove',  draw,      {passive:false});
   canvas.addEventListener('touchend',   stopDraw);
 }
-
+ 
 function clearNTEAckCanvas() {
   const canvas = document.getElementById('nteAckCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
+ 
 function isCanvasEmpty(canvas) {
   const ctx  = canvas.getContext('2d');
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -2853,14 +2945,14 @@ function isCanvasEmpty(canvas) {
   }
   return true;
 }
-
+ 
 function saveNTEAck(id) {
   const errEl = document.getElementById('nteAckError');
   if (errEl) errEl.style.display = 'none';
-
+ 
   const check  = document.getElementById('nteAckCheck');
   const canvas = document.getElementById('nteAckCanvas');
-
+ 
   if (!check || !check.checked) {
     if (errEl) { errEl.textContent = 'Please check the acknowledgement checkbox.'; errEl.style.display='block'; }
     return;
@@ -2869,21 +2961,21 @@ function saveNTEAck(id) {
     if (errEl) { errEl.textContent = 'Please provide your signature before submitting.'; errEl.style.display='block'; }
     return;
   }
-
+ 
   const signature = canvas.toDataURL('image/png');
   const idx = nteEntries.findIndex(x => x.id === id);
   if (idx < 0) return;
-
+ 
   nteEntries[idx].acknowledgement = {
     checked        : true,
     signature      : signature,
     acknowledgedAt : new Date().toISOString()
   };
   nteEntries[idx].updatedAt = new Date().toISOString();
-
+ 
   saveNTEEntries();
   renderNTETable();
-
+ 
   // Update badge inside still-open modal
   const badge = document.getElementById('nteAckStatusBadge');
   if (badge) {
@@ -2903,7 +2995,7 @@ function saveNTEAck(id) {
   if (check) check.disabled = true;
 }
 </script>
-
+ 
 <!-- NTE FORM MODAL -->
 <div class="modal-overlay" id="nteFormModal">
   <div class="modal" style="max-width:640px">
@@ -2962,7 +3054,7 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
-
+ 
 <!-- NTE VIEW MODAL -->
 <div class="modal-overlay" id="nteViewModal">
   <div class="modal" style="max-width:600px">
@@ -2976,7 +3068,7 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
-
+ 
 <!-- NTE ACKNOWLEDGEMENT MODAL -->
 <div class="modal-overlay" id="nteAckModal">
   <div class="modal" style="max-width:680px">
@@ -2990,7 +3082,7 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
-
+ 
 <!-- AGENT COMMITMENT MODAL (TABBED) -->
 <div class="modal-overlay" id="agentCommitmentModal">
   <div class="modal" style="max-width:760px">
@@ -3011,6 +3103,7 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
-
+ 
 </body>
 </html>
+ 
