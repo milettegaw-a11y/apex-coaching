@@ -1025,12 +1025,20 @@ Object.values(TL_EMAILS).forEach(t => { MANAGER_TO_TL_DISPLAY[t.fullName] = t.di
 let currentUser = null; // {email, role:'TL'|'OM'|'Admin'|'Agent', display, tlInfo?, omInfo?}
 let entries = [];
 let ROSTER = []; // live editable agent list (persisted in localStorage)
+let deletedIds = new Set(); // track locally-deleted entry IDs to prevent fetchFromSheets from re-adding them
  
 function loadEntries() {
   try { entries = JSON.parse(localStorage.getItem('apexCoachingLogs') || '[]'); } catch(e){ entries=[]; }
+  loadDeletedIds();
 }
 function saveEntries() {
   localStorage.setItem('apexCoachingLogs', JSON.stringify(entries));
+}
+function loadDeletedIds() {
+  try { deletedIds = new Set(JSON.parse(localStorage.getItem('apexDeletedIds') || '[]')); } catch(e){ deletedIds = new Set(); }
+}
+function saveDeletedIds() {
+  localStorage.setItem('apexDeletedIds', JSON.stringify([...deletedIds]));
 }
  
 function loadRoster() {
@@ -2024,9 +2032,10 @@ async function fetchFromSheets() {
     entries.forEach(e => { if (e.id) merged[e.id] = e; });
  
     // SheetDB is the cross-device source of truth — overwrite/add
+    // Skip any entry the user already deleted on this device
     rows.forEach(row => {
       const parsed = parseSheetRow(row);
-      if (parsed.id) merged[parsed.id] = parsed;
+      if (parsed.id && !deletedIds.has(parsed.id)) merged[parsed.id] = parsed;
     });
  
     entries = Object.values(merged).sort((a, b) => {
@@ -2258,7 +2267,8 @@ function viewEntry(id) {
 function deleteFromSheets(entryId, type) {
   if (!SHEETDB_API_URL) return;
   const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
-  fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/Entry ID/${encodeURIComponent(entryId)}`, {
+  // NOTE: 'Entry ID' column name must be URL-encoded — the space was causing silent failures
+  fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(entryId)}`, {
     method: 'DELETE',
     headers: { 'Accept': 'application/json' }
   }).catch(err => console.warn('SheetDB delete error:', err));
@@ -2266,6 +2276,8 @@ function deleteFromSheets(entryId, type) {
  
 function deleteEntry(id) {
   if (!confirm('Are you sure you want to delete this coaching log?')) return;
+  // Record the deleted ID so fetchFromSheets never re-imports it
+  if (id) { deletedIds.add(id); saveDeletedIds(); }
   deleteFromSheets(id, 'coaching');
   entries = entries.filter(x=>x.id!==id);
   saveEntries();
@@ -2450,7 +2462,7 @@ function saveCommitment(entryId) {
   renderLogTable();
   // Sync commitment to Google Sheet — PATCH the existing row by Entry ID
   if (SHEETDB_API_URL && e.id) {
-    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/Entry ID/${encodeURIComponent(e.id)}`, {
+    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ data: {
