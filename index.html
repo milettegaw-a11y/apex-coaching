@@ -722,7 +722,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 <div class="roster-overlay" id="rosterOverlay">
   <div class="roster-panel">
     <div class="roster-header">
-      <h3>🗂️ Agent Roster Manager</h3>
+      <h3 id="rosterManagerTitle">🗂️ Agent Roster Manager</h3>
       <button class="modal-close" onclick="closeRosterManager()">✕</button>
     </div>
     <div class="roster-body">
@@ -1167,7 +1167,10 @@ const ROSTER_OM_EMAILS = [
   'princesssimbahan@homeaglowsalesone.com'
 ];
 function canManageRoster() {
-  return currentUser && ROSTER_OM_EMAILS.includes(currentUser.email);
+  if (!currentUser) return false;
+  if (ROSTER_OM_EMAILS.includes(currentUser.email)) return true;
+  if (currentUser.role === 'TL') return true; // TLs can manage their own cluster's agents
+  return false;
 }
 function canManageTLs() {
   return currentUser && (currentUser.role === 'Admin' || currentUser.role === 'OM');
@@ -1177,9 +1180,33 @@ function canManageTLs() {
 // ROSTER MANAGER UI
 // ══════════════════════════════════════════════════════════════════════════
 function openRosterManager() {
-  document.getElementById('rosterFilterCluster').value = '';
-  document.getElementById('rosterFilterTL').innerHTML = '<option value="">All TLs</option>';
+  const clusterEl  = document.getElementById('rosterFilterCluster');
+  const tlFilterEl = document.getElementById('rosterFilterTL');
   document.getElementById('rosterSearch').value = '';
+
+  if (currentUser.role === 'TL' && currentUser.tlInfo) {
+    // Lock TLs to their own cluster
+    clusterEl.value    = currentUser.tlInfo.cluster;
+    clusterEl.disabled = true;
+    // Populate TL filter only for their cluster
+    tlFilterEl.innerHTML = '<option value="">All TLs in Cluster</option>';
+    Object.values(TL_EMAILS).sort((a,b)=>a.display.localeCompare(b.display)).forEach(t => {
+      if (t.cluster === currentUser.tlInfo.cluster) {
+        const o = document.createElement('option');
+        o.value = t.display; o.textContent = t.display;
+        tlFilterEl.appendChild(o);
+      }
+    });
+    const titleEl = document.getElementById('rosterManagerTitle');
+    if (titleEl) titleEl.textContent = '🗂️ My Cluster Roster — ' + currentUser.tlInfo.cluster;
+  } else {
+    clusterEl.value    = '';
+    clusterEl.disabled = false;
+    tlFilterEl.innerHTML = '<option value="">All TLs</option>';
+    const titleEl = document.getElementById('rosterManagerTitle');
+    if (titleEl) titleEl.textContent = '🗂️ Agent Roster Manager';
+  }
+
   renderRosterTable();
   document.getElementById('rosterOverlay').classList.add('open');
 }
@@ -1203,8 +1230,11 @@ function onRosterClusterChange() {
 }
 
 function renderRosterTable() {
-  const search  = (document.getElementById('rosterSearch').value || '').toLowerCase();
-  const cluster = document.getElementById('rosterFilterCluster').value;
+  const search = (document.getElementById('rosterSearch').value || '').toLowerCase();
+  // TLs are always locked to their cluster regardless of the select's value
+  const cluster = (currentUser.role === 'TL' && currentUser.tlInfo)
+    ? currentUser.tlInfo.cluster
+    : document.getElementById('rosterFilterCluster').value;
   const tl      = document.getElementById('rosterFilterTL').value;
 
   const filtered = ROSTER.filter(a => {
@@ -1254,6 +1284,8 @@ function openAgentForm(idx) {
   document.getElementById('agentFormTitle').textContent = isEdit ? 'Edit Agent' : 'Add Agent';
   document.getElementById('agentFormError').style.display = 'none';
 
+  const isTL = currentUser.role === 'TL' && currentUser.tlInfo;
+
   if (isEdit) {
     const a = ROSTER[_editingAgentIdx];
     document.getElementById('agentFName').value    = a.name || '';
@@ -1264,16 +1296,29 @@ function openAgentForm(idx) {
     const tlDisp = Object.values(TL_EMAILS).find(t => t.fullName === a.manager)?.display || '';
     document.getElementById('agentFTL').value = tlDisp;
   } else {
-    document.getElementById('agentFName').value    = '';
-    document.getElementById('agentFEmail').value   = '';
-    document.getElementById('agentFStart').value   = '';
-    document.getElementById('agentFCluster').value = '';
+    document.getElementById('agentFName').value  = '';
+    document.getElementById('agentFEmail').value = '';
+    document.getElementById('agentFStart').value = '';
+    // For TLs: pre-populate their cluster
+    document.getElementById('agentFCluster').value = isTL ? currentUser.tlInfo.cluster : '';
     onAgentFormClusterChange();
+    // For TLs: pre-select themselves as the TL
+    if (isTL) document.getElementById('agentFTL').value = currentUser.display;
   }
+
+  // For TLs: lock cluster + TL fields so they can't assign to another cluster/TL
+  const clusterEl = document.getElementById('agentFCluster');
+  const tlEl      = document.getElementById('agentFTL');
+  clusterEl.disabled = isTL;
+  tlEl.disabled      = isTL;
+
   document.getElementById('agentFormOverlay').classList.add('open');
 }
 
 function closeAgentForm() {
+  // Re-enable fields that may have been locked for a TL session
+  document.getElementById('agentFCluster').disabled = false;
+  document.getElementById('agentFTL').disabled      = false;
   document.getElementById('agentFormOverlay').classList.remove('open');
 }
 
@@ -1305,6 +1350,12 @@ function saveAgent() {
   if (!cluster) { errEl.textContent = 'Please select a Cluster.';       errEl.style.display='block'; return; }
   if (!tlDisp)  { errEl.textContent = 'Please select a Team Lead.';     errEl.style.display='block'; return; }
 
+  // Security guard: TLs can only add agents to their own cluster
+  if (currentUser.role === 'TL' && currentUser.tlInfo && cluster !== currentUser.tlInfo.cluster) {
+    errEl.textContent = 'You can only add agents to your own cluster (' + currentUser.tlInfo.cluster + ').';
+    errEl.style.display = 'block'; return;
+  }
+
   // Check email uniqueness (not the same record being edited)
   const existingIdx = ROSTER.findIndex(a => a.email && a.email.toLowerCase() === email);
   if (existingIdx >= 0 && existingIdx !== _editingAgentIdx) {
@@ -1333,7 +1384,12 @@ function saveAgent() {
 
 function deleteAgent(idx) {
   const a = ROSTER[idx];
-  if (!confirm('Delete "' + a.name + '" from the roster? This cannot be undone.')) return;
+  // Security guard: TLs can only remove agents from their own cluster
+  if (currentUser.role === 'TL' && currentUser.tlInfo && a.cluster !== currentUser.tlInfo.cluster) {
+    alert('You can only remove agents from your own cluster (' + currentUser.tlInfo.cluster + ').');
+    return;
+  }
+  if (!confirm('Remove "' + a.name + '" from the roster? This cannot be undone.')) return;
   ROSTER.splice(idx, 1);
   saveRoster();
   renderRosterTable();
