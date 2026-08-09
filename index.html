@@ -400,10 +400,17 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
   <div class="modal">
     <div class="modal-header">
       <h3 id="formModalTitle">New Coaching Log</h3>
-      <button class="modal-close" onclick="closeModal('formModal')">✕</button>
+      <button class="modal-close" onclick="closeFormModal()">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="editId"/>
+      <!-- DRAFT RECOVERY BANNER -->
+      <div id="draftBanner" style="display:none;background:#fff8e1;border:1.5px solid #f9a825;border-radius:8px;padding:10px 14px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:1.1rem">⚠️</span>
+        <span style="font-size:.88rem;flex:1;color:#5d4037">You have an unsaved draft<strong id="draftBannerAgent"></strong> saved <strong id="draftBannerTime"></strong>. Resume where you left off?</span>
+        <button onclick="resumeDraft()" style="background:#f9a825;border:none;border-radius:6px;padding:6px 16px;font-weight:700;cursor:pointer;font-size:.82rem;color:#3e2723">Resume</button>
+        <button onclick="discardDraft()" style="background:#f5f5f5;border:none;border-radius:6px;padding:6px 14px;font-weight:600;cursor:pointer;font-size:.82rem;color:#666">Discard</button>
+      </div>
       <!-- SECTION 1 -->
       <div class="form-grid">
         <div class="form-group">
@@ -492,7 +499,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <td><input type="number" id="lt1" oninput="calcPerf()" min="0"/></td>
               <td><input type="number" id="cc1" oninput="calcPerf()" min="0"/></td>
               <td><input type="number" id="s1" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="wk1CvrManual" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
+              <td><input type="number" id="wk1CvrManual" oninput="calcPerf()" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
               <td class="calc" id="tcr1">—</td><td class="calc" id="csr1">—</td><td class="calc" id="cvr1">—</td>
             </tr>
             <tr>
@@ -500,7 +507,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <td><input type="number" id="lt2" oninput="calcPerf()" min="0"/></td>
               <td><input type="number" id="cc2" oninput="calcPerf()" min="0"/></td>
               <td><input type="number" id="s2" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="wk2CvrManual" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
+              <td><input type="number" id="wk2CvrManual" oninput="calcPerf()" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
               <td class="calc" id="tcr2">—</td><td class="calc" id="csr2">—</td><td class="calc" id="cvr2">—</td>
             </tr>
             <tr>
@@ -508,7 +515,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <td><input type="number" id="lt3" oninput="calcPerf()" min="0"/></td>
               <td><input type="number" id="cc3" oninput="calcPerf()" min="0"/></td>
               <td><input type="number" id="s3" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="wk3CvrManual" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
+              <td><input type="number" id="wk3CvrManual" oninput="calcPerf()" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
               <td class="calc" id="tcr3">—</td><td class="calc" id="csr3">—</td><td class="calc" id="cvr3">—</td>
             </tr>
             <tr>
@@ -516,7 +523,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <td><input type="number" id="lt4" oninput="calcPerf()" min="0"/></td>
               <td><input type="number" id="cc4" oninput="calcPerf()" min="0"/></td>
               <td><input type="number" id="s4" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="wk4CvrManual" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
+              <td><input type="number" id="wk4CvrManual" oninput="calcPerf()" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
               <td class="calc" id="tcr4">—</td><td class="calc" id="csr4">—</td><td class="calc" id="cvr4">—</td>
             </tr>
             <tr style="background:#fffbef;font-weight:700">
@@ -691,7 +698,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       </div>
     </div>
     <div class="modal-footer">
-      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('formModal')">Cancel</button>
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeFormModal()">Cancel</button>
       <button class="btn-primary" style="width:auto" onclick="saveEntry()">Save Coaching Log</button>
     </div>
   </div>
@@ -746,7 +753,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <table class="roster-table">
           <thead>
             <tr>
-              <th>#</th><th>Agent Name</th><th>Start Date</th><th>Team Lead</th><th>Cluster</th><th>Actions</th>
+              <th>#</th><th>Agent Name</th><th>Email</th><th>Start Date</th><th>Team Lead</th><th>Cluster</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="rosterTableBody"></tbody>
@@ -771,6 +778,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="form-group" style="margin-bottom:12px">
         <label>Agent Name <span class="required">*</span></label>
         <input type="text" id="agentFName" placeholder="Full name" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Email Address <span class="required">*</span></label>
+        <input type="email" id="agentFEmail" placeholder="name@homeaglowsales.com" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none"/>
+        <small style="color:#666;font-size:.72rem;display:block;margin-top:4px">Agent will use this email to log in to the app.</small>
       </div>
       <div class="form-group" style="margin-bottom:12px">
         <label>Start Date <span class="required">*</span></label>
@@ -1209,16 +1221,20 @@ function renderRosterTable() {
 
   const tbody = document.getElementById('rosterTableBody');
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No agents found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No agents found.</td></tr>';
     return;
   }
 
   tbody.innerHTML = filtered.map((a, i) => {
     const idx    = ROSTER.indexOf(a);
     const tlDisp = Object.values(TL_EMAILS).find(t => t.fullName === a.manager)?.display || a.manager || '—';
+    const emailBadge = a.email
+      ? `<span style="font-size:.72rem;color:#444">${a.email}</span>`
+      : `<span style="font-size:.72rem;color:#e74c3c;font-style:italic">⚠ No email — cannot log in</span>`;
     return `<tr>
       <td>${i + 1}</td>
       <td><strong>${a.name}</strong></td>
+      <td>${emailBadge}</td>
       <td>${a.startDate || a.start || '—'}</td>
       <td>${tlDisp}</td>
       <td>${a.cluster || '—'}</td>
@@ -1241,6 +1257,7 @@ function openAgentForm(idx) {
   if (isEdit) {
     const a = ROSTER[_editingAgentIdx];
     document.getElementById('agentFName').value    = a.name || '';
+    document.getElementById('agentFEmail').value   = a.email || '';
     document.getElementById('agentFStart').value   = a.startDate || '';
     document.getElementById('agentFCluster').value = a.cluster || '';
     onAgentFormClusterChange();
@@ -1248,6 +1265,7 @@ function openAgentForm(idx) {
     document.getElementById('agentFTL').value = tlDisp;
   } else {
     document.getElementById('agentFName').value    = '';
+    document.getElementById('agentFEmail').value   = '';
     document.getElementById('agentFStart').value   = '';
     document.getElementById('agentFCluster').value = '';
     onAgentFormClusterChange();
@@ -1274,15 +1292,25 @@ function onAgentFormClusterChange() {
 
 function saveAgent() {
   const name      = document.getElementById('agentFName').value.trim();
+  const email     = document.getElementById('agentFEmail').value.trim().toLowerCase();
   const startDate = document.getElementById('agentFStart').value.trim();
   const cluster   = document.getElementById('agentFCluster').value;
   const tlDisp    = document.getElementById('agentFTL').value;
   const errEl     = document.getElementById('agentFormError');
   errEl.style.display = 'none';
 
-  if (!name)    { errEl.textContent = 'Agent name is required.';   errEl.style.display='block'; return; }
-  if (!cluster) { errEl.textContent = 'Please select a Cluster.';  errEl.style.display='block'; return; }
-  if (!tlDisp)  { errEl.textContent = 'Please select a Team Lead.';errEl.style.display='block'; return; }
+  if (!name)    { errEl.textContent = 'Agent name is required.';        errEl.style.display='block'; return; }
+  if (!email)   { errEl.textContent = 'Agent email is required.';       errEl.style.display='block'; return; }
+  if (!isHomeaglowEmail(email)) { errEl.textContent = 'Must be a Homeaglow email address.'; errEl.style.display='block'; return; }
+  if (!cluster) { errEl.textContent = 'Please select a Cluster.';       errEl.style.display='block'; return; }
+  if (!tlDisp)  { errEl.textContent = 'Please select a Team Lead.';     errEl.style.display='block'; return; }
+
+  // Check email uniqueness (not the same record being edited)
+  const existingIdx = ROSTER.findIndex(a => a.email && a.email.toLowerCase() === email);
+  if (existingIdx >= 0 && existingIdx !== _editingAgentIdx) {
+    errEl.textContent = 'This email is already assigned to another agent on the roster.';
+    errEl.style.display = 'block'; return;
+  }
 
   const tlEntry  = Object.values(TL_EMAILS).find(t => t.display === tlDisp);
   const manager  = tlEntry ? tlEntry.fullName : tlDisp;
@@ -1290,10 +1318,9 @@ function saveAgent() {
     ? (Object.entries(OM_EMAILS).find(([,o]) => o.cluster === tlEntry.cluster)?.[1]?.display || '')
     : '';
 
-  const agentObj = { name, startDate, cluster, manager, manager2, email: '' };
+  const agentObj = { name, email, startDate, cluster, manager, manager2 };
 
   if (_editingAgentIdx >= 0) {
-    agentObj.email = ROSTER[_editingAgentIdx].email || '';
     ROSTER[_editingAgentIdx] = agentObj;
   } else {
     ROSTER.push(agentObj);
@@ -1480,19 +1507,28 @@ function doLogin() {
   if (!email) { showErr('Please enter your email address.'); return; }
   if (!isHomeaglowEmail(email)) { showErr('Only Homeaglow email addresses are allowed.'); return; }
 
+  // Pre-load custom TLs and roster so access checks are current
+  loadCustomTLs();
+  loadRoster();
+
   let role, display, tlInfo = null, omInfo = null;
 
   if (ADMIN_EMAILS.includes(email)) {
     role = 'Admin'; display = 'Admin (' + email + ')';
   } else if (TL_EMAILS[email]) {
+    // Includes both built-in and custom TLs added by OMs
     role = 'TL'; tlInfo = TL_EMAILS[email]; display = tlInfo.display;
   } else if (OM_EMAILS[email]) {
     role = 'OM'; omInfo = OM_EMAILS[email]; display = omInfo.display;
-  } else if (isHomeaglowEmail(email)) {
-    // Check if agent
-    const agent = AGENTS.find(a => a.email === email);
-    if (agent) { role = 'Agent'; display = agent.name; }
-    else { role = 'Agent'; display = email.split('@')[0]; }
+  } else {
+    // Check live ROSTER (includes pre-seeded AGENTS + dynamically added agents)
+    const rosterAgent = ROSTER.find(a => a.email && a.email.toLowerCase() === email);
+    if (rosterAgent) {
+      role = 'Agent'; display = rosterAgent.name;
+    } else {
+      showErr('Your email is not registered in the system. Please ask your Team Lead or OM to add you first.');
+      return;
+    }
   }
 
   currentUser = { email, role, display, tlInfo, omInfo };
@@ -1568,7 +1604,7 @@ function getTLsForUser(cluster) {
   } else if (currentUser.role === 'OM') {
     candidates = candidates.filter(t => t.cluster === currentUser.omInfo.cluster);
   } else if (currentUser.role === 'Agent') {
-    const agentInfo = AGENTS.find(a => a.email === currentUser.email);
+    const agentInfo = ROSTER.find(a => a.email === currentUser.email);
     if (agentInfo) {
       candidates = candidates.filter(t => t.fullName === agentInfo.manager);
     } else {
@@ -1841,6 +1877,25 @@ function openAddModal() {
   }
   populateFormTLs(document.getElementById('fCluster').value);
   populateFormAgents();
+  // Check for a saved draft and show recovery banner
+  const draftStr = localStorage.getItem(DRAFT_KEY);
+  const draftBanner = document.getElementById('draftBanner');
+  if (draftStr && draftBanner) {
+    try {
+      const draft = JSON.parse(draftStr);
+      const savedAgo = Math.round((Date.now() - (draft.savedAt||0)) / 60000);
+      const timeStr  = savedAgo < 1 ? 'just now'
+                     : savedAgo < 60 ? `${savedAgo} min ago`
+                     : `${Math.round(savedAgo/60)}h ago`;
+      const agentEl = document.getElementById('draftBannerAgent');
+      const timeEl  = document.getElementById('draftBannerTime');
+      if (agentEl) agentEl.textContent = draft.agent ? ` for ${draft.agent}` : '';
+      if (timeEl)  timeEl.textContent  = timeStr;
+      draftBanner.style.display = 'flex';
+    } catch(e) { clearDraft(); }
+  } else if (draftBanner) {
+    draftBanner.style.display = 'none';
+  }
   openModal('formModal');
 }
 
@@ -1920,10 +1975,13 @@ function clearForm() {
   for(let i=1;i<=4;i++){
     ['lt','cc','s'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.value=''; });
     ['tcr','csr','cvr'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.textContent='—'; });
+    const cvrM=document.getElementById('wk'+i+'CvrManual'); if(cvrM) cvrM.value='';
   }
   ['avgLT','avgCC','avgS','avgTCR','avgCSR','avgCVR'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.textContent='—';
   });
+  const avgCvrM=document.getElementById('avgCvrManual'); if(avgCvrM) avgCvrM.textContent='—';
+  const wk1Hl=document.getElementById('wk1CvrHighlight'); if(wk1Hl) wk1Hl.textContent='—';
   // Clear projection
   document.querySelectorAll('input[name="focusOn"]').forEach(r=>r.checked=false);
   ['projTargetTCR','projTargetCSR','projTargetLeads'].forEach(id=>{
@@ -2026,34 +2084,43 @@ function calcTenure() {
 // ══════════════════════════════════════════════════════════════════════════
 function calcPerf() {
   let totalLT=0,totalCC=0,totalS=0,validRows=0;
+  const tcrVals=[], csrVals=[], cvrVals=[];
   for(let i=1;i<=4;i++){
     const lt=parseFloat(document.getElementById('lt'+i).value)||0;
     const cc=parseFloat(document.getElementById('cc'+i).value)||0;
     const s=parseFloat(document.getElementById('s'+i).value)||0;
-    const tcr = lt>0 ? (cc/lt*100).toFixed(1)+'%' : '—';
-    const csr = cc>0 ? (s/cc*100).toFixed(1)+'%' : '—';
-    const cvr = lt>0 ? (s/lt*100).toFixed(1)+'%' : '—';
-    document.getElementById('tcr'+i).textContent=tcr;
-    document.getElementById('csr'+i).textContent=csr;
-    document.getElementById('cvr'+i).textContent=cvr;
-    if(lt||cc||s){totalLT+=lt;totalCC+=cc;totalS+=s;validRows++;}
+    const tcrNum = lt>0 ? (cc/lt*100) : null;
+    const csrNum = cc>0 ? (s/cc*100) : null;
+    const cvrNum = lt>0 ? (s/lt*100) : null;
+    document.getElementById('tcr'+i).textContent = tcrNum!==null ? tcrNum.toFixed(1)+'%' : '—';
+    document.getElementById('csr'+i).textContent = csrNum!==null ? csrNum.toFixed(1)+'%' : '—';
+    document.getElementById('cvr'+i).textContent = cvrNum!==null ? cvrNum.toFixed(1)+'%' : '—';
+    if(lt||cc||s){
+      totalLT+=lt; totalCC+=cc; totalS+=s; validRows++;
+      if(tcrNum!==null) tcrVals.push(tcrNum);
+      if(csrNum!==null) csrVals.push(csrNum);
+      if(cvrNum!==null) cvrVals.push(cvrNum);
+    }
   }
-  document.getElementById('avgLT').textContent = validRows?Math.round(totalLT/validRows):'—';
-  document.getElementById('avgCC').textContent = validRows?Math.round(totalCC/validRows):'—';
-  document.getElementById('avgS').textContent = validRows?Math.round(totalS/validRows):'—';
-  document.getElementById('avgTCR').textContent = validRows&&totalLT>0?(totalCC/totalLT*100).toFixed(1)+'%':'—';
-  document.getElementById('avgCSR').textContent = validRows&&totalCC>0?(totalS/totalCC*100).toFixed(1)+'%':'—';
-  document.getElementById('avgCVR').textContent = validRows&&totalLT>0?(totalS/totalLT*100).toFixed(1)+'%':'—';
-  // WK1 CVR% highlight (most recent week)
+  document.getElementById('avgLT').textContent  = validRows ? Math.round(totalLT/validRows) : '—';
+  document.getElementById('avgCC').textContent  = validRows ? Math.round(totalCC/validRows) : '—';
+  document.getElementById('avgS').textContent   = validRows ? Math.round(totalS/validRows)  : '—';
+  // Simple average of per-week rates (not pooled totals)
+  document.getElementById('avgTCR').textContent = tcrVals.length ? (tcrVals.reduce((a,b)=>a+b,0)/tcrVals.length).toFixed(1)+'%' : '—';
+  document.getElementById('avgCSR').textContent = csrVals.length ? (csrVals.reduce((a,b)=>a+b,0)/csrVals.length).toFixed(1)+'%' : '—';
+  document.getElementById('avgCVR').textContent = cvrVals.length ? (cvrVals.reduce((a,b)=>a+b,0)/cvrVals.length).toFixed(1)+'%' : '—';
+  // WK1 CVR% highlight — prefer manual entry, fall back to computed
+  const wk1ManualVal = parseFloat(document.getElementById('wk1CvrManual').value);
   const wk1lt = parseFloat(document.getElementById('lt1').value)||0;
   const wk1s  = parseFloat(document.getElementById('s1').value)||0;
-  const wk1cvr = wk1lt > 0 ? (wk1s/wk1lt*100).toFixed(1)+'%' : '—';
+  const wk1cvr = !isNaN(wk1ManualVal) ? wk1ManualVal.toFixed(2)+'%'
+               : wk1lt>0 ? (wk1s/wk1lt*100).toFixed(1)+'%' : '—';
   const wk1El = document.getElementById('wk1CvrHighlight');
   if (wk1El) wk1El.textContent = wk1cvr;
-  // Avg CVR% (Manual) — auto average of whichever weeks have a value
+  // Avg CVR% (Manual) — simple average of whichever weeks have a manual value
   const manualVals = [1,2,3,4]
     .map(n => parseFloat(document.getElementById('wk'+n+'CvrManual')?.value))
-    .filter(v => !isNaN(v) && v !== null);
+    .filter(v => !isNaN(v));
   const avgCvrEl = document.getElementById('avgCvrManual');
   if (avgCvrEl) avgCvrEl.textContent = manualVals.length ? (manualVals.reduce((a,b)=>a+b,0)/manualVals.length).toFixed(2)+'%' : '—';
   updateProjectionCurrent();
@@ -2273,8 +2340,12 @@ async function fetchFromSheets() {
       url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Team%20Lead=${tlDisplay}`;
     } else if (currentUser.role === 'Admin' || currentUser.role === 'OM') {
       url = `${SHEETDB_API_URL}?sheet=Coaching%20Logs`;
+    } else if (currentUser.role === 'Agent') {
+      // Agents fetch only their own coaching logs from SheetDB
+      const agentName = ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display;
+      url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Agent=${encodeURIComponent(agentName)}`;
     } else {
-      return; // Agents don't sync coaching logs
+      return;
     }
     const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!resp.ok) return;
@@ -2424,9 +2495,9 @@ function saveEntry() {
     wk3CvrManual: document.getElementById('wk3CvrManual').value || '',
     wk4CvrManual: document.getElementById('wk4CvrManual').value || '',
     avgCvrManual: document.getElementById('avgCvrManual').textContent.replace('%','').trim() || '',
-    avgTCR: totalLT>0 ? (totalCC/totalLT*100).toFixed(1) : null,
-    avgCSR: totalCC>0 ? (totalS/totalCC*100).toFixed(1) : null,
-    avgCVR: totalLT>0 ? (totalS/totalLT*100).toFixed(1) : null,
+    avgTCR: document.getElementById('avgTCR').textContent.replace('%','').trim() || null,
+    avgCSR: document.getElementById('avgCSR').textContent.replace('%','').trim() || null,
+    avgCVR: document.getElementById('avgCVR').textContent.replace('%','').trim() || null,
     projection: {
       focusOn: (document.querySelector('input[name="focusOn"]:checked')||{}).value || null,
       targetTCR: document.getElementById('projTargetTCR').value || null,
@@ -2447,6 +2518,7 @@ function saveEntry() {
   }
   saveEntries();
   syncToSheets(entry, 'coaching');
+  clearDraft(); // draft successfully saved as a real entry — remove it
   closeModal('formModal');
   renderDashboard();
   renderLogTable();
@@ -2545,12 +2617,109 @@ function deleteEntry(id) {
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// Close modal on overlay click
-['formModal','viewModal'].forEach(id => {
-  document.getElementById(id).addEventListener('click', function(e){
-    if(e.target===this) closeModal(id);
-  });
+// Close modal on overlay click — for formModal, save draft first
+document.getElementById('formModal').addEventListener('click', function(e){
+  if(e.target===this) closeFormModal();
 });
+document.getElementById('viewModal').addEventListener('click', function(e){
+  if(e.target===this) closeModal('viewModal');
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// DRAFT AUTO-SAVE (coaching log form)
+// ══════════════════════════════════════════════════════════════════════════
+const DRAFT_KEY = 'apexCoachingDraft';
+
+function closeFormModal() {
+  // Save draft if this is a NEW entry (not editing an existing one)
+  if (!document.getElementById('editId').value) {
+    saveDraft();
+  }
+  closeModal('formModal');
+}
+
+function saveDraft() {
+  const draft = {
+    savedAt      : Date.now(),
+    coachingType : document.getElementById('fCoachingType').value,
+    date         : document.getElementById('fDate').value,
+    wk           : document.getElementById('fWK').value,
+    cluster      : document.getElementById('fCluster').value,
+    tl           : document.getElementById('fTL').value,
+    agent        : document.getElementById('fAgent').value,
+    highlights   : document.getElementById('fHighlights').value,
+    opportunities: document.getElementById('fOpportunities').value,
+    keyDiscussion: document.getElementById('fKeyDiscussion').value,
+    strength     : document.getElementById('fStrength').value,
+    areas        : document.getElementById('fAreas').value,
+    limiter      : document.getElementById('fLimiter').value,
+    followUp     : document.getElementById('fFollowUp').value,
+    actionPlan   : document.getElementById('fActionPlan').value,
+    receptiveness: document.getElementById('fReceptiveness').value,
+    status       : document.getElementById('fStatus').value,
+    remarks      : document.getElementById('fRemarks').value,
+    focusAreas   : Array.from(document.querySelectorAll('#focusAreas input[type=checkbox]:checked')).map(c=>c.value),
+    perf         : [1,2,3,4].map(i=>({
+      lt        : document.getElementById('lt'+i)?.value || '',
+      cc        : document.getElementById('cc'+i)?.value || '',
+      s         : document.getElementById('s'+i)?.value  || '',
+      cvrManual : document.getElementById('wk'+i+'CvrManual')?.value || ''
+    }))
+  };
+  // Only persist if at least one meaningful field was filled
+  if (draft.agent || draft.date || draft.highlights || draft.opportunities || draft.keyDiscussion) {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+  const banner = document.getElementById('draftBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+function discardDraft() {
+  clearDraft();
+}
+
+function resumeDraft() {
+  const draftStr = localStorage.getItem(DRAFT_KEY);
+  if (!draftStr) return;
+  const draft = JSON.parse(draftStr);
+  clearDraft();
+  // Restore cluster first so TL dropdown populates
+  setVal('fCluster', draft.cluster||'');
+  populateFormTLs(draft.cluster||'');
+  setVal('fTL', draft.tl||'');
+  populateFormAgents(draft.tl||'');
+  // Restore all other fields
+  setVal('fCoachingType', draft.coachingType||'');
+  setVal('fDate', draft.date||'');
+  setVal('fWK', draft.wk||'');
+  setVal('fAgent', draft.agent||'');
+  setVal('fHighlights', draft.highlights||'');
+  setVal('fOpportunities', draft.opportunities||'');
+  setVal('fKeyDiscussion', draft.keyDiscussion||'');
+  setVal('fStrength', draft.strength||'');
+  setVal('fAreas', draft.areas||'');
+  setVal('fLimiter', draft.limiter||'');
+  setVal('fFollowUp', draft.followUp||'');
+  setVal('fActionPlan', draft.actionPlan||'');
+  setVal('fReceptiveness', draft.receptiveness||'');
+  setVal('fStatus', draft.status||'');
+  setVal('fRemarks', draft.remarks||'');
+  (draft.focusAreas||[]).forEach(v => {
+    const cb = document.querySelector(`#focusAreas input[value="${v}"]`);
+    if (cb) cb.checked = true;
+  });
+  (draft.perf||[]).forEach((row,i)=>{
+    const n=i+1;
+    setVal('lt'+n, row.lt); setVal('cc'+n, row.cc); setVal('s'+n, row.s);
+    setVal('wk'+n+'CvrManual', row.cvrManual||'');
+  });
+  calcPerf();
+  calcTenure();
+}
 
 function setVal(id, val) {
   const el = document.getElementById(id);
@@ -2652,11 +2821,12 @@ function openCommitmentView(entryId) {
     </div>` : ''}
   `;
 
-  // ── Tab 2: STAR Commitment (editable) ───────────────────────────────
+  // ── Tab 2: STAR Commitment (editable by agent, read-only for others) ──
   const currentStatus = getCommitmentStatus(e);
   const statusColor = currentStatus==='Completed'?'#388e3c':currentStatus==='In Progress'?'#f57c00':currentStatus==='Not Met'?'#d32f2f':'#888';
+  const isAgentUser = currentUser.role === 'Agent';
 
-  const tab2 = `
+  const tab2 = isAgentUser ? `
     <div id="commitSaveMsg" style="display:none;margin-bottom:12px;background:#e8f5e9;border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:700;color:#388e3c">✅ Commitment submitted! Status updated to <strong>Completed</strong>.</div>
     <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px">
       <span style="font-size:.78rem;color:#666">Current Status:</span>
@@ -2685,6 +2855,31 @@ function openCommitmentView(entryId) {
     <div style="margin-top:18px;text-align:right">
       <button class="btn-primary" style="width:auto;padding:10px 32px" onclick="saveCommitment('${entryId}')">💾 Submit Commitment</button>
     </div>
+  ` : `
+    <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:.78rem;color:#666">Commitment Status:</span>
+      <span style="background:${statusColor};color:#fff;border-radius:12px;padding:3px 12px;font-size:.78rem;font-weight:700">${currentStatus}</span>
+    </div>
+    ${(star.situation||star.task||star.action||star.result) ? `
+    <div class="coaching-detail-grid">
+      <div class="coaching-detail-item full">
+        <div class="cd-label">📍 Situation</div>
+        <div class="cd-val">${(star.situation||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item full">
+        <div class="cd-label">🎯 Task</div>
+        <div class="cd-val">${(star.task||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item full">
+        <div class="cd-label">⚡ Action</div>
+        <div class="cd-val">${(star.action||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item full">
+        <div class="cd-label">✅ Result</div>
+        <div class="cd-val">${(star.result||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      ${star.timeline ? `<div class="coaching-detail-item"><div class="cd-label">📅 Timeline</div><div class="cd-val">${star.timeline}</div></div>` : ''}
+    </div>` : `<div style="color:#999;font-size:.88rem;padding:24px 0;text-align:center;font-style:italic">Agent has not submitted a commitment yet.</div>`}
   `;
 
   // ── Build modal body with tabs ───────────────────────────────────────
