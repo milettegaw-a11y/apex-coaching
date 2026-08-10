@@ -241,6 +241,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="user-badge" id="userBadge"></div>
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
+      <button id="btnBackfill" onclick="backfillToSheets()" style="display:none;background:#1565c0;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Push all local entries to SheetDB (fixes missing data on Vercel)">☁️ Sync Local → SheetDB</button>
       <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
   </header>
@@ -1621,6 +1622,7 @@ function initApp() {
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
+  document.getElementById('btnBackfill').style.display    = ['Admin','OM'].includes(currentUser.role) ? 'inline-block' : 'none';
 
   populateWKOptions();
   populateFilterTLs();
@@ -2252,15 +2254,56 @@ function calcProjection() {
 // One SheetDB API for the whole sheet — tabs are targeted automatically
 const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/ixzx7y2t9qbfi';
 
-function syncToSheets(entry, type) {
+function syncToSheets(entry, type, isEdit = false) {
   if (!SHEETDB_API_URL) return;
   const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
   const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
-  fetch(SHEETDB_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({ data: [data], sheet: tabName })
-  }).catch(err => console.warn('SheetDB sync error:', err));
+  if (isEdit) {
+    // PATCH the existing row by Entry ID so edits don't create duplicates
+    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(entry.id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ data: data })
+    }).catch(err => console.warn('SheetDB update error:', err));
+  } else {
+    fetch(SHEETDB_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ data: [data], sheet: tabName })
+    }).catch(err => console.warn('SheetDB sync error:', err));
+  }
+}
+
+// Push all locally-stored entries to SheetDB — run once to backfill missing data
+async function backfillToSheets() {
+  if (!SHEETDB_API_URL || !entries.length) {
+    alert('No local entries to backfill.'); return;
+  }
+  const btn = document.getElementById('btnBackfill');
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+  let ok = 0, fail = 0;
+  for (const e of entries) {
+    try {
+      const row  = buildCoachingRow(e);
+      // Try PATCH first; if 0 rows updated, POST as new
+      const patchRes = await fetch(
+        `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`,
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: row }) }
+      );
+      const patchJson = await patchRes.json().catch(() => ({}));
+      if (!patchJson.updated || patchJson.updated === 0) {
+        await fetch(SHEETDB_API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: [row], sheet: 'Coaching Logs' })
+        });
+      }
+      ok++;
+    } catch(err) { fail++; console.warn('Backfill error for', e.id, err); }
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → SheetDB'; }
+  alert(`Backfill complete: ${ok} synced${fail ? ', ' + fail + ' failed (check console)' : ''}.`);
+  fetchFromSheets();
 }
 
 function buildCoachingRow(e) {
@@ -2425,7 +2468,8 @@ async function fetchFromSheets() {
       return db.localeCompare(da);
     });
     saveEntries();
-    renderLogTable(); // Refresh displayed list with merged data
+    renderLogTable();   // Refresh log table with merged data
+    renderDashboard();  // Refresh dashboard stats with merged data
   } catch (err) {
     console.warn('fetchFromSheets error:', err);
   }
@@ -2565,7 +2609,8 @@ function saveEntry() {
   };
 
   const idx = entries.findIndex(x=>x.id===entry.id);
-  if(idx>=0){
+  const isEdit = idx >= 0;
+  if(isEdit){
     const existingStar = entries[idx].star;
     entries[idx] = entry;
     if(existingStar) entries[idx].star = existingStar; // preserve commitment
@@ -2573,7 +2618,7 @@ function saveEntry() {
     entries.unshift(entry);
   }
   saveEntries();
-  syncToSheets(entry, 'coaching');
+  syncToSheets(entry, 'coaching', isEdit);
   clearDraft(); // draft successfully saved as a real entry — remove it
   closeModal('formModal');
   renderDashboard();
