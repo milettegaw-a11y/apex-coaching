@@ -623,6 +623,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
             <input type="text" id="fOpportunities" placeholder="Brief opportunities for the table view"/>
           </div>
           <div class="form-group">
+            <label>Key Discussion</label>
+            <textarea id="fKeyDiscussion" placeholder="Key topics discussed during coaching..."></textarea>
+          </div>
+          <div class="form-group">
             <label>Strength Identified</label>
             <textarea id="fStrength" placeholder="Agent's strengths observed..."></textarea>
           </div>
@@ -1971,6 +1975,7 @@ function editEntry(id) {
   setVal('fAgent', e.agentName);
   setVal('fHighlights', e.highlights);
   setVal('fOpportunities', e.opportunities);
+  setVal('fKeyDiscussion', e.keyDiscussion);
   setVal('fStrength', e.strength);
   setVal('fAreas', e.areas);
   setVal('fLimiter', e.limiter);
@@ -2018,7 +2023,7 @@ function editEntry(id) {
 
 function clearForm() {
   ['fCoachingType','fDate','fWK','fCluster','fTL','fAgent','fHighlights','fOpportunities',
-   'fStrength','fAreas','fLimiter','fFollowUp','fActionPlan',
+   'fKeyDiscussion','fStrength','fAreas','fLimiter','fFollowUp','fActionPlan',
    'fReceptiveness','fStatus','fRemarks'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value='';
   });
@@ -2531,6 +2536,7 @@ function saveEntry() {
     focusAreas: [...document.querySelectorAll('#focusAreas input:checked')].map(c=>c.value),
     highlights: document.getElementById('fHighlights').value,
     opportunities: document.getElementById('fOpportunities').value,
+    keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength: document.getElementById('fStrength').value,
     areas: document.getElementById('fAreas').value,
     limiter: document.getElementById('fLimiter').value,
@@ -2605,6 +2611,7 @@ function viewEntry(id) {
         <div class="view-field">${(e.focusAreas||[]).join(', ')||'—'}</div></div>
       <div class="form-group"><label>Highlights</label><div class="view-field">${e.highlights||'—'}</div></div>
       <div class="form-group"><label>Opportunities</label><div class="view-field">${e.opportunities||'—'}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Key Discussion</label><div class="view-field big">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Strength Identified</label><div class="view-field big">${(e.strength||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Areas of Improvement</label><div class="view-field big">${(e.areas||'—').replace(/\n/g,'<br>')}</div></div>
     </div>
@@ -2698,6 +2705,7 @@ function saveDraft() {
     agent        : document.getElementById('fAgent').value,
     highlights   : document.getElementById('fHighlights').value,
     opportunities: document.getElementById('fOpportunities').value,
+    keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength     : document.getElementById('fStrength').value,
     areas        : document.getElementById('fAreas').value,
     limiter      : document.getElementById('fLimiter').value,
@@ -2715,7 +2723,7 @@ function saveDraft() {
     }))
   };
   // Only persist if at least one meaningful field was filled
-  if (draft.agent || draft.date || draft.highlights || draft.opportunities) {
+  if (draft.agent || draft.date || draft.highlights || draft.opportunities || draft.keyDiscussion) {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   }
 }
@@ -2747,6 +2755,7 @@ function resumeDraft() {
   setVal('fAgent', draft.agent||'');
   setVal('fHighlights', draft.highlights||'');
   setVal('fOpportunities', draft.opportunities||'');
+  setVal('fKeyDiscussion', draft.keyDiscussion||'');
   setVal('fStrength', draft.strength||'');
   setVal('fAreas', draft.areas||'');
   setVal('fLimiter', draft.limiter||'');
@@ -2818,6 +2827,10 @@ function openCommitmentView(entryId) {
       <div class="coaching-detail-item">
         <div class="cd-label">🔧 Opportunities</div>
         <div class="cd-val">${(e.opportunities||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item full">
+        <div class="cd-label">💬 Key Discussion Points</div>
+        <div class="cd-val">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div>
       </div>
       <div class="coaching-detail-item">
         <div class="cd-label">💪 Strengths</div>
