@@ -850,9 +850,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       </div>
       <p style="font-size:.72rem;color:#999;margin:10px 6px 0">
         Built-in TLs cannot be removed from this interface. To add a new TL, click <strong>+ Add Team Lead</strong>.
+        New TLs are saved to the cloud automatically so they can log in from any device.
       </p>
     </div>
     <div class="roster-footer">
+      <button id="btnSyncTLsCloud" style="background:#1565c0;color:#fff;border:none;border-radius:6px;padding:9px 18px;font-weight:700;cursor:pointer" onclick="pushAllCustomTLsToSheets()" title="Push all locally-saved custom TLs to the cloud so they can log in from any device">☁️ Sync TLs to Cloud</button>
       <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeTLManager()">Close</button>
     </div>
   </div>
@@ -1149,6 +1151,86 @@ function loadCustomTLs() {
 }
 function saveCustomTLs() {
   localStorage.setItem('apexCustomTLs', JSON.stringify(CUSTOM_TLS));
+}
+
+// ── SheetDB sync for Custom TLs ─────────────────────────────────────────────
+async function fetchCustomTLsFromSheets() {
+  if (!SHEETDB_API_URL) return;
+  try {
+    const res = await fetch(`${SHEETDB_API_URL}?sheet=Custom+TLs`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return; // sheet may not exist yet — silently skip
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return;
+    rows.forEach(r => {
+      if (!r.email) return;
+      const entry = { email: r.email.trim().toLowerCase(), display: r.display || '', fullName: r.fullName || '', cluster: r.cluster || '' };
+      // Merge into CUSTOM_TLS (avoid duplicates)
+      const idx = CUSTOM_TLS.findIndex(c => c.email === entry.email);
+      if (idx >= 0) CUSTOM_TLS[idx] = entry;
+      else CUSTOM_TLS.push(entry);
+      // Merge into TL_EMAILS so login check picks it up
+      TL_EMAILS[entry.email] = { display: entry.display, fullName: entry.fullName, cluster: entry.cluster };
+    });
+    // Persist merged result to localStorage so it's available offline
+    saveCustomTLs();
+  } catch(err) {
+    console.warn('fetchCustomTLsFromSheets error (ignored):', err);
+  }
+}
+
+function syncCustomTLToSheets(tlData) {
+  if (!SHEETDB_API_URL) return;
+  // Try PATCH first (update if exists), then POST (insert if new)
+  fetch(
+    `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(tlData.email)}`,
+    { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ data: tlData }) }
+  ).then(r => r.json()).then(j => {
+    if (!j.updated || j.updated === 0) {
+      // Row didn't exist — insert it
+      return fetch(SHEETDB_API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ data: [tlData], sheet: 'Custom TLs' })
+      });
+    }
+  }).catch(err => console.warn('syncCustomTLToSheets error:', err));
+}
+
+function deleteCustomTLFromSheets(email) {
+  if (!SHEETDB_API_URL) return;
+  fetch(
+    `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(email)}`,
+    { method: 'DELETE', headers: { 'Accept': 'application/json' } }
+  ).catch(err => console.warn('deleteCustomTLFromSheets error:', err));
+}
+
+async function pushAllCustomTLsToSheets() {
+  if (!CUSTOM_TLS.length) { alert('No custom TLs found in local storage to sync.'); return; }
+  const btn = document.getElementById('btnSyncTLsCloud');
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+  let ok = 0, fail = 0;
+  for (const tl of CUSTOM_TLS) {
+    try {
+      // Try PATCH first; if nothing updated, POST to insert
+      const patchRes = await fetch(
+        `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(tl.email)}`,
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: tl }) }
+      );
+      const patchJson = await patchRes.json().catch(() => ({}));
+      if (!patchJson.updated || patchJson.updated === 0) {
+        await fetch(SHEETDB_API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: [tl], sheet: 'Custom TLs' })
+        });
+      }
+      ok++;
+    } catch(err) { fail++; console.warn('pushAllCustomTLsToSheets error for', tl.email, err); }
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync TLs to Cloud'; }
+  alert(`Done! ${ok} TL(s) synced to cloud${fail ? ', ' + fail + ' failed (check console)' : ''}.\nNew TLs can now log in from any device.`);
 }
 
 function loadRoster() {
@@ -1535,6 +1617,7 @@ function saveTL() {
   TL_EMAILS[email] = { display, fullName, cluster };
 
   saveCustomTLs();
+  syncCustomTLToSheets(tlData); // push to SheetDB so new TL can log in from any device
   closeTLForm();
   renderTLTable();
 }
@@ -1546,6 +1629,7 @@ function deleteTL(email) {
   CUSTOM_TLS = CUSTOM_TLS.filter(c => c.email !== email);
   delete TL_EMAILS[email];
   saveCustomTLs();
+  deleteCustomTLFromSheets(email); // remove from SheetDB too
   renderTLTable();
 }
 
@@ -1556,7 +1640,7 @@ function isHomeaglowEmail(email) {
   return /homeaglow/i.test(email);
 }
 
-function doLogin() {
+async function doLogin() {
   const email = document.getElementById('emailInput').value.trim().toLowerCase();
   const errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
@@ -1564,16 +1648,24 @@ function doLogin() {
   if (!email) { showErr('Please enter your email address.'); return; }
   if (!isHomeaglowEmail(email)) { showErr('Only Homeaglow email addresses are allowed.'); return; }
 
-  // Pre-load custom TLs and roster so access checks are current
+  // Show loading state while we fetch custom TLs from SheetDB
+  const btnLogin = document.querySelector('#loginPage .btn-primary');
+  if (btnLogin) { btnLogin.disabled = true; btnLogin.textContent = 'Signing in…'; }
+
+  // Pre-load custom TLs from localStorage first, then sync from SheetDB
+  // This ensures newly added TLs are visible even from a fresh browser/device
   loadCustomTLs();
+  await fetchCustomTLsFromSheets(); // ← pulls custom TLs from SheetDB before role check
   loadRoster();
+
+  if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
 
   let role, display, tlInfo = null, omInfo = null;
 
   if (ADMIN_EMAILS.includes(email)) {
     role = 'Admin'; display = 'Admin (' + email + ')';
   } else if (TL_EMAILS[email]) {
-    // Includes both built-in and custom TLs added by OMs
+    // Includes both built-in and custom TLs added by OMs (now synced from SheetDB)
     role = 'TL'; tlInfo = TL_EMAILS[email]; display = tlInfo.display;
   } else if (OM_EMAILS[email]) {
     role = 'OM'; omInfo = OM_EMAILS[email]; display = omInfo.display;
@@ -1596,7 +1688,10 @@ function doLogin() {
   // Pull entries from SheetDB so the same logs appear on any device
   fetchFromSheets();
 
-  function showErr(msg) { errEl.textContent = msg; errEl.style.display = 'block'; }
+  function showErr(msg) {
+    if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
+    errEl.textContent = msg; errEl.style.display = 'block';
+  }
 }
 
 document.getElementById('emailInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
