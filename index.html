@@ -241,7 +241,8 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="user-badge" id="userBadge"></div>
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
-      <button id="btnBackfill" onclick="backfillToSheets()" style="display:none;background:#1565c0;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Push all local entries to SheetDB (fixes missing data on Vercel)">☁️ Sync Local → SheetDB</button>
+      <button id="btnBackfill" onclick="backfillToSheets()" style="display:none;background:#1565c0;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Push all local entries to SheetDB so agents on other devices can see them">☁️ Sync Local → SheetDB</button>
+      <span id="syncStatusBadge" style="display:none;font-size:.78rem;font-weight:600;margin-left:4px;"></span>
       <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
   </header>
@@ -1717,7 +1718,7 @@ function initApp() {
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
-  document.getElementById('btnBackfill').style.display    = ['Admin','OM'].includes(currentUser.role) ? 'inline-block' : 'none';
+  document.getElementById('btnBackfill').style.display    = ['Admin','OM','TL'].includes(currentUser.role) ? 'inline-block' : 'none';
 
   populateWKOptions();
   populateFilterTLs();
@@ -2349,6 +2350,17 @@ function calcProjection() {
 // One SheetDB API for the whole sheet — tabs are targeted automatically
 const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/r0nbg42fofu0f';
 
+function _showSyncStatus(ok) {
+  // Brief non-blocking indicator in the header area
+  const el = document.getElementById('syncStatusBadge');
+  if (!el) return;
+  el.textContent = ok ? '✅ Synced' : '⚠️ Sync failed — use ☁️ Sync button';
+  el.style.color = ok ? '#2e7d32' : '#b71c1c';
+  el.style.display = 'inline';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = 'none'; }, ok ? 3000 : 8000);
+}
+
 function syncToSheets(entry, type, isEdit = false) {
   if (!SHEETDB_API_URL) return;
   const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
@@ -2359,13 +2371,13 @@ function syncToSheets(entry, type, isEdit = false) {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ data: data })
-    }).catch(err => console.warn('SheetDB update error:', err));
+    }).then(r => _showSyncStatus(r.ok)).catch(err => { console.warn('SheetDB update error:', err); _showSyncStatus(false); });
   } else {
     fetch(SHEETDB_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ data: [data], sheet: tabName })
-    }).catch(err => console.warn('SheetDB sync error:', err));
+    }).then(r => _showSyncStatus(r.ok)).catch(err => { console.warn('SheetDB sync error:', err); _showSyncStatus(false); });
   }
 }
 
@@ -2540,22 +2552,44 @@ function parseSheetRow(row) {
 async function fetchFromSheets() {
   if (!SHEETDB_API_URL || !currentUser) return;
   try {
-    let url;
+    let rows;
+
     if (currentUser.role === 'TL' && currentUser.tlInfo) {
       const tlDisplay = encodeURIComponent(currentUser.tlInfo.display);
-      url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Team%20Lead=${tlDisplay}`;
+      const resp = await fetch(`${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Team%20Lead=${tlDisplay}`, { headers: { 'Accept': 'application/json' } });
+      rows = resp.ok ? (await resp.json().catch(() => [])) : [];
+
     } else if (currentUser.role === 'Admin' || currentUser.role === 'OM') {
-      url = `${SHEETDB_API_URL}?sheet=Coaching%20Logs`;
+      const resp = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers: { 'Accept': 'application/json' } });
+      rows = resp.ok ? (await resp.json().catch(() => [])) : [];
+
     } else if (currentUser.role === 'Agent') {
-      // Agents fetch only their own coaching logs from SheetDB
+      // Agents fetch only their own coaching logs from SheetDB.
+      // Strategy 1: search by Agent column (fastest, precise).
       const agentName = ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display;
-      url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Agent=${encodeURIComponent(agentName)}`;
+      const searchResp = await fetch(
+        `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Agent=${encodeURIComponent(agentName)}`,
+        { headers: { 'Accept': 'application/json' } }
+      );
+      rows = searchResp.ok ? (await searchResp.json().catch(() => [])) : [];
+
+      // Strategy 2 (fallback): if search returned nothing, fetch ALL rows and
+      // filter client-side — handles column-name mismatches, encoding edge-cases,
+      // and entries imported from pre-app spreadsheets.
+      if (!Array.isArray(rows) || rows.length === 0) {
+        const allResp = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers: { 'Accept': 'application/json' } });
+        if (allResp.ok) {
+          const allRows = await allResp.json().catch(() => []);
+          if (Array.isArray(allRows)) {
+            const lc = agentName.toLowerCase().trim();
+            rows = allRows.filter(r => (r['Agent'] || '').toLowerCase().trim() === lc);
+          }
+        }
+      }
     } else {
       return;
     }
-    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    if (!resp.ok) return;
-    const rows = await resp.json();
+
     if (!Array.isArray(rows) || rows.length === 0) return;
 
     // Build map from existing local entries (keyed by Entry ID)
