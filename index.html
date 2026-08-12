@@ -1155,27 +1155,25 @@ function saveCustomTLs() {
   localStorage.setItem('apexCustomTLs', JSON.stringify(CUSTOM_TLS));
 }
 
-// ── SheetDB sync for Custom TLs ─────────────────────────────────────────────
+// ── Apps Script sync for Custom TLs ──────────────────────────────────────────
 async function fetchCustomTLsFromSheets() {
-  if (!SHEETDB_API_URL) return;
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
   try {
-    const res = await fetch(`${SHEETDB_API_URL}?sheet=Custom+TLs`, {
-      headers: { 'Accept': 'application/json' }
-    });
-    if (!res.ok) return; // sheet may not exist yet — silently skip
-    const rows = await res.json();
-    if (!Array.isArray(rows)) return;
-    rows.forEach(r => {
-      if (!r.email) return;
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/logs?sheet_name=eq.Custom%20TLs&select=data`,
+      { headers: _supaHeaders() }
+    );
+    if (!res.ok) return;
+    const raw = await res.json().catch(() => []);
+    if (!Array.isArray(raw)) return;
+    raw.forEach(({ data: r }) => {
+      if (!r || !r.email) return;
       const entry = { email: r.email.trim().toLowerCase(), display: r.display || '', fullName: r.fullName || '', cluster: r.cluster || '' };
-      // Merge into CUSTOM_TLS (avoid duplicates)
       const idx = CUSTOM_TLS.findIndex(c => c.email === entry.email);
       if (idx >= 0) CUSTOM_TLS[idx] = entry;
       else CUSTOM_TLS.push(entry);
-      // Merge into TL_EMAILS so login check picks it up
       TL_EMAILS[entry.email] = { display: entry.display, fullName: entry.fullName, cluster: entry.cluster };
     });
-    // Persist merged result to localStorage so it's available offline
     saveCustomTLs();
   } catch(err) {
     console.warn('fetchCustomTLsFromSheets error (ignored):', err);
@@ -1183,56 +1181,49 @@ async function fetchCustomTLsFromSheets() {
 }
 
 function syncCustomTLToSheets(tlData) {
-  if (!SHEETDB_API_URL) return;
-  // Try PATCH first (update if exists), then POST (insert if new)
-  fetch(
-    `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(tlData.email)}`,
-    { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ data: tlData }) }
-  ).then(r => r.json()).then(j => {
-    if (!j.updated || j.updated === 0) {
-      // Row didn't exist — insert it
-      return fetch(SHEETDB_API_URL, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ data: [tlData], sheet: 'Custom TLs' })
-      });
-    }
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !tlData.email) return;
+  fetch(`${SUPABASE_URL}/rest/v1/logs`, {
+    method: 'POST',
+    headers: _supaHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+    body: JSON.stringify({ entry_id: tlData.email.trim().toLowerCase(), sheet_name: 'Custom TLs', data: tlData })
   }).catch(err => console.warn('syncCustomTLToSheets error:', err));
 }
 
 function deleteCustomTLFromSheets(email) {
-  if (!SHEETDB_API_URL) return;
-  fetch(
-    `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(email)}`,
-    { method: 'DELETE', headers: { 'Accept': 'application/json' } }
-  ).catch(err => console.warn('deleteCustomTLFromSheets error:', err));
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !email) return;
+  fetch(`${SUPABASE_URL}/rest/v1/logs?entry_id=eq.${encodeURIComponent(email.trim().toLowerCase())}`, {
+    method: 'DELETE',
+    headers: _supaHeaders()
+  }).catch(err => console.warn('deleteCustomTLFromSheets error:', err));
 }
 
 async function pushAllCustomTLsToSheets() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { alert('Supabase not configured.'); return; }
   if (!CUSTOM_TLS.length) { alert('No custom TLs found in local storage to sync.'); return; }
   const btn = document.getElementById('btnSyncTLsCloud');
   if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
-  let ok = 0, fail = 0;
-  for (const tl of CUSTOM_TLS) {
-    try {
-      // Try PATCH first; if nothing updated, POST to insert
-      const patchRes = await fetch(
-        `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(tl.email)}`,
-        { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: tl }) }
-      );
-      const patchJson = await patchRes.json().catch(() => ({}));
-      if (!patchJson.updated || patchJson.updated === 0) {
-        await fetch(SHEETDB_API_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: [tl], sheet: 'Custom TLs' })
-        });
-      }
-      ok++;
-    } catch(err) { fail++; console.warn('pushAllCustomTLsToSheets error for', tl.email, err); }
+  try {
+    const rows = CUSTOM_TLS.map(tl => ({
+      entry_id: tl.email.trim().toLowerCase(),
+      sheet_name: 'Custom TLs',
+      data: tl
+    }));
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/logs`, {
+      method: 'POST',
+      headers: _supaHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      body: JSON.stringify(rows)
+    });
+    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync TLs to Cloud'; }
+    if (res.ok) {
+      alert(`Done! ${CUSTOM_TLS.length} TL(s) synced to cloud.\nNew TLs can now log in from any device.`);
+    } else {
+      alert('Sync error — check your connection and try again.');
+    }
+  } catch(err) {
+    console.warn('pushAllCustomTLsToSheets error:', err);
+    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync TLs to Cloud'; }
+    alert('Sync error — check your connection and try again.');
   }
-  if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync TLs to Cloud'; }
-  alert(`Done! ${ok} TL(s) synced to cloud${fail ? ', ' + fail + ' failed (check console)' : ''}.\nNew TLs can now log in from any device.`);
 }
 
 function loadRoster() {
@@ -2353,10 +2344,15 @@ function calcProjection() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// SHEETDB SYNC  (same service used by Phoenix Coaching Log)
+// GOOGLE APPS SCRIPT SYNC  (free, unlimited — no third-party dependency)
 // ══════════════════════════════════════════════════════════════════════════
-// One SheetDB API for the whole sheet — tabs are targeted automatically
-const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/ij6ck8olgqmgy';
+// Paste your deployed Web App URL here after following the setup steps.
+const SUPABASE_URL     = 'https://fmeguojfhswclyiuizs.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_CO1azBvzqqGYygsrW3ho5w_JP20kPCh';
+
+function _supaHeaders(extra = {}) {
+  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', ...extra };
+}
 
 function _showSyncStatus(ok) {
   // Brief non-blocking indicator in the header area
@@ -2370,116 +2366,72 @@ function _showSyncStatus(ok) {
 }
 
 function syncToSheets(entry, type, isEdit = false) {
-  if (!SHEETDB_API_URL) return;
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
   const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
   const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
-  if (isEdit) {
-    // PATCH the existing row by Entry ID so edits don't create duplicates
-    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(entry.id)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ data: data })
-    }).then(r => _showSyncStatus(r.ok)).catch(err => { console.warn('SheetDB update error:', err); _showSyncStatus(false); });
-  } else {
-    fetch(SHEETDB_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ data: [data], sheet: tabName })
-    }).then(r => _showSyncStatus(r.ok)).catch(err => { console.warn('SheetDB sync error:', err); _showSyncStatus(false); });
-  }
+  const entryId = data['Entry ID'] || '';
+  if (!entryId) return;
+  fetch(`${SUPABASE_URL}/rest/v1/logs`, {
+    method: 'POST',
+    headers: _supaHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+    body: JSON.stringify({ entry_id: entryId, sheet_name: tabName, data: data })
+  }).then(r => _showSyncStatus(r.ok)).catch(err => { console.warn('syncToSheets error:', err); _showSyncStatus(false); });
 }
 
-// Push all locally-stored entries to SheetDB — run once to backfill missing data
+// Push all locally-stored entries to the cloud — run once to backfill missing data
 async function backfillToSheets() {
-  if (!SHEETDB_API_URL || !entries.length) {
-    alert('No local entries to backfill.'); return;
-  }
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { alert('Supabase not configured.'); return; }
+  if (!entries.length) { alert('No local entries to backfill.'); return; }
   const btn = document.getElementById('btnBackfill');
-  if (btn) { btn.disabled = true; btn.textContent = 'Checking SheetDB…'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
   try {
-    // Step 1: Fetch all existing rows from SheetDB (1 request)
-    const existingRes = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers: { 'Accept': 'application/json' } });
-    const existingRows = await existingRes.json().catch(() => []);
-    const existingIds = new Set((Array.isArray(existingRows) ? existingRows : []).map(r => r['Entry ID']).filter(Boolean));
-
-    // Step 2: Split local entries into "new" (not in SheetDB) vs "existing" (need PATCH)
-    const newRows = [];
-    const toUpdate = [];
-    for (const e of entries) {
-      const row = buildCoachingRow(e);
-      if (e.id && existingIds.has(e.id)) {
-        toUpdate.push({ id: e.id, row });
-      } else {
-        newRows.push(row);
-      }
-    }
-
+    const allRows = entries.map(e => {
+      const d = buildCoachingRow(e);
+      return { entry_id: d['Entry ID'] || e.id, sheet_name: 'Coaching Logs', data: d };
+    });
+    const CHUNK = 50;
     let ok = 0, fail = 0;
-    const CHUNK = 50; // SheetDB handles max ~50 rows per POST reliably
 
-    // Step 3: POST new rows in chunks of 50
-    if (newRows.length > 0) {
-      for (let i = 0; i < newRows.length; i += CHUNK) {
-        const chunk = newRows.slice(i, i + CHUNK);
-        if (btn) btn.textContent = `Uploading rows ${i + 1}–${Math.min(i + CHUNK, newRows.length)} of ${newRows.length}…`;
-        try {
-          const postRes = await fetch(SHEETDB_API_URL, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({ data: chunk, sheet: 'Coaching Logs' })
-          });
-          const postJson = await postRes.json().catch(() => ({}));
-          ok += postJson.created || chunk.length;
-        } catch(err) { fail += chunk.length; console.warn('Batch POST error (chunk ' + i + '):', err); }
-      }
+    for (let i = 0; i < allRows.length; i += CHUNK) {
+      const chunk = allRows.slice(i, i + CHUNK);
+      if (btn) btn.textContent = `Uploading rows ${i + 1}–${Math.min(i + CHUNK, allRows.length)} of ${allRows.length}…`;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/logs`, {
+          method: 'POST',
+          headers: _supaHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+          body: JSON.stringify(chunk)
+        });
+        ok += res.ok ? chunk.length : 0;
+        if (!res.ok) fail += chunk.length;
+      } catch(err) { fail += chunk.length; console.warn('Backfill chunk error (chunk ' + i + '):', err); }
     }
 
-    // Step 4: PATCH rows that already exist (usually 0 or very few)
-    if (toUpdate.length > 0) {
-      if (btn) btn.textContent = `Updating ${toUpdate.length} existing rows…`;
-      for (const { id, row } of toUpdate) {
-        try {
-          await fetch(
-            `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(id)}`,
-            { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              body: JSON.stringify({ data: row }) }
-          );
-          ok++;
-        } catch(err) { fail++; console.warn('PATCH error for', id, err); }
-      }
-    }
-
-    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → SheetDB'; }
+    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → Cloud'; }
     alert(`Sync complete: ${ok} uploaded${fail ? ', ' + fail + ' failed (check console)' : ''}.`);
     fetchFromSheets();
   } catch(err) {
     console.warn('Backfill error:', err);
-    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → SheetDB'; }
+    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → Cloud'; }
     alert('Sync error — check your internet connection and try again.');
   }
 }
 
-// Silently sync all local entries to SheetDB in background (called on TL/Admin login)
-// Uses batch approach: 1 GET to find what's already there, 1 POST for all new rows
+// Silently sync all local entries to cloud in background (called on TL/Admin login)
+// Upserts all entries — Apps Script handles insert vs update by Entry ID
 async function silentSyncAllToSheets() {
-  if (!SHEETDB_API_URL || !entries.length) return;
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !entries.length) return;
   try {
-    // Fetch existing Entry IDs in SheetDB (1 request)
-    const existingRes = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers: { 'Accept': 'application/json' } });
-    const existingRows = await existingRes.json().catch(() => []);
-    const existingIds = new Set((Array.isArray(existingRows) ? existingRows : []).map(r => r['Entry ID']).filter(Boolean));
-
-    // Collect rows that are NOT yet in SheetDB
-    const newRows = entries
-      .filter(e => !e.id || !existingIds.has(e.id))
-      .map(e => buildCoachingRow(e));
-
-    // POST new rows in chunks of 50 to avoid payload size limits
+    const allRows = entries.map(e => {
+      const d = buildCoachingRow(e);
+      return { entry_id: d['Entry ID'] || e.id, sheet_name: 'Coaching Logs', data: d };
+    });
     const CHUNK = 50;
-    for (let i = 0; i < newRows.length; i += CHUNK) {
-      const chunk = newRows.slice(i, i + CHUNK);
-      await fetch(SHEETDB_API_URL, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ data: chunk, sheet: 'Coaching Logs' })
+    for (let i = 0; i < allRows.length; i += CHUNK) {
+      const chunk = allRows.slice(i, i + CHUNK);
+      await fetch(`${SUPABASE_URL}/rest/v1/logs`, {
+        method: 'POST',
+        headers: _supaHeaders({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+        body: JSON.stringify(chunk)
       });
     }
   } catch(err) { /* silent */ }
@@ -2622,8 +2574,7 @@ function parseSheetRow(row) {
 }
 
 async function fetchFromSheets() {
-  if (!SHEETDB_API_URL || !currentUser) return;
-  // Show loading badge for agents so they know data is being fetched
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !currentUser) return;
   const badge = document.getElementById('syncStatusBadge');
   if (currentUser.role === 'Agent' && badge) {
     badge.textContent = '⏳ Loading your coaching sessions…';
@@ -2631,47 +2582,35 @@ async function fetchFromSheets() {
     badge.style.display = 'inline';
   }
   try {
-    let rows;
+    // Fetch all Coaching Logs rows from Supabase, filter client-side by role
+    const resp = await fetch(
+      `${SUPABASE_URL}/rest/v1/logs?sheet_name=eq.Coaching%20Logs&select=data`,
+      { headers: _supaHeaders() }
+    );
+    if (!resp.ok) throw new Error('Supabase fetch failed: ' + resp.status);
+    const raw = await resp.json().catch(() => []);
+    // raw is [{data: {...}}, ...] — extract the JSONB data field
+    let allRows = Array.isArray(raw) ? raw.map(r => r.data) : [];
 
+    // Filter by role client-side
+    let rows;
     if (currentUser.role === 'TL' && currentUser.tlInfo) {
-      const tlDisplay = encodeURIComponent(currentUser.tlInfo.display);
-      const resp = await fetch(`${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Team%20Lead=${tlDisplay}`, { headers: { 'Accept': 'application/json' } });
-      rows = resp.ok ? (await resp.json().catch(() => [])) : [];
+      const tlName = currentUser.tlInfo.display.toLowerCase().trim();
+      rows = allRows.filter(r => (r['Team Lead'] || '').toLowerCase().trim() === tlName);
 
     } else if (currentUser.role === 'Admin' || currentUser.role === 'OM') {
-      const resp = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers: { 'Accept': 'application/json' } });
-      rows = resp.ok ? (await resp.json().catch(() => [])) : [];
+      rows = allRows;
 
     } else if (currentUser.role === 'Agent') {
-      // Agents fetch only their own coaching logs from SheetDB.
-      // Strategy 1: search by Agent column (fastest, precise).
-      const agentName = ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display;
-      const searchResp = await fetch(
-        `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Agent=${encodeURIComponent(agentName)}`,
-        { headers: { 'Accept': 'application/json' } }
-      );
-      rows = searchResp.ok ? (await searchResp.json().catch(() => [])) : [];
+      const agentName = (ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display).toLowerCase().trim();
+      rows = allRows.filter(r => (r['Agent'] || '').toLowerCase().trim() === agentName);
 
-      // Strategy 2 (fallback): if search returned nothing, fetch ALL rows and
-      // filter client-side — handles column-name mismatches, encoding edge-cases,
-      // and entries imported from pre-app spreadsheets.
-      if (!Array.isArray(rows) || rows.length === 0) {
-        const allResp = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers: { 'Accept': 'application/json' } });
-        if (allResp.ok) {
-          const allRows = await allResp.json().catch(() => []);
-          if (Array.isArray(allRows)) {
-            const lc = agentName.toLowerCase().trim();
-            rows = allRows.filter(r => (r['Agent'] || '').toLowerCase().trim() === lc);
-          }
-        }
-      }
     } else {
       if (badge) badge.style.display = 'none';
       return;
     }
 
     if (!Array.isArray(rows) || rows.length === 0) {
-      // Show helpful message for agents when no data found
       if (currentUser.role === 'Agent' && badge) {
         badge.textContent = 'ℹ️ No coaching sessions found yet — ask your TL to sync.';
         badge.style.color = '#795548';
@@ -2686,11 +2625,11 @@ async function fetchFromSheets() {
     const merged = {};
     entries.forEach(e => { if (e.id) merged[e.id] = e; });
 
-    // SheetDB is the cross-device source of truth — overwrite/add
+    // Supabase is the cross-device source of truth — overwrite/add
     // Skip any entry the user already deleted on this device
     rows.forEach(row => {
       const parsed = parseSheetRow(row);
-      // If the sheet row has no Entry ID, generate a stable synthetic one from
+      // If the row has no Entry ID, generate a stable synthetic one from
       // the composite key so agents can still see and interact with the entry
       if (!parsed.id) {
         const key = `${parsed.agentName}|${parsed.dateOfCoaching}|${parsed.teamLead}|${parsed.wkNumber}`;
@@ -2708,9 +2647,8 @@ async function fetchFromSheets() {
       return db.localeCompare(da);
     });
     saveEntries();
-    renderLogTable();   // Refresh log table with merged data
-    renderDashboard();  // Refresh dashboard stats with merged data
-    // Show success count for agents
+    renderLogTable();
+    renderDashboard();
     if (currentUser.role === 'Agent' && badge) {
       badge.textContent = `✅ ${rows.length} coaching session${rows.length !== 1 ? 's' : ''} loaded`;
       badge.style.color = '#2e7d32';
@@ -2947,13 +2885,11 @@ function viewEntry(id) {
 // DELETE
 // ══════════════════════════════════════════════════════════════════════════
 function deleteFromSheets(entryId, type) {
-  if (!SHEETDB_API_URL) return;
-  const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
-  // NOTE: 'Entry ID' column name must be URL-encoded — the space was causing silent failures
-  fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(entryId)}`, {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !entryId) return;
+  fetch(`${SUPABASE_URL}/rest/v1/logs?entry_id=eq.${encodeURIComponent(entryId)}`, {
     method: 'DELETE',
-    headers: { 'Accept': 'application/json' }
-  }).catch(err => console.warn('SheetDB delete error:', err));
+    headers: _supaHeaders()
+  }).catch(err => console.warn('deleteFromSheets error:', err));
 }
 
 function deleteEntry(id) {
@@ -3265,55 +3201,12 @@ function saveCommitment(entryId) {
   saveEntries();
   renderDashboard();
   renderLogTable();
-  // Sync commitment to Google Sheet
-  if (SHEETDB_API_URL) {
-    const commitData = {
-      'Commitment Situation': e.star.situation,
-      'Commitment Task'     : e.star.task,
-      'Commitment Action'   : e.star.action,
-      'Commitment Result'   : e.star.result,
-      'Commitment Timeline' : e.star.timeline,
-      'Commitment Status'   : e.star.status
-    };
-    if (e.id && !e._syntheticId) {
-      // Has a real Entry ID — PATCH directly by it
-      fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ data: commitData })
-      }).catch(err => console.warn('SheetDB commitment sync error:', err));
-    } else if (e.agentName && e.dateOfCoaching) {
-      // Synthetic/missing Entry ID — search sheet by Agent+Date, then PATCH or backfill ID
-      const agentQ = encodeURIComponent(e.agentName);
-      const dateQ  = encodeURIComponent(e.dateOfCoaching);
-      fetch(`${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Agent=${agentQ}&Date=${dateQ}`, {
-        headers: { Accept: 'application/json' }
-      }).then(r => r.ok ? r.json() : [])
-        .then(sheetRows => {
-          if (!Array.isArray(sheetRows) || sheetRows.length === 0) return;
-          const sheetId = sheetRows[0]['Entry ID'] || '';
-          if (sheetId) {
-            // The real Entry ID was in the sheet all along — upgrade our local record
-            e.id = sheetId; e._syntheticId = false; saveEntries();
-            return fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(sheetId)}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              body: JSON.stringify({ data: commitData })
-            });
-          } else {
-            // Sheet row has no Entry ID — backfill a UUID and sync commitment together
-            const newId = crypto.randomUUID();
-            e.id = newId; e._syntheticId = false; saveEntries();
-            return fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Date')}/${encodeURIComponent(e.dateOfCoaching)}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              body: JSON.stringify({ data: { ...commitData, 'Entry ID': newId } })
-            });
-          }
-        })
-        .catch(err => console.warn('SheetDB commitment fallback sync error:', err));
-    }
+  // Sync commitment to cloud — upsert the full entry row (includes updated star/commitment fields)
+  if (!e.id || e._syntheticId) {
+    // Ensure the entry has a real Entry ID before syncing
+    e.id = crypto.randomUUID(); e._syntheticId = false; saveEntries();
   }
+  syncToSheets(e, 'coaching', true);
   // update the live status badge inside the modal
   const badge = document.getElementById('commitStatusBadge');
   if (badge) { badge.textContent='Completed'; badge.style.background='#388e3c'; }
