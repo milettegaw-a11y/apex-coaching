@@ -1688,6 +1688,10 @@ async function doLogin() {
   document.getElementById('app').style.display = 'flex';
   // Pull entries from SheetDB so the same logs appear on any device
   fetchFromSheets();
+  // TL/Admin/OM: silently push all local entries to SheetDB so agents can see them
+  if (['TL','Admin','OM'].includes(role)) {
+    silentSyncAllToSheets();
+  }
 
   function showErr(msg) {
     if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
@@ -1881,8 +1885,8 @@ function clearLogFilters() {
 function getVisibleEntries() {
   // Role-based visibility
   if (currentUser.role === 'Agent') {
-    const agentName = ROSTER.find(a=>a.email===currentUser.email)?.name || currentUser.display;
-    return entries.filter(e => e.agentName === agentName);
+    const agentName = (ROSTER.find(a=>a.email===currentUser.email)?.name || currentUser.display).toLowerCase().trim();
+    return entries.filter(e => (e.agentName||'').toLowerCase().trim() === agentName);
   }
   if (currentUser.role === 'TL') {
     return entries.filter(e => e.teamLead === currentUser.tlInfo.display);
@@ -2413,6 +2417,28 @@ async function backfillToSheets() {
   fetchFromSheets();
 }
 
+// Silently sync all local entries to SheetDB in background (called on TL/Admin login)
+async function silentSyncAllToSheets() {
+  if (!SHEETDB_API_URL || !entries.length) return;
+  for (const e of entries) {
+    try {
+      const row = buildCoachingRow(e);
+      const patchRes = await fetch(
+        `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`,
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: row }) }
+      );
+      const pj = await patchRes.json().catch(() => ({}));
+      if (!pj.updated || pj.updated === 0) {
+        await fetch(SHEETDB_API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: [row], sheet: 'Coaching Logs' })
+        });
+      }
+    } catch(err) { /* silent */ }
+  }
+}
+
 function buildCoachingRow(e) {
   const p = e.perfData || [];
   const wkCols = (n) => {
@@ -2551,6 +2577,13 @@ function parseSheetRow(row) {
 
 async function fetchFromSheets() {
   if (!SHEETDB_API_URL || !currentUser) return;
+  // Show loading badge for agents so they know data is being fetched
+  const badge = document.getElementById('syncStatusBadge');
+  if (currentUser.role === 'Agent' && badge) {
+    badge.textContent = '⏳ Loading your coaching sessions…';
+    badge.style.color = '#555';
+    badge.style.display = 'inline';
+  }
   try {
     let rows;
 
@@ -2587,10 +2620,21 @@ async function fetchFromSheets() {
         }
       }
     } else {
+      if (badge) badge.style.display = 'none';
       return;
     }
 
-    if (!Array.isArray(rows) || rows.length === 0) return;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      // Show helpful message for agents when no data found
+      if (currentUser.role === 'Agent' && badge) {
+        badge.textContent = 'ℹ️ No coaching sessions found yet — ask your TL to sync.';
+        badge.style.color = '#795548';
+        badge.style.display = 'inline';
+        clearTimeout(badge._t);
+        badge._t = setTimeout(() => { badge.style.display = 'none'; }, 10000);
+      }
+      return;
+    }
 
     // Build map from existing local entries (keyed by Entry ID)
     const merged = {};
@@ -2620,8 +2664,23 @@ async function fetchFromSheets() {
     saveEntries();
     renderLogTable();   // Refresh log table with merged data
     renderDashboard();  // Refresh dashboard stats with merged data
+    // Show success count for agents
+    if (currentUser.role === 'Agent' && badge) {
+      badge.textContent = `✅ ${rows.length} coaching session${rows.length !== 1 ? 's' : ''} loaded`;
+      badge.style.color = '#2e7d32';
+      badge.style.display = 'inline';
+      clearTimeout(badge._t);
+      badge._t = setTimeout(() => { badge.style.display = 'none'; }, 5000);
+    }
   } catch (err) {
     console.warn('fetchFromSheets error:', err);
+    if (currentUser?.role === 'Agent' && badge) {
+      badge.textContent = '⚠️ Could not load sessions — check connection';
+      badge.style.color = '#b71c1c';
+      badge.style.display = 'inline';
+      clearTimeout(badge._t);
+      badge._t = setTimeout(() => { badge.style.display = 'none'; }, 8000);
+    }
   }
 }
 
