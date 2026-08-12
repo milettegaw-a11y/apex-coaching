@@ -2395,52 +2395,88 @@ async function backfillToSheets() {
     alert('No local entries to backfill.'); return;
   }
   const btn = document.getElementById('btnBackfill');
-  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
-  let ok = 0, fail = 0;
-  for (const e of entries) {
-    try {
-      const row  = buildCoachingRow(e);
-      // Try PATCH first; if 0 rows updated, POST as new
-      const patchRes = await fetch(
-        `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`,
-        { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: row }) }
-      );
-      const patchJson = await patchRes.json().catch(() => ({}));
-      if (!patchJson.updated || patchJson.updated === 0) {
-        await fetch(SHEETDB_API_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: [row], sheet: 'Coaching Logs' })
-        });
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking SheetDB…'; }
+  try {
+    // Step 1: Fetch all existing rows from SheetDB (1 request)
+    const existingRes = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers: { 'Accept': 'application/json' } });
+    const existingRows = await existingRes.json().catch(() => []);
+    const existingIds = new Set((Array.isArray(existingRows) ? existingRows : []).map(r => r['Entry ID']).filter(Boolean));
+
+    // Step 2: Split local entries into "new" (not in SheetDB) vs "existing" (need PATCH)
+    const newRows = [];
+    const toUpdate = [];
+    for (const e of entries) {
+      const row = buildCoachingRow(e);
+      if (e.id && existingIds.has(e.id)) {
+        toUpdate.push({ id: e.id, row });
+      } else {
+        newRows.push(row);
       }
-      ok++;
-    } catch(err) { fail++; console.warn('Backfill error for', e.id, err); }
+    }
+
+    let ok = 0, fail = 0;
+
+    // Step 3: POST all new rows in ONE batch request
+    if (newRows.length > 0) {
+      if (btn) btn.textContent = `Uploading ${newRows.length} new rows…`;
+      try {
+        const postRes = await fetch(SHEETDB_API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: newRows, sheet: 'Coaching Logs' })
+        });
+        const postJson = await postRes.json().catch(() => ({}));
+        ok += postJson.created || newRows.length;
+      } catch(err) { fail += newRows.length; console.warn('Batch POST error:', err); }
+    }
+
+    // Step 4: PATCH rows that already exist (usually 0 or very few)
+    if (toUpdate.length > 0) {
+      if (btn) btn.textContent = `Updating ${toUpdate.length} existing rows…`;
+      for (const { id, row } of toUpdate) {
+        try {
+          await fetch(
+            `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(id)}`,
+            { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({ data: row }) }
+          );
+          ok++;
+        } catch(err) { fail++; console.warn('PATCH error for', id, err); }
+      }
+    }
+
+    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → SheetDB'; }
+    alert(`Sync complete: ${ok} uploaded${fail ? ', ' + fail + ' failed (check console)' : ''}.`);
+    fetchFromSheets();
+  } catch(err) {
+    console.warn('Backfill error:', err);
+    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → SheetDB'; }
+    alert('Sync error — check your internet connection and try again.');
   }
-  if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → SheetDB'; }
-  alert(`Backfill complete: ${ok} synced${fail ? ', ' + fail + ' failed (check console)' : ''}.`);
-  fetchFromSheets();
 }
 
 // Silently sync all local entries to SheetDB in background (called on TL/Admin login)
+// Uses batch approach: 1 GET to find what's already there, 1 POST for all new rows
 async function silentSyncAllToSheets() {
   if (!SHEETDB_API_URL || !entries.length) return;
-  for (const e of entries) {
-    try {
-      const row = buildCoachingRow(e);
-      const patchRes = await fetch(
-        `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`,
-        { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: row }) }
-      );
-      const pj = await patchRes.json().catch(() => ({}));
-      if (!pj.updated || pj.updated === 0) {
-        await fetch(SHEETDB_API_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: [row], sheet: 'Coaching Logs' })
-        });
-      }
-    } catch(err) { /* silent */ }
-  }
+  try {
+    // Fetch existing Entry IDs in SheetDB (1 request)
+    const existingRes = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers: { 'Accept': 'application/json' } });
+    const existingRows = await existingRes.json().catch(() => []);
+    const existingIds = new Set((Array.isArray(existingRows) ? existingRows : []).map(r => r['Entry ID']).filter(Boolean));
+
+    // Collect rows that are NOT yet in SheetDB
+    const newRows = entries
+      .filter(e => !e.id || !existingIds.has(e.id))
+      .map(e => buildCoachingRow(e));
+
+    // POST all new rows in a single batch (1 request)
+    if (newRows.length > 0) {
+      await fetch(SHEETDB_API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ data: newRows, sheet: 'Coaching Logs' })
+      });
+    }
+  } catch(err) { /* silent */ }
 }
 
 function buildCoachingRow(e) {
