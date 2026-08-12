@@ -242,6 +242,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
       <button id="btnBackfill" onclick="backfillToSheets()" style="display:none;background:#1565c0;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Push all local entries to SheetDB so agents on other devices can see them">☁️ Sync Local → SheetDB</button>
+      <button id="btnRefresh" onclick="fetchFromSheets()" style="display:none;background:#2e7d32;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Pull latest coaching sessions from the server">🔄 Refresh</button>
       <span id="syncStatusBadge" style="display:none;font-size:.78rem;font-weight:600;margin-left:4px;"></span>
       <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
@@ -1686,11 +1687,13 @@ async function doLogin() {
   initApp();
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  // Pull entries from SheetDB so the same logs appear on any device
-  fetchFromSheets();
-  // TL/Admin/OM: silently push all local entries to SheetDB so agents can see them
+  // For TL/Admin/OM: push all local entries to SheetDB FIRST, then pull so
+  // the fetch reflects the freshly-pushed data.
   if (['TL','Admin','OM'].includes(role)) {
-    silentSyncAllToSheets();
+    silentSyncAllToSheets().then(() => fetchFromSheets());
+  } else {
+    // Agents and other roles just pull from SheetDB
+    fetchFromSheets();
   }
 
   function showErr(msg) {
@@ -1723,6 +1726,7 @@ function initApp() {
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
   document.getElementById('btnBackfill').style.display    = ['Admin','OM','TL'].includes(currentUser.role) ? 'inline-block' : 'none';
+  document.getElementById('btnRefresh').style.display     = 'inline-block'; // all roles can refresh
 
   populateWKOptions();
   populateFilterTLs();
@@ -2352,7 +2356,7 @@ function calcProjection() {
 // SHEETDB SYNC  (same service used by Phoenix Coaching Log)
 // ══════════════════════════════════════════════════════════════════════════
 // One SheetDB API for the whole sheet — tabs are targeted automatically
-const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/r0nbg42fofu0f';
+const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/ij6ck8olgqmgy';
 
 function _showSyncStatus(ok) {
   // Brief non-blocking indicator in the header area
