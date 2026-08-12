@@ -2415,18 +2415,22 @@ async function backfillToSheets() {
     }
 
     let ok = 0, fail = 0;
+    const CHUNK = 50; // SheetDB handles max ~50 rows per POST reliably
 
-    // Step 3: POST all new rows in ONE batch request
+    // Step 3: POST new rows in chunks of 50
     if (newRows.length > 0) {
-      if (btn) btn.textContent = `Uploading ${newRows.length} new rows…`;
-      try {
-        const postRes = await fetch(SHEETDB_API_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: newRows, sheet: 'Coaching Logs' })
-        });
-        const postJson = await postRes.json().catch(() => ({}));
-        ok += postJson.created || newRows.length;
-      } catch(err) { fail += newRows.length; console.warn('Batch POST error:', err); }
+      for (let i = 0; i < newRows.length; i += CHUNK) {
+        const chunk = newRows.slice(i, i + CHUNK);
+        if (btn) btn.textContent = `Uploading rows ${i + 1}–${Math.min(i + CHUNK, newRows.length)} of ${newRows.length}…`;
+        try {
+          const postRes = await fetch(SHEETDB_API_URL, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ data: chunk, sheet: 'Coaching Logs' })
+          });
+          const postJson = await postRes.json().catch(() => ({}));
+          ok += postJson.created || chunk.length;
+        } catch(err) { fail += chunk.length; console.warn('Batch POST error (chunk ' + i + '):', err); }
+      }
     }
 
     // Step 4: PATCH rows that already exist (usually 0 or very few)
@@ -2469,11 +2473,13 @@ async function silentSyncAllToSheets() {
       .filter(e => !e.id || !existingIds.has(e.id))
       .map(e => buildCoachingRow(e));
 
-    // POST all new rows in a single batch (1 request)
-    if (newRows.length > 0) {
+    // POST new rows in chunks of 50 to avoid payload size limits
+    const CHUNK = 50;
+    for (let i = 0; i < newRows.length; i += CHUNK) {
+      const chunk = newRows.slice(i, i + CHUNK);
       await fetch(SHEETDB_API_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ data: newRows, sheet: 'Coaching Logs' })
+        body: JSON.stringify({ data: chunk, sheet: 'Coaching Logs' })
       });
     }
   } catch(err) { /* silent */ }
