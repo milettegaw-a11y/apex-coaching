@@ -6,49 +6,51 @@
 <title>APEX Coaching Log</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;min-height:100vh}
-:root{--yellow:#FFD600;--dark:#111;--light:#fff;--border:#ddd;--hover:#FFF8DC;--red:#d32f2f;--green:#388e3c}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#FAF9F7;color:#1A1A1A;min-height:100vh}
+:root{--accent:#9B7B52;--accent-dark:#7A5F3B;--yellow:#9B7B52;--dark:#1A1A1A;--light:#fff;--bg:#FAF9F7;--header:#2D2420;--border:#DDD5C8;--hover:#F4EFE8;--red:#C0392B;--green:#27AE60}
 
 /* ── LOGIN ── */
-#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f9f9f9}
-.login-card{background:#fff;border:2px solid var(--yellow);border-radius:12px;padding:48px 40px;width:420px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.10)}
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#FAF9F7}
+.login-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:48px 40px;width:420px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.08)}
 .login-card h1{font-size:1.6rem;font-weight:800;color:var(--dark);margin-bottom:4px}
 .login-card .sub{font-size:.9rem;color:#555;margin-bottom:28px}
 .login-card label{display:block;font-size:.85rem;font-weight:600;margin-bottom:4px}
 .login-card input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:6px;font-size:.95rem;margin-bottom:16px;outline:none;transition:border .2s}
-.login-card input:focus{border-color:var(--yellow)}
+.login-card input:focus{border-color:var(--accent)}
 .login-card select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:6px;font-size:.95rem;margin-bottom:16px;outline:none}
-.btn-primary{background:var(--yellow);color:var(--dark);border:none;border-radius:6px;padding:11px 28px;font-size:1rem;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:11px 28px;font-size:1rem;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
 .btn-primary:hover{opacity:.88}
 .error-msg{color:var(--red);font-size:.85rem;margin-bottom:12px;display:none}
 .apex-logo{display:flex;align-items:center;gap:10px;margin-bottom:20px}
-.apex-logo .logo-box{background:var(--yellow);border-radius:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem}
+.apex-logo .logo-box{background:var(--header);border-radius:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;color:#FAF9F7}
 
 /* ── MAIN APP ── */
 #app{display:none;flex-direction:column;min-height:100vh}
-header{background:var(--yellow);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.10);position:sticky;top:0;z-index:100}
-header .brand{font-weight:900;font-size:1.15rem;color:var(--dark)}
-header .user-area{display:flex;align-items:center;gap:12px}
-header .user-badge{background:#fff;border-radius:20px;padding:4px 14px;font-size:.82rem;font-weight:600}
-header .btn-logout{background:var(--dark);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600}
+header{background:var(--header);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.25);position:sticky;top:0;z-index:100}
+header .brand{font-weight:900;font-size:1.15rem;color:#FAF9F7;letter-spacing:.01em}
+header .user-area{display:flex;align-items:center;gap:10px}
+header .user-badge{background:rgba(255,255,255,.15);color:#FAF9F7;border-radius:20px;padding:4px 14px;font-size:.82rem;font-weight:600}
+header .btn-logout{background:rgba(255,255,255,.12);color:#FAF9F7;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600;transition:background .15s}
+header .btn-logout:hover{background:rgba(255,255,255,.22)}
 
-nav{background:#fff;border-bottom:2px solid var(--yellow);padding:0 24px;display:flex;gap:0}
-nav button{background:none;border:none;padding:14px 20px;font-size:.9rem;font-weight:600;cursor:pointer;color:#555;border-bottom:3px solid transparent;transition:all .2s}
-nav button.active{color:var(--dark);border-bottom-color:var(--yellow)}
+nav{background:#fff;border-bottom:2px solid var(--border);padding:0 24px;display:flex;gap:0}
+nav button{background:none;border:none;padding:14px 20px;font-size:.9rem;font-weight:600;cursor:pointer;color:#777;border-bottom:3px solid transparent;transition:all .2s}
+nav button.active{color:var(--dark);border-bottom-color:var(--accent)}
 nav button:hover{color:var(--dark);background:var(--hover)}
 
 main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
 
 /* ── DASHBOARD ── */
 .dashboard-title{font-size:1.3rem;font-weight:800;margin-bottom:18px}
-.filter-bar{background:#f9f9f9;border:1.5px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px;align-items:flex-end}
+.filter-bar{background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px;align-items:flex-end;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .filter-bar label{font-size:.78rem;font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
 .filter-bar select,.filter-bar input{padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem;min-width:150px;outline:none}
-.filter-bar select:focus,.filter-bar input:focus{border-color:var(--yellow)}
-.filter-btn{background:var(--yellow);border:none;border-radius:5px;padding:7px 16px;font-weight:700;font-size:.87rem;cursor:pointer}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--accent)}
+.filter-btn{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:7px 16px;font-weight:700;font-size:.87rem;cursor:pointer;transition:opacity .2s}
+.filter-btn:hover{opacity:.88}
 
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:26px}
-.stat-card{background:#fff;border:2px solid var(--yellow);border-radius:10px;padding:20px 24px}
+.stat-card{background:#fff;border:1.5px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
 .stat-card .label{font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
 .stat-card .value{font-size:2rem;font-weight:900;color:var(--dark)}
 .stat-card .sublabel{font-size:.75rem;color:#888;margin-top:2px}
@@ -56,13 +58,13 @@ main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
 /* ── TABLE ── */
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .section-header h2{font-size:1.1rem;font-weight:800}
-.btn-add{background:var(--yellow);border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer}
+.btn-add{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer;transition:opacity .2s}
 .btn-add:hover{opacity:.88}
 
-.table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px}
+.table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 table{width:100%;border-collapse:collapse;font-size:.87rem}
-thead th{background:var(--yellow);color:var(--dark);padding:10px 12px;text-align:left;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-tbody tr{border-bottom:1px solid #f0f0f0;transition:background .15s}
+thead th{background:var(--header);color:#FAF9F7;padding:10px 12px;text-align:left;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+tbody tr{border-bottom:1px solid #F0EAE0;transition:background .15s}
 tbody tr:hover{background:var(--hover)}
 tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:700}
@@ -85,10 +87,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:12px;width:100%;max-width:780px;box-shadow:0 8px 40px rgba(0,0,0,.18);margin:auto}
-.modal-header{background:var(--yellow);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
-.modal-header h3{font-weight:800;font-size:1.05rem}
-.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;font-weight:700;line-height:1}
-.modal-body{padding:24px}
+.modal-header{background:var(--header);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-weight:800;font-size:1.05rem;color:#FAF9F7}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;font-weight:700;line-height:1;color:#FAF9F7;opacity:.75}
+.modal-close:hover{opacity:1}
+.modal-body{padding:24px;background:#FAF9F7}
 .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
 
 /* ── FORM ── */
@@ -97,15 +100,15 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .form-group{display:flex;flex-direction:column;gap:4px}
 .form-group label{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none;font-family:inherit;transition:border .2s}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--yellow)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
 .form-group textarea{resize:vertical;min-height:80px}
 .form-group .required{color:var(--red)}
 .form-section{margin-top:20px;padding-top:16px;border-top:1.5px solid #f0f0f0}
 .form-section h4{font-size:.85rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#555;margin-bottom:12px}
 .checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .checkbox-group label{display:flex;align-items:center;gap:6px;font-size:.87rem;font-weight:500;cursor:pointer;padding:5px 10px;border:1.5px solid var(--border);border-radius:5px;transition:all .15s}
-.checkbox-group label:hover{border-color:var(--yellow);background:var(--hover)}
-.checkbox-group input[type=checkbox]{accent-color:var(--yellow);width:14px;height:14px}
+.checkbox-group label:hover{border-color:var(--accent);background:var(--hover)}
+.checkbox-group input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
 .perf-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px;table-layout:fixed}
 .perf-table th{background:#f5f5f5;padding:6px 4px;text-align:center;font-weight:700;font-size:.72rem;word-break:break-word;line-height:1.2}
 .perf-table td{padding:5px 4px;border:1px solid #eee;text-align:center}
@@ -149,11 +152,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .sync-status.ok{background:#e8f5e9;color:#2e7d32}
 .sync-status.err{background:#ffebee;color:#c62828}
 .sheets-code{background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:.78rem;padding:14px;border-radius:8px;overflow-x:auto;white-space:pre;line-height:1.5;max-height:200px;overflow-y:auto}
-.tenure-badge{display:inline-block;background:var(--yellow);color:var(--dark);border-radius:5px;padding:3px 10px;font-weight:700;font-size:.85rem;margin-top:4px}
-.view-field{padding:8px 12px;background:#f9f9f9;border-radius:6px;font-size:.9rem;min-height:36px;line-height:1.5}
+.tenure-badge{display:inline-block;background:var(--accent);color:#fff;border-radius:5px;padding:3px 10px;font-weight:700;font-size:.85rem;margin-top:4px}
+.view-field{padding:8px 12px;background:#F4EFE8;border-radius:6px;font-size:.9rem;min-height:36px;line-height:1.5}
 .view-field.big{min-height:60px}
 .info-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-.info-chip{background:#f0f0f0;border-radius:4px;padding:2px 8px;font-size:.8rem;font-weight:600}
+.info-chip{background:#F0EAE0;border-radius:4px;padding:2px 8px;font-size:.8rem;font-weight:600;color:#555}
 
 @media(max-width:600px){
   .form-grid{grid-template-columns:1fr}
@@ -164,41 +167,48 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 /* ── AGENT VIEW TABS ── */
 .agent-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px}
 .agent-tab{background:none;border:none;padding:10px 22px;font-size:.9rem;font-weight:600;cursor:pointer;color:#777;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
-.agent-tab.active{color:var(--dark);border-bottom-color:var(--yellow)}
+.agent-tab.active{color:var(--dark);border-bottom-color:var(--accent)}
 .agent-tab:hover{color:var(--dark);background:var(--hover)}
 .tab-panel{display:none}.tab-panel.active{display:block}
-.star-field{background:#f9f9f9;border-radius:8px;padding:14px;margin-bottom:12px}
+.star-field{background:#F4EFE8;border-radius:8px;padding:14px;margin-bottom:12px}
 .star-field label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;display:block;margin-bottom:6px}
 .star-field textarea,.star-field input,.star-field select{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.88rem;font-family:inherit;outline:none;transition:border .2s;background:#fff}
-.star-field textarea:focus,.star-field input:focus,.star-field select:focus{border-color:var(--yellow)}
+.star-field textarea:focus,.star-field input:focus,.star-field select:focus{border-color:var(--accent)}
 .coaching-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.coaching-detail-item{background:#f9f9f9;border-radius:8px;padding:12px}
+.coaching-detail-item{background:#F4EFE8;border-radius:8px;padding:12px}
 .coaching-detail-item.full{grid-column:1/-1}
 .coaching-detail-item .cd-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:5px}
 .coaching-detail-item .cd-val{font-size:.88rem;line-height:1.5;color:#222}
 
 /* ── BURGER / ROSTER ── */
-.btn-burger{background:var(--dark);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:1.1rem;cursor:pointer;font-weight:700;line-height:1;transition:opacity .2s}
-.btn-burger:hover{opacity:.8}
+.btn-burger{background:rgba(255,255,255,.15);color:#FAF9F7;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 12px;font-size:1.1rem;cursor:pointer;font-weight:700;line-height:1;transition:all .2s}
+.btn-burger:hover{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5)}
+
+/* ── GLOBAL SEARCH ── */
+.global-search-wrap{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.global-search-input{flex:1;max-width:480px;padding:9px 14px 9px 36px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;outline:none;background:#FAF9F7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.442 1.398a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E") no-repeat 11px center;transition:border .2s}
+.global-search-input:focus{border-color:var(--accent);background-color:#fff}
+.global-search-clear{background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:0 4px;line-height:1;display:none}
+.global-search-clear.visible{display:block}
 
 .roster-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 .roster-overlay.open{display:flex}
 .roster-panel{background:#fff;border-radius:12px;width:100%;max-width:1000px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)}
-.roster-header{background:var(--yellow);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
-.roster-header h3{font-weight:900;font-size:1.1rem}
+.roster-header{background:var(--header);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.roster-header h3{font-weight:900;font-size:1.1rem;color:#FAF9F7}
 .roster-body{padding:20px 24px}
 .roster-filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
 .roster-filter-bar input,.roster-filter-bar select{padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem;outline:none}
-.roster-filter-bar input:focus,.roster-filter-bar select:focus{border-color:var(--yellow)}
+.roster-filter-bar input:focus,.roster-filter-bar select:focus{border-color:var(--accent)}
 .roster-filter-bar input{min-width:200px}
 .roster-count{font-size:.82rem;color:#666;font-weight:600;margin-left:auto;align-self:center}
-.btn-add-agent{background:var(--yellow);border:none;border-radius:6px;padding:8px 18px;font-weight:700;font-size:.87rem;cursor:pointer}
-.btn-add-agent:hover{opacity:.88}
+.btn-add-agent{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 18px;font-weight:700;font-size:.87rem;cursor:pointer;transition:background .2s}
+.btn-add-agent:hover{background:var(--accent-dark)}
 .roster-table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px;max-height:58vh;overflow-y:auto}
 .roster-table{width:100%;border-collapse:collapse;font-size:.86rem}
 .roster-table thead{position:sticky;top:0;z-index:2}
-.roster-table thead th{background:var(--yellow);padding:10px 12px;text-align:left;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-.roster-table tbody tr{border-bottom:1px solid #f0f0f0}
+.roster-table thead th{background:var(--header);color:#FAF9F7;padding:10px 12px;text-align:left;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.roster-table tbody tr{border-bottom:1px solid #F0EAE0}
 .roster-table tbody tr:hover{background:var(--hover)}
 .roster-table td{padding:9px 12px;vertical-align:middle}
 .roster-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
@@ -207,8 +217,8 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .agent-form-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1200;align-items:center;justify-content:center;padding:20px}
 .agent-form-overlay.open{display:flex}
 .agent-form-panel{background:#fff;border-radius:10px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.agent-form-header{background:var(--yellow);padding:16px 20px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:space-between}
-.agent-form-body{padding:20px}
+.agent-form-header{background:var(--header);color:#FAF9F7;padding:16px 20px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:space-between}
+.agent-form-body{padding:20px;background:#FAF9F7}
 .agent-form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
 </style>
 </head>
@@ -241,8 +251,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="user-badge" id="userBadge"></div>
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
-      <button id="btnBackfill" onclick="backfillToSheets()" style="display:none;background:#1565c0;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Push all local entries to SheetDB so agents on other devices can see them">☁️ Sync Local → SheetDB</button>
-      <button id="btnRefresh" onclick="fetchFromSheets()" style="display:none;background:#2e7d32;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Pull latest coaching sessions from the server">🔄 Refresh</button>
       <span id="syncStatusBadge" style="display:none;font-size:.78rem;font-weight:600;margin-left:4px;"></span>
       <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
@@ -252,6 +260,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <button id="navLog" onclick="showView('log')">📋 Coaching Log</button>
     <button id="navNTE" onclick="showView('nte')">📝 NTE</button>
   </nav>
+  <div class="global-search-wrap">
+    <input type="search" class="global-search-input" id="globalSearch" placeholder="Search by agent, TL, focus area, remarks…" oninput="onGlobalSearch(this.value)" />
+    <button class="global-search-clear" id="globalSearchClear" onclick="clearGlobalSearch()" title="Clear search">✕</button>
+  </div>
   <main>
     <!-- DASHBOARD -->
     <div id="viewDashboard">
@@ -1703,8 +1715,7 @@ function initApp() {
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
-  document.getElementById('btnBackfill').style.display    = ['Admin','OM','TL'].includes(currentUser.role) ? 'inline-block' : 'none';
-  document.getElementById('btnRefresh').style.display     = 'inline-block'; // all roles can refresh
+  // btnBackfill and btnRefresh removed — SheetDB sync is automatic
 
   populateWKOptions();
   populateFilterTLs();
@@ -1895,8 +1906,39 @@ function applyDashFilters(list) {
       const tlEntry = Object.values(TL_EMAILS).find(t=>t.display===e.teamLead);
       if (!tlEntry || tlEntry.cluster !== cl) return false;
     }
+    if (!_matchesGlobalSearch(e)) return false;
     return true;
   });
+}
+
+let _globalSearch = '';
+
+function onGlobalSearch(val) {
+  _globalSearch = (val || '').trim().toLowerCase();
+  const clearBtn = document.getElementById('globalSearchClear');
+  if (clearBtn) clearBtn.classList.toggle('visible', _globalSearch.length > 0);
+  renderLogTable();
+  renderDashboard();
+}
+
+function clearGlobalSearch() {
+  _globalSearch = '';
+  const inp = document.getElementById('globalSearch');
+  if (inp) inp.value = '';
+  const clearBtn = document.getElementById('globalSearchClear');
+  if (clearBtn) clearBtn.classList.remove('visible');
+  renderLogTable();
+  renderDashboard();
+}
+
+function _matchesGlobalSearch(e) {
+  if (!_globalSearch) return true;
+  const haystack = [
+    e.agentName, e.teamLead, e.cluster, e.coachingType,
+    e.highlights, e.opportunities, e.limiter,
+    (e.focusAreas||[]).join(' '), e.actionPlan, e.remarks, e.loggedBy
+  ].join(' ').toLowerCase();
+  return haystack.includes(_globalSearch);
 }
 
 function applyLogFilters(list) {
@@ -1907,6 +1949,7 @@ function applyLogFilters(list) {
     if (wk && e.wkNumber !== wk) return false;
     if (tl && e.teamLead !== tl) return false;
     if (ag && e.agentName !== ag) return false;
+    if (!_matchesGlobalSearch(e)) return false;
     return true;
   });
 }
@@ -2440,29 +2483,29 @@ function buildCoachingRow(e) {
     'Agent': e.agentName,
     'Coaching Type': e.coachingType,
     'Tenure': e.tenure||'',
-    'Focus Areas': (e.focusAreas||[]).join(', '),
+    'Focus Area': (e.focusAreas||[]).join(', '),
     ...wkCols(1), ...wkCols(2), ...wkCols(3), ...wkCols(4),
-    'Avg TCR%': e.avgTCR||'',
-    'Avg CSR%': e.avgCSR||'',
-    'Avg CVR%': e.avgCVR||'',
+    'AVG TCR% ': e.avgTCR||'',
+    'AVG CSR%': e.avgCSR||'',
+    'AVG CVR%': e.avgCVR||'',
     'WK1 CVR% (Manual)': e.wk1CvrManual||'',
     'WK2 CVR% (Manual)': e.wk2CvrManual||'',
     'WK3 CVR% (Manual)': e.wk3CvrManual||'',
     'WK4 CVR% (Manual)': e.wk4CvrManual||'',
-    'Avg CVR% (Manual)': e.avgCvrManual||'',
+    'AVG CVR% (Manual)': e.avgCvrManual||'',
     'Highlights': e.highlights||'',
     'Opportunities': e.opportunities||'',
     'Key Discussion': e.keyDiscussion||'',
     'Strength': e.strength||'',
     'Areas': e.areas||'',
     'Limiter': e.limiter||'',
-    'Follow Up': e.followUpDate||'',
-    'Action Plan': e.actionPlan||'',
+    'Follow up': e.followUpDate||'',
+    'Action plan': e.actionPlan||'',
     'Receptiveness': e.receptiveness||'',
     'Status': e.coachingStatus||'',
-    'Remarks': e.remarks||'',
-    'Logged By': e.loggedBy||'',
-    'Updated At': e.updatedAt||'',
+    'Remartks': e.remarks||'',
+    'Logged by ': e.loggedBy||'',
+    'Updated AT ': e.updatedAt||'',
     'Commitment Situation': e.star?.situation||'',
     'Commitment Task': e.star?.task||'',
     'Commitment Action': e.star?.action||'',
@@ -2506,6 +2549,21 @@ function normalizeDate(raw) {
   return s; // return as-is if unrecognized; at least it'll display
 }
 
+// Case+whitespace-insensitive column lookup.
+// Google Sheets headers sometimes have trailing spaces or mixed case
+// (e.g. 'AVG TCR% ', 'Logged by ', 'Updated AT ').
+// Try exact key first, then fall back to a trimmed/lowercased match.
+function _col(row, ...keys) {
+  for (const k of keys) {
+    if (Object.prototype.hasOwnProperty.call(row, k)) return row[k] || '';
+    const kl = k.trim().toLowerCase();
+    for (const rk of Object.keys(row)) {
+      if (rk.trim().toLowerCase() === kl) return row[rk] || '';
+    }
+  }
+  return '';
+}
+
 function parseSheetRow(row) {
   const perfData = [1,2,3,4].map(n => ({
     lt: row[`WK${n} LT`]||'',
@@ -2520,29 +2578,29 @@ function parseSheetRow(row) {
     agentName:      row['Agent']||'',
     coachingType:   row['Coaching Type']||'',
     tenure:         row['Tenure']||'',
-    focusAreas:     (row['Focus Areas']||'').split(',').map(s=>s.trim()).filter(Boolean),
+    focusAreas:     _col(row,'Focus Areas','Focus Area').split(',').map(s=>s.trim()).filter(Boolean),
     perfData,
-    avgTCR:         row['Avg TCR%']||'',
-    avgCSR:         row['Avg CSR%']||'',
-    avgCVR:         row['Avg CVR%']||'',
+    avgTCR:         _col(row,'Avg TCR%','AVG TCR%'),
+    avgCSR:         _col(row,'Avg CSR%','AVG CSR%'),
+    avgCVR:         _col(row,'Avg CVR%','AVG CVR%'),
     wk1CvrManual:   row['WK1 CVR% (Manual)']||'',
     wk2CvrManual:   row['WK2 CVR% (Manual)']||'',
     wk3CvrManual:   row['WK3 CVR% (Manual)']||'',
     wk4CvrManual:   row['WK4 CVR% (Manual)']||'',
-    avgCvrManual:   row['Avg CVR% (Manual)']||'',
+    avgCvrManual:   _col(row,'Avg CVR% (Manual)','AVG CVR% (Manual)'),
     highlights:     row['Highlights']||'',
     opportunities:  row['Opportunities']||'',
     keyDiscussion:  row['Key Discussion']||'',
     strength:       row['Strength']||'',
     areas:          row['Areas']||'',
     limiter:        row['Limiter']||'',
-    followUpDate:   row['Follow Up']||'',
-    actionPlan:     row['Action Plan']||'',
+    followUpDate:   normalizeDate(_col(row,'Follow Up','Follow up')),
+    actionPlan:     _col(row,'Action Plan','Action plan'),
     receptiveness:  row['Receptiveness']||'',
     coachingStatus: row['Status']||'',
-    remarks:        row['Remarks']||'',
-    loggedBy:       row['Logged By']||'',
-    updatedAt:      row['Updated At']||'',
+    remarks:        _col(row,'Remarks','Remartks'),
+    loggedBy:       _col(row,'Logged By','Logged by'),
+    updatedAt:      _col(row,'Updated At','Updated AT'),
     star: {
       situation: row['Commitment Situation']||'',
       task:      row['Commitment Task']||'',
@@ -2641,6 +2699,85 @@ async function fetchFromSheets() {
       clearTimeout(badge._t);
       badge._t = setTimeout(() => { badge.style.display = 'none'; }, 8000);
     }
+  }
+
+  // Also sync NTE entries from the "NTE Logs" sheet tab
+  fetchNTEFromSheets();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// NTE SHEET SYNC — pull NTE entries from SheetDB
+// ══════════════════════════════════════════════════════════════════════════
+async function fetchNTEFromSheets() {
+  if (!SHEETDB_URL || !currentUser) return;
+  try {
+    const resp = await fetch(`${SHEETDB_URL}?sheet=NTE%20Logs`, { headers: _sdbHeaders() });
+    if (!resp.ok) { console.warn('NTE fetch failed:', resp.status); return; }
+    let allRows = await resp.json().catch(() => []);
+    if (!Array.isArray(allRows) || allRows.length === 0) return;
+
+    // Role-based filter
+    let rows;
+    if (currentUser.role === 'Agent') {
+      const agentName = (ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display).toLowerCase().trim();
+      rows = allRows.filter(r => (r['Agent'] || '').toLowerCase().trim() === agentName);
+    } else if (currentUser.role === 'TL' && currentUser.tlInfo) {
+      const tlName = currentUser.tlInfo.display.toLowerCase().trim();
+      rows = allRows.filter(r => (r['Team Lead'] || '').toLowerCase().trim() === tlName);
+    } else if (currentUser.role === 'OM' && currentUser.omInfo) {
+      const cluster = currentUser.omInfo.cluster;
+      rows = allRows.filter(r => (r['Cluster'] || '') === cluster);
+    } else {
+      rows = allRows; // Admin sees all
+    }
+
+    if (!rows.length) return;
+
+    // Merge with existing local NTE entries — SheetDB wins on conflict
+    const merged = {};
+    nteEntries.forEach(n => { if (n.id) merged[n.id] = n; });
+
+    rows.forEach(row => {
+      const id        = _col(row, 'Entry ID') || '';
+      const acked     = (_col(row, 'Acknowledged') || '').toLowerCase() === 'yes';
+      const parsed = {
+        id,
+        dateLogged  : _col(row, 'Date Logged'),
+        wkNumber    : _col(row, 'WK#'),
+        cluster     : _col(row, 'Cluster'),
+        teamLead    : _col(row, 'Team Lead'),
+        agentName   : _col(row, 'Agent'),
+        nteType     : _col(row, 'NTE Type'),
+        nteLink     : _col(row, 'NTE Link'),
+        loggedBy    : _col(row, 'Logged By'),
+        createdAt   : _col(row, 'Created At'),
+        updatedAt   : _col(row, 'Updated At'),
+        acknowledgement: acked ? {
+          checked        : true,
+          signature      : _col(row, 'Signature'),
+          acknowledgedAt : _col(row, 'Acknowledged At')
+        } : null
+      };
+
+      // If no Entry ID, generate a stable synthetic one
+      if (!parsed.id) {
+        const key = `${parsed.agentName}|${parsed.dateLogged}|${parsed.teamLead}|${parsed.wkNumber}|${parsed.nteType}`;
+        let h = 2166136261;
+        for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0;
+        parsed.id = '_nid' + h.toString(36);
+        parsed._syntheticId = true;
+      }
+
+      merged[parsed.id] = parsed;
+    });
+
+    nteEntries = Object.values(merged).sort((a, b) =>
+      (b.updatedAt || b.dateLogged || '').localeCompare(a.updatedAt || a.dateLogged || '')
+    );
+    saveNTEEntries();
+    renderNTETable();
+  } catch (err) {
+    console.warn('fetchNTEFromSheets error:', err);
   }
 }
 
@@ -3532,7 +3669,7 @@ function openNTEAck(id) {
 
   // Build receipt content
   const receiptHtml = `
-    <div style="background:#fffde7;border:1.5px solid var(--yellow);border-radius:8px;padding:18px;margin-bottom:20px">
+    <div style="background:#FAF9F7;border:1.5px solid var(--accent);border-radius:8px;padding:18px;margin-bottom:20px">
       <div style="font-weight:800;font-size:1rem;margin-bottom:12px;color:#111">📋 NTE Acknowledgement Receipt</div>
       <div class="coaching-detail-grid" style="gap:10px">
         <div class="coaching-detail-item"><div class="cd-label">Agent</div><div class="cd-val">${escHtml(n.agentName)}</div></div>
@@ -3558,7 +3695,7 @@ function openNTEAck(id) {
     ackFormHtml = `
       <div style="margin-bottom:14px">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px;background:#f9f9f9;border-radius:8px;border:1.5px solid var(--border)">
-          <input type="checkbox" id="nteAckCheck" style="width:18px;height:18px;margin-top:1px;accent-color:var(--yellow);cursor:pointer" onchange="onNTEAckCheckChange()"/>
+          <input type="checkbox" id="nteAckCheck" style="width:18px;height:18px;margin-top:1px;accent-color:var(--accent);cursor:pointer" onchange="onNTEAckCheckChange()"/>
           <span style="font-size:.88rem;line-height:1.5;color:#222">
             I, <strong>${escHtml(n.agentName)}</strong>, acknowledge that I have read and understood the contents of this Notice to Explain (NTE) and that I have received a copy of this document.
           </span>
