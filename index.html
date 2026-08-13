@@ -2014,7 +2014,10 @@ function renderTable(tbodyId, list, showType=false) {
       <td>${statusBadge}</td>
       <td>
         <div class="action-btns">
-          <button class="btn-sm btn-view" onclick="viewEntry('${e.id}')">View</button>
+          ${currentUser.role === 'Agent'
+            ? `<button class="btn-sm btn-view" onclick="openCommitmentView('${e.id}')">📝 My Commitment</button>`
+            : `<button class="btn-sm btn-view" onclick="viewEntry('${e.id}')">View</button>`
+          }
           ${canEdit?`<button class="btn-sm btn-edit" onclick="editEntry('${e.id}')">Edit</button>`:''}
           ${canDelete?`<button class="btn-sm btn-del" onclick="deleteEntry('${e.id}')">Delete</button>`:''}
         </div>
@@ -3291,7 +3294,8 @@ function openCommitmentView(entryId) {
   document.getElementById('agentModalName').textContent = e.agentName || '—';
   document.getElementById('agentTab1Content').innerHTML = tab1;
   document.getElementById('agentTab2Content').innerHTML = tab2;
-  switchAgentTab(1);
+  // Agents land directly on the commitment form (Tab 2); others see coaching content (Tab 1)
+  switchAgentTab(currentUser.role === 'Agent' ? 2 : 1);
   document.getElementById('agentCommitmentModal').classList.add('open');
 }
 
