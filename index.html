@@ -638,10 +638,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
             <input type="text" id="fOpportunities" placeholder="Brief opportunities for the table view"/>
           </div>
           <div class="form-group">
-            <label>Key Discussion</label>
-            <textarea id="fKeyDiscussion" placeholder="Key topics discussed during coaching..."></textarea>
-          </div>
-          <div class="form-group">
             <label>Strength Identified</label>
             <textarea id="fStrength" placeholder="Agent's strengths observed..."></textarea>
           </div>
@@ -1235,6 +1231,55 @@ function saveRoster() {
   localStorage.setItem('apexRoster', JSON.stringify(ROSTER));
 }
 
+// ── SheetDB sync for Agent Roster ─────────────────────────────────────────
+async function fetchRosterFromSheets() {
+  if (!SHEETDB_URL) return;
+  try {
+    const res = await fetch(`${SHEETDB_URL}?sheet=Agent%20Roster`, { headers: _sdbHeaders() });
+    if (!res.ok) return;
+    const rows = await res.json().catch(() => []);
+    if (!Array.isArray(rows) || !rows.length) return;
+    rows.forEach(r => {
+      if (!r.email) return;
+      const agentObj = {
+        name:      r.name      || '',
+        email:     r.email.trim().toLowerCase(),
+        startDate: r.startDate || '',
+        cluster:   r.cluster   || '',
+        manager:   r.manager   || '',
+        manager2:  r.manager2  || ''
+      };
+      const idx = ROSTER.findIndex(a => a.email && a.email.toLowerCase() === agentObj.email);
+      if (idx >= 0) ROSTER[idx] = agentObj; // SheetDB wins on conflict
+      else ROSTER.push(agentObj);
+    });
+    saveRoster();
+  } catch(err) {
+    console.warn('fetchRosterFromSheets error (ignored):', err);
+  }
+}
+
+function syncRosterAgentToSheets(agentObj) {
+  if (!SHEETDB_URL || !agentObj.email) return;
+  // Upsert: delete old row first, then post fresh
+  fetch(`${SHEETDB_URL}/email/${encodeURIComponent(agentObj.email)}?sheet=Agent%20Roster`, {
+    method: 'DELETE', headers: _sdbHeaders()
+  }).catch(() => {}).finally(() => {
+    fetch(`${SHEETDB_URL}?sheet=Agent%20Roster`, {
+      method: 'POST',
+      headers: _sdbHeaders(),
+      body: JSON.stringify({ data: [agentObj] })
+    }).catch(err => console.warn('syncRosterAgentToSheets error:', err));
+  });
+}
+
+function deleteRosterAgentFromSheets(email) {
+  if (!SHEETDB_URL || !email) return;
+  fetch(`${SHEETDB_URL}/email/${encodeURIComponent(email.trim().toLowerCase())}?sheet=Agent%20Roster`, {
+    method: 'DELETE', headers: _sdbHeaders()
+  }).catch(err => console.warn('deleteRosterAgentFromSheets error:', err));
+}
+
 // OM roster-access guard — only these three emails
 const ROSTER_OM_EMAILS = [
   'jubee@homeaglowsales.com',
@@ -1453,6 +1498,7 @@ function saveAgent() {
   }
 
   saveRoster();
+  syncRosterAgentToSheets(agentObj); // ← push to SheetDB so agent can log in from any device
   closeAgentForm();
   renderRosterTable();
 }
@@ -1467,6 +1513,7 @@ function deleteAgent(idx) {
   if (!confirm('Remove "' + a.name + '" from the roster? This cannot be undone.')) return;
   ROSTER.splice(idx, 1);
   saveRoster();
+  deleteRosterAgentFromSheets(a.email); // ← remove from SheetDB so agent loses access everywhere
   renderRosterTable();
 }
 
@@ -1649,6 +1696,7 @@ async function doLogin() {
   loadCustomTLs();
   await fetchCustomTLsFromSheets(); // ← pulls custom TLs from SheetDB before role check
   loadRoster();
+  await fetchRosterFromSheets();    // ← pulls agents added by TLs from SheetDB before role check
 
   if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
 
@@ -2105,7 +2153,6 @@ function editEntry(id) {
   setVal('fAgent', e.agentName);
   setVal('fHighlights', e.highlights);
   setVal('fOpportunities', e.opportunities);
-  setVal('fKeyDiscussion', e.keyDiscussion);
   setVal('fStrength', e.strength);
   setVal('fAreas', e.areas);
   setVal('fLimiter', e.limiter);
@@ -2498,7 +2545,6 @@ function buildCoachingRow(e) {
     'AVG CVR% (Manual)': e.avgCvrManual||'',
     'Highlights': e.highlights||'',
     'Opportunities': e.opportunities||'',
-    'Key Discussion': e.keyDiscussion||'',
     'Strength': e.strength||'',
     'Areas': e.areas||'',
     'Limiter': e.limiter||'',
@@ -2593,7 +2639,6 @@ function parseSheetRow(row) {
     avgCvrManual:   _col(row,'Avg CVR% (Manual)','AVG CVR% (Manual)'),
     highlights:     row['Highlights']||'',
     opportunities:  row['Opportunities']||'',
-    keyDiscussion:  row['Key Discussion']||'',
     strength:       row['Strength']||'',
     areas:          row['Areas']||'',
     limiter:        row['Limiter']||'',
@@ -2889,7 +2934,6 @@ function saveEntry() {
     focusAreas: [...document.querySelectorAll('#focusAreas input:checked')].map(c=>c.value),
     highlights: document.getElementById('fHighlights').value,
     opportunities: document.getElementById('fOpportunities').value,
-    keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength: document.getElementById('fStrength').value,
     areas: document.getElementById('fAreas').value,
     limiter: document.getElementById('fLimiter').value,
@@ -2965,7 +3009,6 @@ function viewEntry(id) {
         <div class="view-field">${(e.focusAreas||[]).join(', ')||'—'}</div></div>
       <div class="form-group"><label>Highlights</label><div class="view-field">${e.highlights||'—'}</div></div>
       <div class="form-group"><label>Opportunities</label><div class="view-field">${e.opportunities||'—'}</div></div>
-      <div class="form-group" style="grid-column:1/-1"><label>Key Discussion</label><div class="view-field big">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Strength Identified</label><div class="view-field big">${(e.strength||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Areas of Improvement</label><div class="view-field big">${(e.areas||'—').replace(/\n/g,'<br>')}</div></div>
     </div>
@@ -3057,7 +3100,6 @@ function saveDraft() {
     agent        : document.getElementById('fAgent').value,
     highlights   : document.getElementById('fHighlights').value,
     opportunities: document.getElementById('fOpportunities').value,
-    keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength     : document.getElementById('fStrength').value,
     areas        : document.getElementById('fAreas').value,
     limiter      : document.getElementById('fLimiter').value,
@@ -3075,7 +3117,7 @@ function saveDraft() {
     }))
   };
   // Only persist if at least one meaningful field was filled
-  if (draft.agent || draft.date || draft.highlights || draft.opportunities || draft.keyDiscussion) {
+  if (draft.agent || draft.date || draft.highlights || draft.opportunities) {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   }
 }
@@ -3107,7 +3149,6 @@ function resumeDraft() {
   setVal('fAgent', draft.agent||'');
   setVal('fHighlights', draft.highlights||'');
   setVal('fOpportunities', draft.opportunities||'');
-  setVal('fKeyDiscussion', draft.keyDiscussion||'');
   setVal('fStrength', draft.strength||'');
   setVal('fAreas', draft.areas||'');
   setVal('fLimiter', draft.limiter||'');
@@ -3179,10 +3220,6 @@ function openCommitmentView(entryId) {
       <div class="coaching-detail-item">
         <div class="cd-label">🔧 Opportunities</div>
         <div class="cd-val">${(e.opportunities||'—').replace(/\n/g,'<br>')}</div>
-      </div>
-      <div class="coaching-detail-item full">
-        <div class="cd-label">💬 Key Discussion Points</div>
-        <div class="cd-val">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div>
       </div>
       <div class="coaching-detail-item">
         <div class="cd-label">💪 Strengths</div>
