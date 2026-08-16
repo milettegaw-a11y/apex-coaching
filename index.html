@@ -6,65 +6,51 @@
 <title>APEX Coaching Log</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#FAF9F7;color:#1A1A1A;min-height:100vh}
-:root{--accent:#9B7B52;--accent-dark:#7A5F3B;--yellow:#9B7B52;--dark:#1A1A1A;--light:#fff;--bg:#FAF9F7;--header:#2D2420;--border:#DDD5C8;--hover:#F4EFE8;--red:#C0392B;--green:#27AE60}
-
-/* ── LOGIN ── */
-#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#FAF9F7}
-.login-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:48px 40px;width:420px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;min-height:100vh}
+:root{--yellow:#FFD600;--dark:#111;--light:#fff;--border:#ddd;--hover:#FFF8DC;--red:#d32f2f;--green:#388e3c}
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f9f9f9}
+.login-card{background:#fff;border:2px solid var(--yellow);border-radius:12px;padding:48px 40px;width:420px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.10)}
 .login-card h1{font-size:1.6rem;font-weight:800;color:var(--dark);margin-bottom:4px}
 .login-card .sub{font-size:.9rem;color:#555;margin-bottom:28px}
 .login-card label{display:block;font-size:.85rem;font-weight:600;margin-bottom:4px}
 .login-card input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:6px;font-size:.95rem;margin-bottom:16px;outline:none;transition:border .2s}
-.login-card input:focus{border-color:var(--accent)}
+.login-card input:focus{border-color:var(--yellow)}
 .login-card select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:6px;font-size:.95rem;margin-bottom:16px;outline:none}
-.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:11px 28px;font-size:1rem;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
+.btn-primary{background:var(--yellow);color:var(--dark);border:none;border-radius:6px;padding:11px 28px;font-size:1rem;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
 .btn-primary:hover{opacity:.88}
 .error-msg{color:var(--red);font-size:.85rem;margin-bottom:12px;display:none}
 .apex-logo{display:flex;align-items:center;gap:10px;margin-bottom:20px}
-.apex-logo .logo-box{background:var(--header);border-radius:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;color:#FAF9F7}
-
-/* ── MAIN APP ── */
+.apex-logo .logo-box{background:var(--yellow);border-radius:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem}
 #app{display:none;flex-direction:column;min-height:100vh}
-header{background:var(--header);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.25);position:sticky;top:0;z-index:100}
-header .brand{font-weight:900;font-size:1.15rem;color:#FAF9F7;letter-spacing:.01em}
-header .user-area{display:flex;align-items:center;gap:10px}
-header .user-badge{background:rgba(255,255,255,.15);color:#FAF9F7;border-radius:20px;padding:4px 14px;font-size:.82rem;font-weight:600}
-header .btn-logout{background:rgba(255,255,255,.12);color:#FAF9F7;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600;transition:background .15s}
-header .btn-logout:hover{background:rgba(255,255,255,.22)}
-
-nav{background:#fff;border-bottom:2px solid var(--border);padding:0 24px;display:flex;gap:0}
-nav button{background:none;border:none;padding:14px 20px;font-size:.9rem;font-weight:600;cursor:pointer;color:#777;border-bottom:3px solid transparent;transition:all .2s}
-nav button.active{color:var(--dark);border-bottom-color:var(--accent)}
+header{background:var(--yellow);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.10);position:sticky;top:0;z-index:100}
+header .brand{font-weight:900;font-size:1.15rem;color:var(--dark)}
+header .user-area{display:flex;align-items:center;gap:12px}
+header .user-badge{background:#fff;border-radius:20px;padding:4px 14px;font-size:.82rem;font-weight:600}
+header .btn-logout{background:var(--dark);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-weight:600}
+nav{background:#fff;border-bottom:2px solid var(--yellow);padding:0 24px;display:flex;gap:0}
+nav button{background:none;border:none;padding:14px 20px;font-size:.9rem;font-weight:600;cursor:pointer;color:#555;border-bottom:3px solid transparent;transition:all .2s}
+nav button.active{color:var(--dark);border-bottom-color:var(--yellow)}
 nav button:hover{color:var(--dark);background:var(--hover)}
-
 main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
-
-/* ── DASHBOARD ── */
 .dashboard-title{font-size:1.3rem;font-weight:800;margin-bottom:18px}
-.filter-bar{background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px;align-items:flex-end;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.filter-bar{background:#f9f9f9;border:1.5px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px;align-items:flex-end}
 .filter-bar label{font-size:.78rem;font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
 .filter-bar select,.filter-bar input{padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem;min-width:150px;outline:none}
-.filter-bar select:focus,.filter-bar input:focus{border-color:var(--accent)}
-.filter-btn{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:7px 16px;font-weight:700;font-size:.87rem;cursor:pointer;transition:opacity .2s}
-.filter-btn:hover{opacity:.88}
-
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--yellow)}
+.filter-btn{background:var(--yellow);border:none;border-radius:5px;padding:7px 16px;font-weight:700;font-size:.87rem;cursor:pointer}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:26px}
-.stat-card{background:#fff;border:1.5px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.stat-card{background:#fff;border:2px solid var(--yellow);border-radius:10px;padding:20px 24px}
 .stat-card .label{font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
 .stat-card .value{font-size:2rem;font-weight:900;color:var(--dark)}
 .stat-card .sublabel{font-size:.75rem;color:#888;margin-top:2px}
-
-/* ── TABLE ── */
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .section-header h2{font-size:1.1rem;font-weight:800}
-.btn-add{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer;transition:opacity .2s}
+.btn-add{background:var(--yellow);border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer}
 .btn-add:hover{opacity:.88}
-
-.table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px}
 table{width:100%;border-collapse:collapse;font-size:.87rem}
-thead th{background:var(--header);color:#FAF9F7;padding:10px 12px;text-align:left;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-tbody tr{border-bottom:1px solid #F0EAE0;transition:background .15s}
+thead th{background:var(--yellow);color:var(--dark);padding:10px 12px;text-align:left;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f0f0f0;transition:background .15s}
 tbody tr:hover{background:var(--hover)}
 tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:700}
@@ -73,42 +59,35 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .badge-red{background:#ffebee;color:var(--red)}
 .badge-blue{background:#e3f2fd;color:#1565c0}
 .badge-gray{background:#f5f5f5;color:#555}
-
 .action-btns{display:flex;gap:6px}
 .btn-sm{padding:4px 10px;border-radius:4px;border:none;font-size:.77rem;font-weight:700;cursor:pointer;transition:opacity .2s}
 .btn-sm:hover{opacity:.8}
 .btn-view{background:#e3f2fd;color:#1565c0}
 .btn-edit{background:#fff8e1;color:#f57f17}
 .btn-del{background:#ffebee;color:var(--red)}
-
 .empty-state{text-align:center;padding:48px 20px;color:#aaa;font-size:.95rem}
-
-/* ── MODAL ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:12px;width:100%;max-width:780px;box-shadow:0 8px 40px rgba(0,0,0,.18);margin:auto}
-.modal-header{background:var(--header);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
-.modal-header h3{font-weight:800;font-size:1.05rem;color:#FAF9F7}
-.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;font-weight:700;line-height:1;color:#FAF9F7;opacity:.75}
-.modal-close:hover{opacity:1}
-.modal-body{padding:24px;background:#FAF9F7}
+.modal-header{background:var(--yellow);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-weight:800;font-size:1.05rem}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;font-weight:700;line-height:1}
+.modal-body{padding:24px}
 .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-
-/* ── FORM ── */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .form-grid.full{grid-template-columns:1fr}
 .form-group{display:flex;flex-direction:column;gap:4px}
 .form-group label{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;outline:none;font-family:inherit;transition:border .2s}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--yellow)}
 .form-group textarea{resize:vertical;min-height:80px}
 .form-group .required{color:var(--red)}
 .form-section{margin-top:20px;padding-top:16px;border-top:1.5px solid #f0f0f0}
 .form-section h4{font-size:.85rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#555;margin-bottom:12px}
 .checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .checkbox-group label{display:flex;align-items:center;gap:6px;font-size:.87rem;font-weight:500;cursor:pointer;padding:5px 10px;border:1.5px solid var(--border);border-radius:5px;transition:all .15s}
-.checkbox-group label:hover{border-color:var(--accent);background:var(--hover)}
-.checkbox-group input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
+.checkbox-group label:hover{border-color:var(--yellow);background:var(--hover)}
+.checkbox-group input[type=checkbox]{accent-color:var(--yellow);width:14px;height:14px}
 .perf-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px;table-layout:fixed}
 .perf-table th{background:#f5f5f5;padding:6px 4px;text-align:center;font-weight:700;font-size:.72rem;word-break:break-word;line-height:1.2}
 .perf-table td{padding:5px 4px;border:1px solid #eee;text-align:center}
@@ -118,7 +97,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .perf-table col.col-num{width:10%}
 .perf-table col.col-pct{width:7%}
 .perf-table col.col-wk1cvr{width:9%}
-/* ── PROJECTION TABLE ── */
 .focus-on-bar{display:flex;align-items:center;gap:10px;background:#fffbef;border:1.5px solid #ffe082;border-radius:8px;padding:10px 14px;margin-bottom:14px;flex-wrap:wrap}
 .focus-on-bar .focus-label{font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#555;white-space:nowrap}
 .focus-on-bar label{display:inline-flex;align-items:center;gap:5px;font-size:.84rem;font-weight:700;cursor:pointer;padding:4px 12px;border-radius:20px;border:1.5px solid #e0e0e0;background:#fff;transition:all .15s;user-select:none}
@@ -143,7 +121,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .proj-csr-input{border:2px solid #388e3c}
 .proj-hint{font-size:.7rem;color:#888;display:block;text-align:center}
 .proj-footnote{font-size:.78rem;color:#666;margin-top:10px;line-height:1.6}
-/* ── EXPORT / SHEETS ── */
 .btn-export{background:#fff;color:var(--dark);border:1.5px solid #bbb;border-radius:6px;padding:7px 14px;font-size:.82rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .btn-export:hover{background:#f5f5f5;border-color:#888}
 .btn-sheets-cfg{background:none;border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:6px;padding:5px 10px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap}
@@ -152,79 +129,63 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .sync-status.ok{background:#e8f5e9;color:#2e7d32}
 .sync-status.err{background:#ffebee;color:#c62828}
 .sheets-code{background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:.78rem;padding:14px;border-radius:8px;overflow-x:auto;white-space:pre;line-height:1.5;max-height:200px;overflow-y:auto}
-.tenure-badge{display:inline-block;background:var(--accent);color:#fff;border-radius:5px;padding:3px 10px;font-weight:700;font-size:.85rem;margin-top:4px}
-.view-field{padding:8px 12px;background:#F4EFE8;border-radius:6px;font-size:.9rem;min-height:36px;line-height:1.5}
+.tenure-badge{display:inline-block;background:var(--yellow);color:var(--dark);border-radius:5px;padding:3px 10px;font-weight:700;font-size:.85rem;margin-top:4px}
+.view-field{padding:8px 12px;background:#f9f9f9;border-radius:6px;font-size:.9rem;min-height:36px;line-height:1.5}
 .view-field.big{min-height:60px}
 .info-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-.info-chip{background:#F0EAE0;border-radius:4px;padding:2px 8px;font-size:.8rem;font-weight:600;color:#555}
-
+.info-chip{background:#f0f0f0;border-radius:4px;padding:2px 8px;font-size:.8rem;font-weight:600}
 @media(max-width:600px){
   .form-grid{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:1fr 1fr}
   main{padding:12px}
+  .omBreakGrid{grid-template-columns:1fr!important}
 }
-
-/* ── AGENT VIEW TABS ── */
 .agent-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px}
 .agent-tab{background:none;border:none;padding:10px 22px;font-size:.9rem;font-weight:600;cursor:pointer;color:#777;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
-.agent-tab.active{color:var(--dark);border-bottom-color:var(--accent)}
+.agent-tab.active{color:var(--dark);border-bottom-color:var(--yellow)}
 .agent-tab:hover{color:var(--dark);background:var(--hover)}
 .tab-panel{display:none}.tab-panel.active{display:block}
-.star-field{background:#F4EFE8;border-radius:8px;padding:14px;margin-bottom:12px}
+.star-field{background:#f9f9f9;border-radius:8px;padding:14px;margin-bottom:12px}
 .star-field label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;display:block;margin-bottom:6px}
 .star-field textarea,.star-field input,.star-field select{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.88rem;font-family:inherit;outline:none;transition:border .2s;background:#fff}
-.star-field textarea:focus,.star-field input:focus,.star-field select:focus{border-color:var(--accent)}
+.star-field textarea:focus,.star-field input:focus,.star-field select:focus{border-color:var(--yellow)}
 .coaching-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.coaching-detail-item{background:#F4EFE8;border-radius:8px;padding:12px}
+.coaching-detail-item{background:#f9f9f9;border-radius:8px;padding:12px}
 .coaching-detail-item.full{grid-column:1/-1}
 .coaching-detail-item .cd-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:5px}
 .coaching-detail-item .cd-val{font-size:.88rem;line-height:1.5;color:#222}
-
-/* ── BURGER / ROSTER ── */
-.btn-burger{background:rgba(255,255,255,.15);color:#FAF9F7;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 12px;font-size:1.1rem;cursor:pointer;font-weight:700;line-height:1;transition:all .2s}
-.btn-burger:hover{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5)}
-
-/* ── GLOBAL SEARCH ── */
-.global-search-wrap{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.global-search-input{flex:1;max-width:480px;padding:9px 14px 9px 36px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;outline:none;background:#FAF9F7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.442 1.398a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E") no-repeat 11px center;transition:border .2s}
-.global-search-input:focus{border-color:var(--accent);background-color:#fff}
-.global-search-clear{background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:0 4px;line-height:1;display:none}
-.global-search-clear.visible{display:block}
-
+.btn-burger{background:var(--dark);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:1.1rem;cursor:pointer;font-weight:700;line-height:1;transition:opacity .2s}
+.btn-burger:hover{opacity:.8}
 .roster-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 .roster-overlay.open{display:flex}
 .roster-panel{background:#fff;border-radius:12px;width:100%;max-width:1000px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)}
-.roster-header{background:var(--header);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
-.roster-header h3{font-weight:900;font-size:1.1rem;color:#FAF9F7}
+.roster-header{background:var(--yellow);padding:18px 24px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.roster-header h3{font-weight:900;font-size:1.1rem}
 .roster-body{padding:20px 24px}
 .roster-filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
 .roster-filter-bar input,.roster-filter-bar select{padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem;outline:none}
-.roster-filter-bar input:focus,.roster-filter-bar select:focus{border-color:var(--accent)}
+.roster-filter-bar input:focus,.roster-filter-bar select:focus{border-color:var(--yellow)}
 .roster-filter-bar input{min-width:200px}
 .roster-count{font-size:.82rem;color:#666;font-weight:600;margin-left:auto;align-self:center}
-.btn-add-agent{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 18px;font-weight:700;font-size:.87rem;cursor:pointer;transition:background .2s}
-.btn-add-agent:hover{background:var(--accent-dark)}
+.btn-add-agent{background:var(--yellow);border:none;border-radius:6px;padding:8px 18px;font-weight:700;font-size:.87rem;cursor:pointer}
+.btn-add-agent:hover{opacity:.88}
 .roster-table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px;max-height:58vh;overflow-y:auto}
 .roster-table{width:100%;border-collapse:collapse;font-size:.86rem}
 .roster-table thead{position:sticky;top:0;z-index:2}
-.roster-table thead th{background:var(--header);color:#FAF9F7;padding:10px 12px;text-align:left;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-.roster-table tbody tr{border-bottom:1px solid #F0EAE0}
+.roster-table thead th{background:var(--yellow);padding:10px 12px;text-align:left;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.roster-table tbody tr{border-bottom:1px solid #f0f0f0}
 .roster-table tbody tr:hover{background:var(--hover)}
 .roster-table td{padding:9px 12px;vertical-align:middle}
 .roster-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
-
-/* agent sub-modal inside roster */
 .agent-form-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1200;align-items:center;justify-content:center;padding:20px}
 .agent-form-overlay.open{display:flex}
 .agent-form-panel{background:#fff;border-radius:10px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.agent-form-header{background:var(--header);color:#FAF9F7;padding:16px 20px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:space-between}
-.agent-form-body{padding:20px;background:#FAF9F7}
+.agent-form-header{background:var(--yellow);padding:16px 20px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:space-between}
+.agent-form-body{padding:20px}
 .agent-form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
 </style>
 </head>
 <body>
-
-<!-- ══════════════════════════════════ LOGIN ══════════════════════════════════ -->
 <div id="loginPage">
   <div class="login-card">
     <div class="apex-logo">
@@ -242,8 +203,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <button class="btn-primary" onclick="doLogin()">Sign In</button>
   </div>
 </div>
-
-<!-- ══════════════════════════════════ APP ══════════════════════════════════ -->
 <div id="app" style="display:none;flex-direction:column;min-height:100vh">
   <header>
     <div class="brand">⚡ APEX Coaching Log</div>
@@ -251,7 +210,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="user-badge" id="userBadge"></div>
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
-      <span id="syncStatusBadge" style="display:none;font-size:.78rem;font-weight:600;margin-left:4px;"></span>
+      <button id="btnBackfill" onclick="backfillToSheets()" style="display:none;background:#1565c0;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Push all local entries to SheetDB (fixes missing data on Vercel)">☁️ Sync Local → SheetDB</button>
       <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
   </header>
@@ -260,12 +219,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <button id="navLog" onclick="showView('log')">📋 Coaching Log</button>
     <button id="navNTE" onclick="showView('nte')">📝 NTE</button>
   </nav>
-  <div class="global-search-wrap">
-    <input type="search" class="global-search-input" id="globalSearch" placeholder="Search by agent, TL, focus area, remarks…" oninput="onGlobalSearch(this.value)" />
-    <button class="global-search-clear" id="globalSearchClear" onclick="clearGlobalSearch()" title="Clear search">✕</button>
-  </div>
   <main>
-    <!-- DASHBOARD -->
     <div id="viewDashboard">
       <div class="dashboard-title">Weekly Coaching Dashboard</div>
       <div class="filter-bar">
@@ -297,24 +251,25 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <div class="stat-card">
           <div class="label">Coaching Sessions</div>
           <div class="value" id="statCount">0</div>
-          <div class="sublabel">This week's entries</div>
+          <div class="sublabel">Coaching logs in the selected view</div>
         </div>
         <div class="stat-card">
-          <div class="label">Avg. TCR%</div>
-          <div class="value" id="statTCR">—</div>
-          <div class="sublabel">Connected / Leads Touched</div>
+          <div class="label">TL Coaching Completion</div>
+          <div class="value" id="statTLC">—</div>
+          <div class="sublabel" id="subTLC">Logs with TL content complete</div>
         </div>
         <div class="stat-card">
-          <div class="label">Avg. CSR%</div>
-          <div class="value" id="statCSR">—</div>
-          <div class="sublabel">Sales / Connected</div>
+          <div class="label">Agent Coaching Completion</div>
+          <div class="value" id="statAgentC">—</div>
+          <div class="sublabel" id="subAgentC">Logs with Agent Complete</div>
         </div>
         <div class="stat-card">
-          <div class="label">Avg. CVR%</div>
-          <div class="value" id="statCVR">—</div>
-          <div class="sublabel">Sales / Leads Touched</div>
+          <div class="label">Fully Completed Coaching</div>
+          <div class="value" id="statFully">—</div>
+          <div class="sublabel" id="subFully">TL + Agent complete</div>
         </div>
       </div>
+      <div id="omBreakdown" style="display:none;margin-bottom:26px"></div>
       <div class="section-header">
         <h2>Recent Coaching Entries</h2>
       </div>
@@ -323,15 +278,13 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <thead>
             <tr>
               <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
-              <th>Highlights</th><th>Opportunities</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Status</th><th>Actions</th>
+              <th>Highlights</th><th>Opportunities</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="dashTableBody"><tr><td colspan="10" class="empty-state">No entries found.</td></tr></tbody>
+          <tbody id="dashTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
         </table>
       </div>
     </div>
-
-    <!-- COACHING LOG -->
     <div id="viewLog" style="display:none">
       <div class="section-header">
         <h2>All Coaching Entries</h2>
@@ -357,15 +310,13 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <thead>
             <tr>
               <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
-              <th>Coaching Type</th><th>Opportunities</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Status</th><th>Actions</th>
+              <th>Coaching Type</th><th>Opportunities</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="logTableBody"><tr><td colspan="10" class="empty-state">No entries found.</td></tr></tbody>
+          <tbody id="logTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
         </table>
       </div>
     </div>
-
-    <!-- NTE DASHBOARD -->
     <div id="viewNTE" style="display:none">
       <div class="section-header">
         <h2>NTE Dashboard</h2>
@@ -400,17 +351,15 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <table>
           <thead>
             <tr>
-              <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th><th>NTE Link</th><th>Type of NTE</th><th>Status</th><th>Actions</th>
+              <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th><th>NTE Link</th><th>Type of NTE</th><th>Status</th><th>Agent Status</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="nteTableBody"><tr><td colspan="8" class="empty-state">No NTE entries found.</td></tr></tbody>
+          <tbody id="nteTableBody"><tr><td colspan="9" class="empty-state">No NTE entries found.</td></tr></tbody>
         </table>
       </div>
     </div>
   </main>
 </div>
-
-<!-- ══════════════════════════════════ ADD/EDIT MODAL ══════════════════════════════════ -->
 <div class="modal-overlay" id="formModal">
   <div class="modal">
     <div class="modal-header">
@@ -419,14 +368,12 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
     <div class="modal-body">
       <input type="hidden" id="editId"/>
-      <!-- DRAFT RECOVERY BANNER -->
       <div id="draftBanner" style="display:none;background:#fff8e1;border:1.5px solid #f9a825;border-radius:8px;padding:10px 14px;margin-bottom:14px;align-items:center;gap:10px;flex-wrap:wrap;">
         <span style="font-size:1.1rem">⚠️</span>
         <span style="font-size:.88rem;flex:1;color:#5d4037">You have an unsaved draft<strong id="draftBannerAgent"></strong> saved <strong id="draftBannerTime"></strong>. Resume where you left off?</span>
         <button onclick="resumeDraft()" style="background:#f9a825;border:none;border-radius:6px;padding:6px 16px;font-weight:700;cursor:pointer;font-size:.82rem;color:#3e2723">Resume</button>
         <button onclick="discardDraft()" style="background:#f5f5f5;border:none;border-radius:6px;padding:6px 14px;font-weight:600;cursor:pointer;font-size:.82rem;color:#666">Discard</button>
       </div>
-      <!-- SECTION 1 -->
       <div class="form-grid">
         <div class="form-group">
           <label>Coaching Type <span class="required">*</span></label>
@@ -470,8 +417,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div><span class="tenure-badge" id="tenureBadge">—</span></div>
         </div>
       </div>
-
-      <!-- FOCUS AREAS -->
       <div class="form-section">
         <h4>Focus Area(s)</h4>
         <div class="checkbox-group" id="focusAreas">
@@ -483,8 +428,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <label><input type="checkbox" value="Overall Performance Review"> Overall Performance Review</label>
         </div>
       </div>
-
-      <!-- 4-WEEK PERFORMANCE -->
       <div class="form-section">
         <h4>📊 4-Week Trailing Performance</h4>
         <p style="font-size:.83rem;color:#555;margin-bottom:12px;line-height:1.5;">
@@ -549,7 +492,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
             </tr>
           </tbody>
         </table>
-        <!-- WK1 CVR% highlight -->
         <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <div style="background:#1a3353;color:#fff;border-radius:8px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:.95rem;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.18);">
             <span>⭐ WK1 CVR% <span style="font-size:.78rem;font-weight:400;opacity:.8;">(Most Recent Week)</span></span>
@@ -560,8 +502,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
         </div>
       </div>
-
-      <!-- PERFORMANCE PROJECTION -->
       <div class="form-section" id="projectionSection">
         <h4>🎯 Performance Projection</h4>
         <div class="focus-on-bar">
@@ -624,8 +564,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         </table>
         <p class="proj-footnote">💡 <em>Current column auto-fills from performance data above. Set a target TCR% to project connects &amp; sales; set a target CSR% to project sales impact. Target Leads auto-fills from your entry (override if needed).</em></p>
       </div>
-
-      <!-- NOTES -->
       <div class="form-section">
         <h4>Coaching Notes</h4>
         <div class="form-grid" style="grid-template-columns:1fr">
@@ -638,6 +576,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
             <input type="text" id="fOpportunities" placeholder="Brief opportunities for the table view"/>
           </div>
           <div class="form-group">
+            <label>Key Discussion</label>
+            <textarea id="fKeyDiscussion" placeholder="Key topics discussed during coaching..."></textarea>
+          </div>
+          <div class="form-group">
             <label>Strength Identified</label>
             <textarea id="fStrength" placeholder="Agent's strengths observed..."></textarea>
           </div>
@@ -647,8 +589,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
         </div>
       </div>
-
-      <!-- LIMITER & ACTION -->
       <div class="form-section">
         <h4>Action Plan</h4>
         <div class="form-grid">
@@ -676,8 +616,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
         </div>
       </div>
-
-      <!-- OUTCOME -->
       <div class="form-section">
         <h4>Coaching Outcome</h4>
         <div class="form-grid">
@@ -714,8 +652,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
-<!-- ══════════════════════════════════ VIEW MODAL ══════════════════════════════════ -->
 <div class="modal-overlay" id="viewModal">
   <div class="modal">
     <div class="modal-header">
@@ -728,8 +664,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
-<!-- ══════════════════════════════════ ROSTER MANAGER ══════════════════════════════════ -->
 <div class="roster-overlay" id="rosterOverlay">
   <div class="roster-panel">
     <div class="roster-header">
@@ -776,8 +710,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
-<!-- Agent Add/Edit Sub-modal -->
 <div class="agent-form-overlay" id="agentFormOverlay">
   <div class="agent-form-panel">
     <div class="agent-form-header">
@@ -822,8 +754,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
-<!-- ══════════════════════════════════ TL MANAGER ══════════════════════════════════ -->
 <div class="roster-overlay" id="tlMgrOverlay">
   <div class="roster-panel">
     <div class="roster-header">
@@ -869,8 +799,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
-<!-- TL Add/Edit Sub-modal -->
 <div class="agent-form-overlay" id="tlFormOverlay">
   <div class="agent-form-panel">
     <div class="agent-form-header">
@@ -908,43 +836,32 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
   </div>
 </div>
-
 <script>
-// ══════════════════════════════════════════════════════════════════════════
-// DATA
-// ══════════════════════════════════════════════════════════════════════════
-
 const TL_EMAILS = {
-  // ── Jubee Cluster ──────────────────────────────────────────────────────
   'errollim@homeaglowsales.com':           {display:'TL Arielle', fullName:'Mark Errol Lim',         cluster:'Jubee'},
   'kailelaquindanum@homeaglowsalestwo.com':{display:'TL Kaii',    fullName:'Kaile Laquindanum',      cluster:'Jubee'},
   'leoniedeonaga@homeaglowsalesone.com':   {display:'TL Lei',     fullName:'Leonie Deonaga',         cluster:'Jubee'},
   'kennethhistoriador@homeaglowsales.com': {display:'TL Kenneth', fullName:'Kenneth Historiador Jr.',cluster:'Jubee'},
   'angelomararac@homeaglowsalestwo.com':   {display:'TL Angelo',  fullName:'Angelo Mararac',         cluster:'Jubee'},
   'euniceolaguer@homeaglowsalestwo.com':   {display:'TL Eunice',  fullName:'Eunice Olaguer',         cluster:'Jubee'},
-  // ── Princess Cluster ───────────────────────────────────────────────────
   'jovanjalandoni@homeaglowsales.com':     {display:'TL Jovan',   fullName:'Jovan Philip Jalandoni', cluster:'Princess'},
   'jaydimiranda@homeaglowsalestwo.com':    {display:'TL Jaydi',   fullName:'Jaydi Miranda',          cluster:'Princess'},
   'mariaglaizasy@homeaglowsales.com':      {display:'TL Glai',    fullName:'Maria Glaiza Sy',        cluster:'Princess'},
   'catherinefuente@homeaglowsales.com':    {display:'TL Cath',    fullName:'Catherine Dela Fuente',  cluster:'Princess'},
   'kimberlysabandal@homeaglowsalestwo.com':{display:'TL Kim',     fullName:'Kimberly Rose Sabandal', cluster:'Princess'},
-  // ── Kendryck Cluster ───────────────────────────────────────────────────
+  'jhoneanog@homeaglowsalesone.com':       {display:'TL Jhone',   fullName:'Jhone Anog',             cluster:'Princess'},
   'mayclaveron@homeaglowsales.com':        {display:'TL Mhae',     fullName:'May Claveron',           cluster:'Kendryck'},
   'karlovalencia@homeaglowsalestwo.com':   {display:'TL Karlo',    fullName:'Karlo Miccolai Valencia',cluster:'Kendryck'},
   'basilllamedo@homeaglowsales.com':       {display:'TL Barbie',   fullName:'Basil Llamedo',          cluster:'Kendryck'},
   'henrielyn@homeaglowsales.com':          {display:'TL Henrielyn',fullName:'Henrielyn Makiling',          cluster:'Kendryck'},
   'asherbalway@homeaglowsalestwo.com':     {display:'TL Asher',   fullName:'Asher Jessica Faith Balway',   cluster:'Kendryck'},
 };
-
 const OM_EMAILS = {
   'jubee@homeaglowsales.com':          {display:'OM Jubee',    cluster:'Jubee'},
   'kendryck@homeaglowsales.com':       {display:'OM Kendryck', cluster:'Kendryck'},
   'princesssimbahan@homeaglowsalesone.com':{display:'OM Princess',cluster:'Princess'},
 };
-
-// milettegaw is admin
 const ADMIN_EMAILS = ['milettegaw@homeaglowsales.com','milettegaw@homeaglowsalestwo.com','milettegaw@homeaglowsalesone.com','clayton@homeaglowsales.com'];
-
 const AGENTS = [
   {email:'franklinpondang@homeaglowsalesone.com',   name:'Franklin Pondang',                 manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-09-01'},
   {email:'khristypepino@homeaglowsales.com',        name:'Khristy Jones Pepino',             manager:'May Claveron',              cluster:'Kendryck', start:'2024-07-15'},
@@ -1123,21 +1040,16 @@ const AGENTS = [
   {email:'marygallentes@homeaglowsales.com',        name:'Mary Rose Gallentes',              manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
   {email:'eunicesanchez@homeaglowsales.com',        name:'Eunice Sanchez',                   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
   {email:'johncea@homeaglowsales.com',              name:'John Harvey Giva Cea',             manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-06-08'},
+  {email:'jaylamosao@homeaglowsales.com',           name:'Jayla Mosao',                      manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-06-08'},
+  {email:'rainierperalta@homeaglowsales.com',       name:'Rainier Peralta',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-06-08'},
 ];
-
-// Lookup maps
 const MANAGER_TO_TL_DISPLAY = {};
 Object.values(TL_EMAILS).forEach(t => { MANAGER_TO_TL_DISPLAY[t.fullName] = t.display; });
-
-// ══════════════════════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════════════════════
-let currentUser = null; // {email, role:'TL'|'OM'|'Admin'|'Agent', display, tlInfo?, omInfo?}
+let currentUser = null;
 let entries = [];
-let ROSTER = []; // live editable agent list (persisted in localStorage)
-let deletedIds = new Set(); // track locally-deleted entry IDs to prevent fetchFromSheets from re-adding them
-let CUSTOM_TLS = []; // dynamically added TLs by OMs/Admins (persisted in localStorage)
-
+let ROSTER = [];
+let deletedIds = new Set();
+let CUSTOM_TLS = [];
 function loadEntries() {
   try { entries = JSON.parse(localStorage.getItem('apexCoachingLogs') || '[]'); } catch(e){ entries=[]; }
   loadDeletedIds();
@@ -1154,7 +1066,6 @@ function saveDeletedIds() {
 }
 function loadCustomTLs() {
   try { CUSTOM_TLS = JSON.parse(localStorage.getItem('apexCustomTLs') || '[]'); } catch(e){ CUSTOM_TLS=[]; }
-  // Merge into TL_EMAILS so all existing login/filter/display logic picks them up automatically
   CUSTOM_TLS.forEach(t => {
     TL_EMAILS[t.email] = { display: t.display, fullName: t.fullName, cluster: t.cluster };
   });
@@ -1162,14 +1073,14 @@ function loadCustomTLs() {
 function saveCustomTLs() {
   localStorage.setItem('apexCustomTLs', JSON.stringify(CUSTOM_TLS));
 }
-
-// ── Apps Script sync for Custom TLs ──────────────────────────────────────────
 async function fetchCustomTLsFromSheets() {
-  if (!SHEETDB_URL) return;
+  if (!SHEETDB_API_URL) return;
   try {
-    const res = await fetch(`${SHEETDB_URL}?sheet=Custom%20TLs`, { headers: _sdbHeaders() });
+    const res = await fetch(`${SHEETDB_API_URL}?sheet=Custom+TLs`, {
+      headers: { 'Accept': 'application/json' }
+    });
     if (!res.ok) return;
-    const rows = await res.json().catch(() => []);
+    const rows = await res.json();
     if (!Array.isArray(rows)) return;
     rows.forEach(r => {
       if (!r.email) return;
@@ -1184,43 +1095,53 @@ async function fetchCustomTLsFromSheets() {
     console.warn('fetchCustomTLsFromSheets error (ignored):', err);
   }
 }
-
 function syncCustomTLToSheets(tlData) {
-  if (!SHEETDB_URL || !tlData.email) return;
-  fetch(`${SHEETDB_URL}?sheet=Custom%20TLs`, {
-    method: 'POST', headers: _sdbHeaders(), body: JSON.stringify({ data: [tlData] })
+  if (!SHEETDB_API_URL) return;
+  fetch(
+    `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(tlData.email)}`,
+    { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ data: tlData }) }
+  ).then(r => r.json()).then(j => {
+    if (!j.updated || j.updated === 0) {
+      return fetch(SHEETDB_API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ data: [tlData], sheet: 'Custom TLs' })
+      });
+    }
   }).catch(err => console.warn('syncCustomTLToSheets error:', err));
 }
-
 function deleteCustomTLFromSheets(email) {
-  if (!SHEETDB_URL || !email) return;
-  fetch(`${SHEETDB_URL}/email/${encodeURIComponent(email.trim().toLowerCase())}?sheet=Custom%20TLs`, {
-    method: 'DELETE', headers: _sdbHeaders()
-  }).catch(err => console.warn('deleteCustomTLFromSheets error:', err));
+  if (!SHEETDB_API_URL) return;
+  fetch(
+    `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(email)}`,
+    { method: 'DELETE', headers: { 'Accept': 'application/json' } }
+  ).catch(err => console.warn('deleteCustomTLFromSheets error:', err));
 }
-
 async function pushAllCustomTLsToSheets() {
-  if (!SHEETDB_URL) { alert('SheetDB not configured.'); return; }
   if (!CUSTOM_TLS.length) { alert('No custom TLs found in local storage to sync.'); return; }
   const btn = document.getElementById('btnSyncTLsCloud');
   if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
-  try {
-    const res = await fetch(`${SHEETDB_URL}?sheet=Custom%20TLs`, {
-      method: 'POST', headers: _sdbHeaders(), body: JSON.stringify({ data: CUSTOM_TLS })
-    });
-    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync TLs to Cloud'; }
-    if (res.ok) {
-      alert(`Done! ${CUSTOM_TLS.length} TL(s) synced to cloud.\nNew TLs can now log in from any device.`);
-    } else {
-      alert('Sync error — check your connection and try again.');
-    }
-  } catch(err) {
-    console.warn('pushAllCustomTLsToSheets error:', err);
-    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync TLs to Cloud'; }
-    alert('Sync error — check your connection and try again.');
+  let ok = 0, fail = 0;
+  for (const tl of CUSTOM_TLS) {
+    try {
+      const patchRes = await fetch(
+        `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(tl.email)}`,
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: tl }) }
+      );
+      const patchJson = await patchRes.json().catch(() => ({}));
+      if (!patchJson.updated || patchJson.updated === 0) {
+        await fetch(SHEETDB_API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: [tl], sheet: 'Custom TLs' })
+        });
+      }
+      ok++;
+    } catch(err) { fail++; console.warn('pushAllCustomTLsToSheets error for', tl.email, err); }
   }
+  if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync TLs to Cloud'; }
+  alert(`Done! ${ok} TL(s) synced to cloud${fail ? ', ' + fail + ' failed (check console)' : ''}.\nNew TLs can now log in from any device.`);
 }
-
 function loadRoster() {
   try {
     const saved = localStorage.getItem('apexRoster');
@@ -1230,57 +1151,6 @@ function loadRoster() {
 function saveRoster() {
   localStorage.setItem('apexRoster', JSON.stringify(ROSTER));
 }
-
-// ── SheetDB sync for Agent Roster ─────────────────────────────────────────
-async function fetchRosterFromSheets() {
-  if (!SHEETDB_URL) return;
-  try {
-    const res = await fetch(`${SHEETDB_URL}?sheet=Agent%20Roster`, { headers: _sdbHeaders() });
-    if (!res.ok) return;
-    const rows = await res.json().catch(() => []);
-    if (!Array.isArray(rows) || !rows.length) return;
-    rows.forEach(r => {
-      if (!r.email) return;
-      const agentObj = {
-        name:      r.name      || '',
-        email:     r.email.trim().toLowerCase(),
-        startDate: r.startDate || '',
-        cluster:   r.cluster   || '',
-        manager:   r.manager   || '',
-        manager2:  r.manager2  || ''
-      };
-      const idx = ROSTER.findIndex(a => a.email && a.email.toLowerCase() === agentObj.email);
-      if (idx >= 0) ROSTER[idx] = agentObj; // SheetDB wins on conflict
-      else ROSTER.push(agentObj);
-    });
-    saveRoster();
-  } catch(err) {
-    console.warn('fetchRosterFromSheets error (ignored):', err);
-  }
-}
-
-function syncRosterAgentToSheets(agentObj) {
-  if (!SHEETDB_URL || !agentObj.email) return;
-  // Upsert: delete old row first, then post fresh
-  fetch(`${SHEETDB_URL}/email/${encodeURIComponent(agentObj.email)}?sheet=Agent%20Roster`, {
-    method: 'DELETE', headers: _sdbHeaders()
-  }).catch(() => {}).finally(() => {
-    fetch(`${SHEETDB_URL}?sheet=Agent%20Roster`, {
-      method: 'POST',
-      headers: _sdbHeaders(),
-      body: JSON.stringify({ data: [agentObj] })
-    }).catch(err => console.warn('syncRosterAgentToSheets error:', err));
-  });
-}
-
-function deleteRosterAgentFromSheets(email) {
-  if (!SHEETDB_URL || !email) return;
-  fetch(`${SHEETDB_URL}/email/${encodeURIComponent(email.trim().toLowerCase())}?sheet=Agent%20Roster`, {
-    method: 'DELETE', headers: _sdbHeaders()
-  }).catch(err => console.warn('deleteRosterAgentFromSheets error:', err));
-}
-
-// OM roster-access guard — only these three emails
 const ROSTER_OM_EMAILS = [
   'jubee@homeaglowsales.com',
   'kendryck@homeaglowsales.com',
@@ -1289,26 +1159,19 @@ const ROSTER_OM_EMAILS = [
 function canManageRoster() {
   if (!currentUser) return false;
   if (ROSTER_OM_EMAILS.includes(currentUser.email)) return true;
-  if (currentUser.role === 'TL') return true; // TLs can manage their own cluster's agents
+  if (currentUser.role === 'TL') return true;
   return false;
 }
 function canManageTLs() {
   return currentUser && (currentUser.role === 'Admin' || currentUser.role === 'OM');
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// ROSTER MANAGER UI
-// ══════════════════════════════════════════════════════════════════════════
 function openRosterManager() {
   const clusterEl  = document.getElementById('rosterFilterCluster');
   const tlFilterEl = document.getElementById('rosterFilterTL');
   document.getElementById('rosterSearch').value = '';
-
   if (currentUser.role === 'TL' && currentUser.tlInfo) {
-    // Lock TLs to their own cluster
     clusterEl.value    = currentUser.tlInfo.cluster;
     clusterEl.disabled = true;
-    // Populate TL filter only for their cluster
     tlFilterEl.innerHTML = '<option value="">All TLs in Cluster</option>';
     Object.values(TL_EMAILS).sort((a,b)=>a.display.localeCompare(b.display)).forEach(t => {
       if (t.cluster === currentUser.tlInfo.cluster) {
@@ -1326,15 +1189,12 @@ function openRosterManager() {
     const titleEl = document.getElementById('rosterManagerTitle');
     if (titleEl) titleEl.textContent = '🗂️ Agent Roster Manager';
   }
-
   renderRosterTable();
   document.getElementById('rosterOverlay').classList.add('open');
 }
-
 function closeRosterManager() {
   document.getElementById('rosterOverlay').classList.remove('open');
 }
-
 function onRosterClusterChange() {
   const cluster = document.getElementById('rosterFilterCluster').value;
   const tlEl    = document.getElementById('rosterFilterTL');
@@ -1348,15 +1208,12 @@ function onRosterClusterChange() {
   });
   renderRosterTable();
 }
-
 function renderRosterTable() {
   const search = (document.getElementById('rosterSearch').value || '').toLowerCase();
-  // TLs are always locked to their cluster regardless of the select's value
   const cluster = (currentUser.role === 'TL' && currentUser.tlInfo)
     ? currentUser.tlInfo.cluster
     : document.getElementById('rosterFilterCluster').value;
   const tl      = document.getElementById('rosterFilterTL').value;
-
   const filtered = ROSTER.filter(a => {
     if (cluster && a.cluster !== cluster) return false;
     if (tl) {
@@ -1366,15 +1223,12 @@ function renderRosterTable() {
     if (search && !a.name.toLowerCase().includes(search)) return false;
     return true;
   }).sort((a,b) => a.name.localeCompare(b.name));
-
   document.getElementById('rosterCount').textContent = filtered.length + ' agent' + (filtered.length !== 1 ? 's' : '');
-
   const tbody = document.getElementById('rosterTableBody');
   if (!filtered.length) {
     tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No agents found.</td></tr>';
     return;
   }
-
   tbody.innerHTML = filtered.map((a, i) => {
     const idx    = ROSTER.indexOf(a);
     const tlDisp = Object.values(TL_EMAILS).find(t => t.fullName === a.manager)?.display || a.manager || '—';
@@ -1395,17 +1249,13 @@ function renderRosterTable() {
     </tr>`;
   }).join('');
 }
-
 let _editingAgentIdx = -1;
-
 function openAgentForm(idx) {
   _editingAgentIdx = (idx !== undefined) ? idx : -1;
   const isEdit = _editingAgentIdx >= 0;
   document.getElementById('agentFormTitle').textContent = isEdit ? 'Edit Agent' : 'Add Agent';
   document.getElementById('agentFormError').style.display = 'none';
-
   const isTL = currentUser.role === 'TL' && currentUser.tlInfo;
-
   if (isEdit) {
     const a = ROSTER[_editingAgentIdx];
     document.getElementById('agentFName').value    = a.name || '';
@@ -1419,29 +1269,21 @@ function openAgentForm(idx) {
     document.getElementById('agentFName').value  = '';
     document.getElementById('agentFEmail').value = '';
     document.getElementById('agentFStart').value = '';
-    // For TLs: pre-populate their cluster
     document.getElementById('agentFCluster').value = isTL ? currentUser.tlInfo.cluster : '';
     onAgentFormClusterChange();
-    // For TLs: pre-select themselves as the TL
     if (isTL) document.getElementById('agentFTL').value = currentUser.display;
   }
-
-  // For TLs: lock cluster + TL fields so they can't assign to another cluster/TL
   const clusterEl = document.getElementById('agentFCluster');
   const tlEl      = document.getElementById('agentFTL');
   clusterEl.disabled = isTL;
   tlEl.disabled      = isTL;
-
   document.getElementById('agentFormOverlay').classList.add('open');
 }
-
 function closeAgentForm() {
-  // Re-enable fields that may have been locked for a TL session
   document.getElementById('agentFCluster').disabled = false;
   document.getElementById('agentFTL').disabled      = false;
   document.getElementById('agentFormOverlay').classList.remove('open');
 }
-
 function onAgentFormClusterChange() {
   const cluster = document.getElementById('agentFCluster').value;
   const tlEl    = document.getElementById('agentFTL');
@@ -1454,7 +1296,6 @@ function onAgentFormClusterChange() {
     }
   });
 }
-
 function saveAgent() {
   const name      = document.getElementById('agentFName').value.trim();
   const email     = document.getElementById('agentFEmail').value.trim().toLowerCase();
@@ -1463,49 +1304,37 @@ function saveAgent() {
   const tlDisp    = document.getElementById('agentFTL').value;
   const errEl     = document.getElementById('agentFormError');
   errEl.style.display = 'none';
-
   if (!name)    { errEl.textContent = 'Agent name is required.';        errEl.style.display='block'; return; }
   if (!email)   { errEl.textContent = 'Agent email is required.';       errEl.style.display='block'; return; }
   if (!isHomeaglowEmail(email)) { errEl.textContent = 'Must be a Homeaglow email address.'; errEl.style.display='block'; return; }
   if (!cluster) { errEl.textContent = 'Please select a Cluster.';       errEl.style.display='block'; return; }
   if (!tlDisp)  { errEl.textContent = 'Please select a Team Lead.';     errEl.style.display='block'; return; }
-
-  // Security guard: TLs can only add agents to their own cluster
   if (currentUser.role === 'TL' && currentUser.tlInfo && cluster !== currentUser.tlInfo.cluster) {
     errEl.textContent = 'You can only add agents to your own cluster (' + currentUser.tlInfo.cluster + ').';
     errEl.style.display = 'block'; return;
   }
-
-  // Check email uniqueness (not the same record being edited)
   const existingIdx = ROSTER.findIndex(a => a.email && a.email.toLowerCase() === email);
   if (existingIdx >= 0 && existingIdx !== _editingAgentIdx) {
     errEl.textContent = 'This email is already assigned to another agent on the roster.';
     errEl.style.display = 'block'; return;
   }
-
   const tlEntry  = Object.values(TL_EMAILS).find(t => t.display === tlDisp);
   const manager  = tlEntry ? tlEntry.fullName : tlDisp;
   const manager2 = tlEntry
     ? (Object.entries(OM_EMAILS).find(([,o]) => o.cluster === tlEntry.cluster)?.[1]?.display || '')
     : '';
-
   const agentObj = { name, email, startDate, cluster, manager, manager2 };
-
   if (_editingAgentIdx >= 0) {
     ROSTER[_editingAgentIdx] = agentObj;
   } else {
     ROSTER.push(agentObj);
   }
-
   saveRoster();
-  syncRosterAgentToSheets(agentObj); // ← push to SheetDB so agent can log in from any device
   closeAgentForm();
   renderRosterTable();
 }
-
 function deleteAgent(idx) {
   const a = ROSTER[idx];
-  // Security guard: TLs can only remove agents from their own cluster
   if (currentUser.role === 'TL' && currentUser.tlInfo && a.cluster !== currentUser.tlInfo.cluster) {
     alert('You can only remove agents from your own cluster (' + currentUser.tlInfo.cluster + ').');
     return;
@@ -1513,15 +1342,9 @@ function deleteAgent(idx) {
   if (!confirm('Remove "' + a.name + '" from the roster? This cannot be undone.')) return;
   ROSTER.splice(idx, 1);
   saveRoster();
-  deleteRosterAgentFromSheets(a.email); // ← remove from SheetDB so agent loses access everywhere
   renderRosterTable();
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// TL MANAGER
-// ══════════════════════════════════════════════════════════════════════════
 function openTLManager() {
-  // OMs see only their own cluster by default
   const clusterEl = document.getElementById('tlMgrCluster');
   if (currentUser.role === 'OM' && currentUser.omInfo) {
     clusterEl.value = currentUser.omInfo.cluster;
@@ -1533,16 +1356,12 @@ function openTLManager() {
   renderTLTable();
   document.getElementById('tlMgrOverlay').classList.add('open');
 }
-
 function closeTLManager() {
   document.getElementById('tlMgrOverlay').classList.remove('open');
   closeTLForm();
 }
-
 function renderTLTable() {
   const cluster = document.getElementById('tlMgrCluster').value;
-
-  // Build full list: built-in + custom TLs
   let all = Object.entries(TL_EMAILS).map(([email, t]) => ({
     email,
     display:   t.display,
@@ -1550,19 +1369,12 @@ function renderTLTable() {
     cluster:   t.cluster,
     isCustom:  CUSTOM_TLS.some(c => c.email === email)
   }));
-
-  // Filter by cluster selection
   if (cluster) all = all.filter(t => t.cluster === cluster);
-
-  // OMs are always restricted to their own cluster
   if (currentUser.role === 'OM' && currentUser.omInfo) {
     all = all.filter(t => t.cluster === currentUser.omInfo.cluster);
   }
-
   all.sort((a, b) => a.cluster.localeCompare(b.cluster) || a.display.localeCompare(b.display));
-
   document.getElementById('tlMgrCount').textContent = all.length + ' team lead' + (all.length !== 1 ? 's' : '');
-
   const tbody = document.getElementById('tlMgrTableBody');
   if (!all.length) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999">No team leads found for this cluster.</td></tr>';
@@ -1582,13 +1394,11 @@ function renderTLTable() {
       </td>
     </tr>`).join('');
 }
-
 function openTLForm(email) {
   const isEdit = !!email;
   document.getElementById('tlFormTitle').textContent = isEdit ? 'Edit Team Lead' : 'Add Team Lead';
   document.getElementById('tlFEmailHidden').value = email;
   document.getElementById('tlFormError').textContent = '';
-
   const clusterEl = document.getElementById('tlFCluster');
   if (currentUser.role === 'OM' && currentUser.omInfo) {
     clusterEl.value = currentUser.omInfo.cluster;
@@ -1596,7 +1406,6 @@ function openTLForm(email) {
   } else {
     clusterEl.disabled = false;
   }
-
   if (isEdit) {
     const t = CUSTOM_TLS.find(c => c.email === email);
     if (!t) return;
@@ -1610,14 +1419,11 @@ function openTLForm(email) {
     document.getElementById('tlFFullName').value = '';
     if (currentUser.role !== 'OM') clusterEl.value = '';
   }
-
   document.getElementById('tlFormOverlay').classList.add('open');
 }
-
 function closeTLForm() {
   document.getElementById('tlFormOverlay').classList.remove('open');
 }
-
 function saveTL() {
   const origEmail = document.getElementById('tlFEmailHidden').value;
   const email     = document.getElementById('tlFEmail').value.trim().toLowerCase();
@@ -1625,42 +1431,32 @@ function saveTL() {
   const fullName  = document.getElementById('tlFFullName').value.trim();
   const cluster   = document.getElementById('tlFCluster').value;
   const errEl     = document.getElementById('tlFormError');
-
   if (!email || !display || !fullName || !cluster) {
     errEl.textContent = 'All fields are required.'; return;
   }
   if (!isHomeaglowEmail(email)) {
     errEl.textContent = 'Email must be a Homeaglow email address (must contain "homeaglow").'; return;
   }
-  // OMs can only add to their own cluster
   if (currentUser.role === 'OM' && currentUser.omInfo && cluster !== currentUser.omInfo.cluster) {
     errEl.textContent = 'You can only add Team Leads to your own cluster.'; return;
   }
-  // Duplicate check (different from the record being edited)
   if (email !== origEmail && TL_EMAILS[email]) {
     errEl.textContent = 'This email is already registered as a Team Lead.'; return;
   }
-
-  // If email changed during edit, remove the old record
   if (origEmail && origEmail !== email) {
     CUSTOM_TLS = CUSTOM_TLS.filter(c => c.email !== origEmail);
     delete TL_EMAILS[origEmail];
   }
-
   const tlData = { email, display, fullName, cluster };
   const idx = CUSTOM_TLS.findIndex(c => c.email === email);
   if (idx >= 0) CUSTOM_TLS[idx] = tlData;
   else CUSTOM_TLS.push(tlData);
-
-  // Keep TL_EMAILS in sync so login/filters work immediately
   TL_EMAILS[email] = { display, fullName, cluster };
-
   saveCustomTLs();
-  syncCustomTLToSheets(tlData); // push to SheetDB so new TL can log in from any device
+  syncCustomTLToSheets(tlData);
   closeTLForm();
   renderTLTable();
 }
-
 function deleteTL(email) {
   const t = CUSTOM_TLS.find(c => c.email === email);
   if (!t) { alert('This TL record was not found.'); return; }
@@ -1668,49 +1464,33 @@ function deleteTL(email) {
   CUSTOM_TLS = CUSTOM_TLS.filter(c => c.email !== email);
   delete TL_EMAILS[email];
   saveCustomTLs();
-  deleteCustomTLFromSheets(email); // remove from SheetDB too
+  deleteCustomTLFromSheets(email);
   renderTLTable();
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// AUTH
-// ══════════════════════════════════════════════════════════════════════════
 function isHomeaglowEmail(email) {
   return /homeaglow/i.test(email);
 }
-
 async function doLogin() {
   const email = document.getElementById('emailInput').value.trim().toLowerCase();
   const errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
-
   if (!email) { showErr('Please enter your email address.'); return; }
   if (!isHomeaglowEmail(email)) { showErr('Only Homeaglow email addresses are allowed.'); return; }
-
-  // Show loading state while we fetch custom TLs from SheetDB
   const btnLogin = document.querySelector('#loginPage .btn-primary');
   if (btnLogin) { btnLogin.disabled = true; btnLogin.textContent = 'Signing in…'; }
-
-  // Pre-load custom TLs from localStorage first, then sync from SheetDB
-  // This ensures newly added TLs are visible even from a fresh browser/device
   loadCustomTLs();
-  await fetchCustomTLsFromSheets(); // ← pulls custom TLs from SheetDB before role check
+  await fetchCustomTLsFromSheets();
   loadRoster();
-  await fetchRosterFromSheets();    // ← pulls agents added by TLs from SheetDB before role check
-
+  await fetchAgentsFromSheets();   // dynamic login roster from the optional "Agents" sheet tab (no-op if absent)
   if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
-
   let role, display, tlInfo = null, omInfo = null;
-
   if (ADMIN_EMAILS.includes(email)) {
     role = 'Admin'; display = 'Admin (' + email + ')';
   } else if (TL_EMAILS[email]) {
-    // Includes both built-in and custom TLs added by OMs (now synced from SheetDB)
     role = 'TL'; tlInfo = TL_EMAILS[email]; display = tlInfo.display;
   } else if (OM_EMAILS[email]) {
     role = 'OM'; omInfo = OM_EMAILS[email]; display = omInfo.display;
   } else {
-    // Check live ROSTER (includes pre-seeded AGENTS + dynamically added agents)
     const rosterAgent = ROSTER.find(a => a.email && a.email.toLowerCase() === email);
     if (rosterAgent) {
       role = 'Agent'; display = rosterAgent.name;
@@ -1719,52 +1499,35 @@ async function doLogin() {
       return;
     }
   }
-
   currentUser = { email, role, display, tlInfo, omInfo };
   loadEntries();
   initApp();
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  // For TL/Admin/OM: push all local entries to SheetDB FIRST, then pull so
-  // the fetch reflects the freshly-pushed data.
-  if (['TL','Admin','OM'].includes(role)) {
-    silentSyncAllToSheets().then(() => fetchFromSheets());
-  } else {
-    // Agents and other roles just pull from SheetDB
-    fetchFromSheets();
-  }
-
+  fetchFromSheets();
+  fetchNTEFromSheets();
   function showErr(msg) {
     if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
     errEl.textContent = msg; errEl.style.display = 'block';
   }
 }
-
 document.getElementById('emailInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-
 function doLogout() {
   currentUser = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginPage').style.display = 'flex';
   document.getElementById('emailInput').value = '';
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// INIT APP
-// ══════════════════════════════════════════════════════════════════════════
 function initApp() {
   loadRoster();
   loadNTEEntries();
-
   document.getElementById('userBadge').textContent = currentUser.display + ' · ' + currentUser.role;
-
   const canCreate = ['TL','OM','Admin'].includes(currentUser.role);
   document.getElementById('btnAddCoaching').style.display = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
-  // btnBackfill and btnRefresh removed — SheetDB sync is automatic
-
+  document.getElementById('btnBackfill').style.display    = ['Admin','OM'].includes(currentUser.role) ? 'inline-block' : 'none';
   populateWKOptions();
   populateFilterTLs();
   populateLogFilterTLs();
@@ -1773,9 +1536,7 @@ function initApp() {
   renderLogTable();
   showView('dashboard');
 }
-
 function populateWKOptions() {
-  // Build option string once — fast innerHTML approach
   let opts = '';
   for (let i = 551; i <= 1000; i++) {
     opts += `<option value="WK${i}">WK${i}</option>`;
@@ -1791,13 +1552,8 @@ function populateWKOptions() {
   if (nteDash) nteDash.innerHTML = '<option value="">All Weeks</option>' + opts;
   if (nteForm) nteForm.innerHTML = '<option value="">— Select WK # —</option>' + opts;
 }
-
-// Central TL list builder. Pass cluster='' for no cluster filter.
-// Handles all four roles: Admin, OM, TL, Agent.
 function getTLsForUser(cluster) {
   let candidates = Object.values(TL_EMAILS);
-
-  // 1. Role scope
   if (currentUser.role === 'TL') {
     candidates = candidates.filter(t => t.display === currentUser.tlInfo.display);
   } else if (currentUser.role === 'OM') {
@@ -1810,15 +1566,9 @@ function getTLsForUser(cluster) {
       candidates = [];
     }
   }
-  // Admin: no role filter — all candidates remain
-
-  // 2. Optional cluster filter (e.g. when user picks a cluster in a filter bar)
   if (cluster) candidates = candidates.filter(t => t.cluster === cluster);
-
-  // 3. Deduplicate display names and sort
   return [...new Set(candidates.map(t => t.display))].sort();
 }
-
 function buildTLOptions(elId, names, placeholder) {
   const el = document.getElementById(elId);
   if (!el) return;
@@ -1832,28 +1582,20 @@ function buildTLOptions(elId, names, placeholder) {
     o.value = name; o.textContent = name;
     el.appendChild(o);
   });
-  // Restore previous selection if still valid
   if (prev && names.includes(prev)) el.value = prev;
 }
-
 function populateFilterTLs(cluster) {
   buildTLOptions('filterTL', getTLsForUser(cluster), 'All TLs');
 }
-
 function populateLogFilterTLs() {
   buildTLOptions('logFilterTL', getTLsForUser(), 'All TLs');
 }
-
 function getAgentsForTL(tlDisplay) {
   if (!tlDisplay) return ROSTER;
   const tlEntry = Object.values(TL_EMAILS).find(t => t.display === tlDisplay);
   if (!tlEntry) return [];
   return ROSTER.filter(a => a.manager === tlEntry.fullName);
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// VIEW SWITCHING
-// ══════════════════════════════════════════════════════════════════════════
 function showView(view) {
   document.getElementById('viewDashboard').style.display = view==='dashboard' ? 'block' : 'none';
   document.getElementById('viewLog').style.display       = view==='log'        ? 'block' : 'none';
@@ -1863,38 +1605,30 @@ function showView(view) {
   document.getElementById('navNTE').classList.toggle('active', view==='nte');
   if (view==='nte') renderNTETable();
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// FILTERS
-// ══════════════════════════════════════════════════════════════════════════
 function onClusterChange() {
   const cluster = document.getElementById('filterCluster').value;
   populateFilterTLs(cluster);
-  // Reset TL selection so onTLChange uses cluster-only scope
   document.getElementById('filterTL').value = '';
-  onTLChange();  // will populate agents for cluster (no TL selected)
+  onTLChange();
 }
-
 function onTLChange() {
   const tl      = document.getElementById('filterTL').value;
   const cluster = document.getElementById('filterCluster').value;
   const agEl    = document.getElementById('filterAgent');
   agEl.innerHTML = '<option value="">All Agents</option>';
-
   let list;
   if (tl) {
     list = getAgentsForTL(tl);
   } else if (cluster) {
     list = ROSTER.filter(a => a.cluster === cluster);
   } else {
-    list = [];   // no filter selected — agent dropdown stays empty (use TL or cluster first)
+    list = [];
   }
   list.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => {
     const o=document.createElement('option');o.value=a.name;o.textContent=a.name;agEl.appendChild(o);
   });
   renderDashboard();
 }
-
 function onLogTLChange() {
   const tl   = document.getElementById('logFilterTL').value;
   const agEl = document.getElementById('logFilterAgent');
@@ -1904,30 +1638,23 @@ function onLogTLChange() {
   });
   renderLogTable();
 }
-
 function clearFilters() {
   document.getElementById('filterWK').value = '';
   document.getElementById('filterCluster').value = '';
   document.getElementById('filterAgent').innerHTML = '<option value="">All Agents</option>';
-  populateFilterTLs(); // no cluster = show all TLs
+  populateFilterTLs();
   renderDashboard();
 }
-
 function clearLogFilters() {
   document.getElementById('logFilterWK').value = '';
   document.getElementById('logFilterTL').value = '';
   document.getElementById('logFilterAgent').innerHTML = '<option value="">All</option>';
   renderLogTable();
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// FILTER ENTRIES
-// ══════════════════════════════════════════════════════════════════════════
 function getVisibleEntries() {
-  // Role-based visibility
   if (currentUser.role === 'Agent') {
-    const agentName = (ROSTER.find(a=>a.email===currentUser.email)?.name || currentUser.display).toLowerCase().trim();
-    return entries.filter(e => (e.agentName||'').toLowerCase().trim() === agentName);
+    const agentName = ROSTER.find(a=>a.email===currentUser.email)?.name || currentUser.display;
+    return entries.filter(e => e.agentName === agentName);
   }
   if (currentUser.role === 'TL') {
     return entries.filter(e => e.teamLead === currentUser.tlInfo.display);
@@ -1938,9 +1665,8 @@ function getVisibleEntries() {
       .map(t=>t.display);
     return entries.filter(e => clusterTLNames.includes(e.teamLead));
   }
-  return entries; // Admin sees all
+  return entries;
 }
-
 function applyDashFilters(list) {
   const wk = document.getElementById('filterWK')?.value || '';
   const tl = document.getElementById('filterTL')?.value || '';
@@ -1954,41 +1680,9 @@ function applyDashFilters(list) {
       const tlEntry = Object.values(TL_EMAILS).find(t=>t.display===e.teamLead);
       if (!tlEntry || tlEntry.cluster !== cl) return false;
     }
-    if (!_matchesGlobalSearch(e)) return false;
     return true;
   });
 }
-
-let _globalSearch = '';
-
-function onGlobalSearch(val) {
-  _globalSearch = (val || '').trim().toLowerCase();
-  const clearBtn = document.getElementById('globalSearchClear');
-  if (clearBtn) clearBtn.classList.toggle('visible', _globalSearch.length > 0);
-  renderLogTable();
-  renderDashboard();
-}
-
-function clearGlobalSearch() {
-  _globalSearch = '';
-  const inp = document.getElementById('globalSearch');
-  if (inp) inp.value = '';
-  const clearBtn = document.getElementById('globalSearchClear');
-  if (clearBtn) clearBtn.classList.remove('visible');
-  renderLogTable();
-  renderDashboard();
-}
-
-function _matchesGlobalSearch(e) {
-  if (!_globalSearch) return true;
-  const haystack = [
-    e.agentName, e.teamLead, e.cluster, e.coachingType,
-    e.highlights, e.opportunities, e.limiter,
-    (e.focusAreas||[]).join(' '), e.actionPlan, e.remarks, e.loggedBy
-  ].join(' ').toLowerCase();
-  return haystack.includes(_globalSearch);
-}
-
 function applyLogFilters(list) {
   const wk = document.getElementById('logFilterWK')?.value || '';
   const tl = document.getElementById('logFilterTL')?.value || '';
@@ -1997,45 +1691,157 @@ function applyLogFilters(list) {
     if (wk && e.wkNumber !== wk) return false;
     if (tl && e.teamLead !== tl) return false;
     if (ag && e.agentName !== ag) return false;
-    if (!_matchesGlobalSearch(e)) return false;
     return true;
   });
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════════════════════════════════════════
+function wkNum(e){ return parseInt(String(e && e.wkNumber || '').replace(/\D/g,'')) || 0; }
+// Dynamically find the latest N valid week numbers present in a list (no hardcoding).
+function latestWeeks(list, n){
+  const nums = [...new Set(list.map(wkNum).filter(x => x > 0))].sort((a,b)=>b-a);
+  return nums.slice(0, n || 4);
+}
+function pct(part, whole){ return whole > 0 ? Math.round((part/whole)*100) + '%' : '—'; }
+// Roster agents in the current dashboard scope (respects role + cluster/TL/agent filters).
+// This is the basis for "expected coaching logs" = 1 per agent per week.
+function agentsForScope(cluster, tlDisplay, agentName){
+  let list = ROSTER.slice();
+  if (currentUser.role === 'OM')  list = list.filter(a => a.cluster === currentUser.omInfo.cluster);
+  else if (currentUser.role === 'TL') list = list.filter(a => a.manager === currentUser.tlInfo.fullName);
+  if (cluster) list = list.filter(a => a.cluster === cluster);
+  if (tlDisplay) {
+    const t = Object.values(TL_EMAILS).find(x => x.display === tlDisplay);
+    list = t ? list.filter(a => a.manager === t.fullName) : [];
+  }
+  if (agentName) list = list.filter(a => a.name === agentName);
+  return list;
+}
+// Completion stats. `expected` = required coaching logs for the window (1/agent/week).
+// TL% and Fully% are measured against `expected`; Agent% is measured against logs that
+// actually exist (you can only expect an agent to respond to a log the TL created).
+function completionStats(list, expected){
+  const total = list.length;                         // existing logs (require an agent response)
+  const keyAW = e => (e.agentName || '?') + '|' + wkNum(e);
+  const tlKeys = new Set(), fullKeys = new Set();
+  let agentComplete = 0;
+  list.forEach(e => {
+    const tlc = tlComplete(e);
+    const ac  = agentStatusCoaching(e) === 'Agent Complete';
+    if (ac) agentComplete++;
+    if (tlc) tlKeys.add(keyAW(e));            // distinct agent-week with a complete TL log
+    if (tlc && ac) fullKeys.add(keyAW(e));
+  });
+  const exp = expected > 0 ? expected : 0;
+  return {
+    total, expected: exp, tl: tlKeys.size, agent: agentComplete, full: fullKeys.size,
+    tlPct:    exp ? pct(tlKeys.size, exp)   : '—',
+    agentPct: pct(agentComplete, total),
+    fullPct:  exp ? pct(fullKeys.size, exp) : '—',
+    pending:  exp ? Math.max(0, exp - fullKeys.size) : Math.max(0, total - fullKeys.size)
+  };
+}
 function renderDashboard() {
   const filtered = applyDashFilters(getVisibleEntries());
-  const wkSel = document.getElementById('filterWK').value;
-
-  // Stats
-  let wkEntries = wkSel ? filtered.filter(e=>e.wkNumber===wkSel) : filtered;
-  // If no WK filter, group by WK and show latest week stats
-  if (!wkSel && filtered.length > 0) {
-    const wks = [...new Set(filtered.map(e=>e.wkNumber))].sort();
-    const latestWK = wks[wks.length-1];
-    wkEntries = filtered.filter(e=>e.wkNumber===latestWK);
-  }
-
-  document.getElementById('statCount').textContent = wkEntries.length;
-
-  const tcrVals = wkEntries.filter(e=>e.avgTCR!=null).map(e=>parseFloat(e.avgTCR));
-  const csrVals = wkEntries.filter(e=>e.avgCSR!=null).map(e=>parseFloat(e.avgCSR));
-  const cvrVals = wkEntries.filter(e=>e.avgCVR!=null).map(e=>parseFloat(e.avgCVR));
-
-  document.getElementById('statTCR').textContent = tcrVals.length ? (tcrVals.reduce((a,b)=>a+b,0)/tcrVals.length).toFixed(1)+'%' : '—';
-  document.getElementById('statCSR').textContent = csrVals.length ? (csrVals.reduce((a,b)=>a+b,0)/csrVals.length).toFixed(1)+'%' : '—';
-  document.getElementById('statCVR').textContent = cvrVals.length ? (cvrVals.reduce((a,b)=>a+b,0)/cvrVals.length).toFixed(1)+'%' : '—';
-
-  renderTable('dashTableBody', filtered.slice(0,50));
+  // Card 1 — count of logs in the current filtered view
+  document.getElementById('statCount').textContent = filtered.length;
+  // Cards 2-4 — completion for a SINGLE week: the selected WK#, else the latest available week
+  const cl = document.getElementById('filterCluster')?.value || '';
+  const tl = document.getElementById('filterTL')?.value || '';
+  const ag = document.getElementById('filterAgent')?.value || '';
+  const wkSel = document.getElementById('filterWK')?.value || '';
+  const allWeeks = latestWeeks(filtered, 4);          // used only for the breakdown table
+  const targetWeek = wkSel ? wkNum({wkNumber:wkSel}) : (allWeeks[0] || 0);
+  const weekList = filtered.filter(e => wkNum(e) === targetWeek);
+  const scopeAgents = agentsForScope(cl, tl, ag).length;   // expected = 1 coaching per agent for THIS week
+  const cs = completionStats(weekList, scopeAgents);
+  const tlcEl = document.getElementById('statTLC');
+  const agEl  = document.getElementById('statAgentC');
+  const fuEl  = document.getElementById('statFully');
+  if (tlcEl) tlcEl.textContent = cs.tlPct;
+  if (agEl)  agEl.textContent  = cs.agentPct;
+  if (fuEl)  fuEl.textContent  = cs.fullPct;
+  const wkTag = targetWeek ? ('WK' + targetWeek) : 'this week';
+  const subTL = document.getElementById('subTLC'), subAg = document.getElementById('subAgentC'), subFu = document.getElementById('subFully');
+  if (subTL) subTL.textContent = 'TL content complete · ' + wkTag;
+  if (subAg) subAg.textContent = 'Agent Complete · ' + wkTag;
+  if (subFu) subFu.textContent = 'TL + Agent complete · ' + wkTag;
+  // Weekly breakdown + per-TL table (per-TL table is for the target week; hidden for Agent role)
+  renderOMBreakdown(filtered, allWeeks, targetWeek);
+  // Table: newest weeks first
+  const sorted = [...filtered].sort((a,b) => (wkNum(b)-wkNum(a)) || String(b.dateOfCoaching||'').localeCompare(String(a.dateOfCoaching||'')));
+  renderTable('dashTableBody', sorted.slice(0,50));
 }
-
+// Weekly + per-TL completion breakdown for the last 4 weeks (expected = 1/agent/week).
+function renderOMBreakdown(filtered, weeks4, targetWeek){
+  const box = document.getElementById('omBreakdown');
+  if (!box) return;
+  if (!currentUser || currentUser.role === 'Agent') { box.style.display='none'; box.innerHTML=''; return; }
+  if (!filtered.length || !weeks4.length) { box.style.display='none'; box.innerHTML=''; return; }
+  const last4 = filtered.filter(e => weeks4.includes(wkNum(e)));
+  const cl = document.getElementById('filterCluster')?.value || '';
+  const tlFilter = document.getElementById('filterTL')?.value || '';
+  const ag = document.getElementById('filterAgent')?.value || '';
+  const scopeAgents = agentsForScope(cl, tlFilter, ag).length;
+  // Weekly rows (newest first): each row is one week, expected = agents in scope for that week
+  const weekRows = weeks4.map(w => {
+    const wl = last4.filter(e => wkNum(e) === w);
+    const c = completionStats(wl, scopeAgents);
+    return `<tr>
+      <td class="proj-label">WK${w}</td>
+      <td>${wl.length}</td>
+      <td>${c.tlPct}</td>
+      <td>${c.agentPct}</td>
+      <td>${c.fullPct}</td>
+    </tr>`;
+  }).join('');
+  // Per-TL rows for the TARGET week (matches the summary cards): expected = that TL's agents × 1
+  const tw = targetWeek || weeks4[0];
+  const twList = filtered.filter(e => wkNum(e) === tw);
+  const tls = [...new Set(twList.map(e => e.teamLead || '—'))].sort();
+  const tlRows = tls.map(tl => {
+    const tlList = twList.filter(e => (e.teamLead||'—') === tl);
+    const tlAgents = agentsForScope(cl, tl, ag).length;
+    const c = completionStats(tlList, tlAgents);
+    return `<tr>
+      <td class="proj-label">${escHtml(tl)}</td>
+      <td>${c.tlPct}</td>
+      <td>${c.agentPct}</td>
+      <td>${c.fullPct}</td>
+      <td>${c.pending}</td>
+    </tr>`;
+  }).join('');
+  const wkLabel = 'WK' + Math.min(...weeks4) + '–WK' + Math.max(...weeks4);
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px" class="omBreakGrid">
+      <div>
+        <div class="section-header" style="margin-bottom:8px"><h2 style="font-size:.95rem">Weekly Completion (${wkLabel})</h2></div>
+        <div class="table-wrap">
+          <table class="proj-table">
+            <thead><tr class="proj-row-header">
+              <th style="text-align:left">Week</th><th>Sessions</th><th>TL</th><th>Agent</th><th>Fully Completed</th>
+            </tr></thead>
+            <tbody>${weekRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="section-header" style="margin-bottom:8px"><h2 style="font-size:.95rem">TL Completion (WK${tw})</h2></div>
+        <div class="table-wrap" style="max-height:240px;overflow-y:auto">
+          <table class="proj-table">
+            <thead><tr class="proj-row-header">
+              <th style="text-align:left">Team Lead</th><th>TL</th><th>Agent</th><th>Fully Completed</th><th>Pending</th>
+            </tr></thead>
+            <tbody>${tlRows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+}
 function renderLogTable() {
   const filtered = applyLogFilters(getVisibleEntries());
-  renderTable('logTableBody', filtered, true);
+  const sorted = [...filtered].sort((a,b) => (wkNum(b)-wkNum(a)) || String(b.dateOfCoaching||'').localeCompare(String(a.dateOfCoaching||'')));
+  renderTable('logTableBody', sorted, true);
 }
-
 function renderTable(tbodyId, list, showType=false) {
   const tbody = document.getElementById(tbodyId);
   if (!list.length) {
@@ -2045,7 +1851,9 @@ function renderTable(tbodyId, list, showType=false) {
   const canDelete = ['TL','OM','Admin'].includes(currentUser.role);
   const canEdit   = ['TL','OM','Admin'].includes(currentUser.role);
   tbody.innerHTML = list.map((e, idx) => {
-    const statusBadge = getStatusBadge(getCommitmentStatus(e));
+    // Coaching Status = the TL's performance status ONLY (never the agent's commitment status)
+    const statusBadge = getStatusBadge(e.coachingStatus || 'Pending');
+    const agentBadge  = agentStatusBadge(agentStatusCoaching(e));
     const dateStr = e.dateOfCoaching ? e.dateOfCoaching : '—';
     const col5    = showType ? (e.coachingType||'—') : truncate(e.highlights||'—', 30);
     const col6    = showType ? truncate(e.highlights||'—',28) : truncate(e.opportunities||'—',28);
@@ -2060,12 +1868,10 @@ function renderTable(tbodyId, list, showType=false) {
       <td title="${esc(e.limiter||'')}">${limiter}</td>
       <td>${e.followUpDate||'—'}</td>
       <td>${statusBadge}</td>
+      <td>${agentBadge}</td>
       <td>
         <div class="action-btns">
-          ${currentUser.role === 'Agent'
-            ? `<button class="btn-sm btn-view" onclick="openCommitmentView('${e.id}')">📝 My Commitment</button>`
-            : `<button class="btn-sm btn-view" onclick="viewEntry('${e.id}')">View</button>`
-          }
+          <button class="btn-sm btn-view" onclick="viewEntry('${e.id}')">View</button>
           ${canEdit?`<button class="btn-sm btn-edit" onclick="editEntry('${e.id}')">Edit</button>`:''}
           ${canDelete?`<button class="btn-sm btn-del" onclick="deleteEntry('${e.id}')">Delete</button>`:''}
         </div>
@@ -2073,12 +1879,10 @@ function renderTable(tbodyId, list, showType=false) {
     </tr>`;
   }).join('');
 }
-
 function getCommitmentStatus(e) {
   if (!e.star || !e.star.status) return e.coachingStatus || 'Pending';
   return e.star.status;
 }
-
 function getStatusBadge(status) {
   if (!status) return '<span class="badge badge-gray">—</span>';
   if (status === 'On Track') return `<span class="badge badge-green">${status}</span>`;
@@ -2091,19 +1895,41 @@ function getStatusBadge(status) {
   if (status === 'Pending') return `<span class="badge badge-gray">${status}</span>`;
   return `<span class="badge badge-gray">${status}</span>`;
 }
-
+// ── AGENT STATUS (derived from actually-saved data; never manually set) ──────
+// A coaching log is "Agent Complete" only when ALL five My Commitment fields
+// contain saved data. Otherwise it is "Agent Pending".
+function isFilled(v){ return typeof v === 'string' ? v.trim().length > 0 : !!v; }
+function agentStatusCoaching(e){
+  const s = e && e.star;
+  if (s && isFilled(s.situation) && isFilled(s.task) && isFilled(s.action) && isFilled(s.result) && isFilled(s.timeline)) {
+    return 'Agent Complete';
+  }
+  return 'Agent Pending';
+}
+// An NTE is "Agent Complete" only when the agent has acknowledged (checkbox + signature).
+function agentStatusNTE(n){
+  return (n && n.acknowledgement && n.acknowledgement.checked && n.acknowledgement.signature)
+    ? 'Agent Complete' : 'Agent Pending';
+}
+// TL side is "complete" when the core coaching content the TL owns is present.
+// (No "expected coaching count" field exists in the data — see writeup note.)
+function tlComplete(e){
+  if (!e) return false;
+  const hasContent = isFilled(e.keyDiscussion) || isFilled(e.highlights) || isFilled(e.areas) || isFilled(e.actionPlan);
+  return isFilled(e.coachingType) && isFilled(e.coachingStatus) && hasContent;
+}
+function agentStatusBadge(label){
+  return label === 'Agent Complete'
+    ? '<span class="badge badge-green">Agent Complete</span>'
+    : '<span class="badge badge-red">Agent Pending</span>';
+}
 function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s}
 function esc(s){return (s||'').replace(/"/g,'&quot;')}
 function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-
-// ══════════════════════════════════════════════════════════════════════════
-// FORM – OPEN / POPULATE
-// ══════════════════════════════════════════════════════════════════════════
 function openAddModal() {
   document.getElementById('formModalTitle').textContent = 'New Coaching Log';
   document.getElementById('editId').value = '';
   clearForm();
-  // Pre-set cluster for TL/OM users
   if (currentUser.role === 'TL') {
     document.getElementById('fCluster').value = currentUser.tlInfo.cluster;
   } else if (currentUser.role === 'OM') {
@@ -2111,7 +1937,6 @@ function openAddModal() {
   }
   populateFormTLs(document.getElementById('fCluster').value);
   populateFormAgents();
-  // Check for a saved draft and show recovery banner
   const draftStr = localStorage.getItem(DRAFT_KEY);
   const draftBanner = document.getElementById('draftBanner');
   if (draftStr && draftBanner) {
@@ -2132,20 +1957,17 @@ function openAddModal() {
   }
   openModal('formModal');
 }
-
 function editEntry(id) {
   const e = entries.find(x=>x.id===id);
   if (!e) return;
   document.getElementById('formModalTitle').textContent = 'Edit Coaching Log';
-  document.getElementById('editId').value = id;
   clearForm();
-  // Restore cluster from entry's TL
+  // FIX: set editId AFTER clearForm (clearForm wipes it) so saveEntry updates instead of creating a duplicate
+  document.getElementById('editId').value = id;
   const tlEntry = Object.values(TL_EMAILS).find(t => t.display === e.teamLead);
   if (tlEntry) document.getElementById('fCluster').value = tlEntry.cluster;
   populateFormTLs(document.getElementById('fCluster').value);
   populateFormAgents(e.teamLead);
-
-  // Fill fields
   setVal('fCoachingType', e.coachingType);
   setVal('fDate', e.dateOfCoaching);
   setVal('fWK', e.wkNumber);
@@ -2153,6 +1975,7 @@ function editEntry(id) {
   setVal('fAgent', e.agentName);
   setVal('fHighlights', e.highlights);
   setVal('fOpportunities', e.opportunities);
+  setVal('fKeyDiscussion', e.keyDiscussion);
   setVal('fStrength', e.strength);
   setVal('fAreas', e.areas);
   setVal('fLimiter', e.limiter);
@@ -2161,13 +1984,9 @@ function editEntry(id) {
   setVal('fReceptiveness', e.receptiveness);
   setVal('fStatus', e.coachingStatus);
   setVal('fRemarks', e.remarks);
-
-  // Focus areas checkboxes
   document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb => {
     cb.checked = (e.focusAreas||[]).includes(cb.value);
   });
-
-  // Perf data
   (e.perfData||[]).forEach((row,i)=>{
     const n = i+1;
     setVal('lt'+n, row.lt); setVal('cc'+n, row.cc); setVal('s'+n, row.s);
@@ -2176,10 +1995,7 @@ function editEntry(id) {
   setVal('wk2CvrManual', e.wk2CvrManual||'');
   setVal('wk3CvrManual', e.wk3CvrManual||'');
   setVal('wk4CvrManual', e.wk4CvrManual||'');
-  // avgCvrManual is auto-calculated — recalculates when calcPerf() runs below
   calcPerf();
-
-  // Projection data
   const proj = e.projection || {};
   if (proj.focusOn) {
     const radio = document.querySelector(`input[name="focusOn"][value="${proj.focusOn}"]`);
@@ -2192,12 +2008,10 @@ function editEntry(id) {
   document.getElementById('projTargetTCR').value = proj.targetTCR || '';
   document.getElementById('projTargetCSR').value = proj.targetCSR || '';
   calcProjection();
-
   calcTenure();
   document.getElementById('tenureBadge').textContent = e.tenure || '—';
   openModal('formModal');
 }
-
 function clearForm() {
   ['fCoachingType','fDate','fWK','fCluster','fTL','fAgent','fHighlights','fOpportunities',
    'fKeyDiscussion','fStrength','fAreas','fLimiter','fFollowUp','fActionPlan',
@@ -2215,7 +2029,6 @@ function clearForm() {
   });
   const avgCvrM=document.getElementById('avgCvrManual'); if(avgCvrM) avgCvrM.textContent='—';
   const wk1Hl=document.getElementById('wk1CvrHighlight'); if(wk1Hl) wk1Hl.textContent='—';
-  // Clear projection
   document.querySelectorAll('input[name="focusOn"]').forEach(r=>r.checked=false);
   ['projTargetTCR','projTargetCSR','projTargetLeads'].forEach(id=>{
     const el=document.getElementById(id); if(el){ el.value=''; delete el.dataset.userEdited; }
@@ -2228,7 +2041,6 @@ function clearForm() {
   document.getElementById('tenureBadge').textContent='—';
   document.getElementById('editId').value='';
 }
-
 function populateFormTLs(cluster) {
   const el = document.getElementById('fTL');
   const prev = el.value;
@@ -2243,55 +2055,45 @@ function populateFormTLs(cluster) {
   names.forEach(name => {
     const o=document.createElement('option');o.value=name;o.textContent=name;el.appendChild(o);
   });
-  // Restore or pre-set
   if (currentUser.role === 'TL') {
     el.value = currentUser.tlInfo.display;
   } else if (prev && names.includes(prev)) {
     el.value = prev;
   }
-  // Always use onchange (avoids stacking addEventListener on repeated modal opens)
   el.onchange = onFormTLChange;
 }
-
 function onFormClusterChange() {
   const cluster = document.getElementById('fCluster').value;
   populateFormTLs(cluster);
-  populateFormAgents();  // reset agent list based on new TL selection
+  populateFormAgents();
 }
-
 function onFormTLChange() {
   populateFormAgents(document.getElementById('fTL').value);
 }
-
 function populateFormAgents(tlDisplay) {
   const tl = tlDisplay !== undefined ? tlDisplay : document.getElementById('fTL').value;
   const cluster = document.getElementById('fCluster').value;
   const el = document.getElementById('fAgent');
   const curVal = el.value;
   el.innerHTML = '<option value="">— Select Agent —</option>';
-
   let agentList;
   if (currentUser.role === 'TL') {
     agentList = getAgentsForTL(currentUser.tlInfo.display);
   } else if (tl) {
     agentList = getAgentsForTL(tl);
   } else if (cluster) {
-    // No TL selected but cluster is — show all agents in cluster
     agentList = ROSTER.filter(a => a.cluster === cluster);
   } else {
     agentList = ROSTER;
   }
-
   agentList.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => {
     const o=document.createElement('option');o.value=a.name;o.textContent=a.name;el.appendChild(o);
   });
   if (curVal) el.value = curVal;
 }
-
 function onAgentSelect() {
   calcTenure();
 }
-
 function calcTenure() {
   const agentName = document.getElementById('fAgent').value;
   const coachDate = document.getElementById('fDate').value;
@@ -2311,10 +2113,6 @@ function calcTenure() {
   else tenure = '11+w';
   badge.textContent = tenure;
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// PERF CALC
-// ══════════════════════════════════════════════════════════════════════════
 function calcPerf() {
   let totalLT=0,totalCC=0,totalS=0,validRows=0;
   const tcrVals=[], csrVals=[], cvrVals=[];
@@ -2338,11 +2136,9 @@ function calcPerf() {
   document.getElementById('avgLT').textContent  = validRows ? Math.round(totalLT/validRows) : '—';
   document.getElementById('avgCC').textContent  = validRows ? Math.round(totalCC/validRows) : '—';
   document.getElementById('avgS').textContent   = validRows ? Math.round(totalS/validRows)  : '—';
-  // Simple average of per-week rates (not pooled totals)
   document.getElementById('avgTCR').textContent = tcrVals.length ? (tcrVals.reduce((a,b)=>a+b,0)/tcrVals.length).toFixed(1)+'%' : '—';
   document.getElementById('avgCSR').textContent = csrVals.length ? (csrVals.reduce((a,b)=>a+b,0)/csrVals.length).toFixed(1)+'%' : '—';
   document.getElementById('avgCVR').textContent = cvrVals.length ? (cvrVals.reduce((a,b)=>a+b,0)/cvrVals.length).toFixed(1)+'%' : '—';
-  // WK1 CVR% highlight — prefer manual entry, fall back to computed
   const wk1ManualVal = parseFloat(document.getElementById('wk1CvrManual').value);
   const wk1lt = parseFloat(document.getElementById('lt1').value)||0;
   const wk1s  = parseFloat(document.getElementById('s1').value)||0;
@@ -2350,7 +2146,6 @@ function calcPerf() {
                : wk1lt>0 ? (wk1s/wk1lt*100).toFixed(1)+'%' : '—';
   const wk1El = document.getElementById('wk1CvrHighlight');
   if (wk1El) wk1El.textContent = wk1cvr;
-  // Avg CVR% (Manual) — simple average of whichever weeks have a manual value
   const manualVals = [1,2,3,4]
     .map(n => parseFloat(document.getElementById('wk'+n+'CvrManual')?.value))
     .filter(v => !isNaN(v));
@@ -2358,30 +2153,21 @@ function calcPerf() {
   if (avgCvrEl) avgCvrEl.textContent = manualVals.length ? (manualVals.reduce((a,b)=>a+b,0)/manualVals.length).toFixed(2)+'%' : '—';
   updateProjectionCurrent();
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// PROJECTION CALC
-// ══════════════════════════════════════════════════════════════════════════
 function updateProjectionCurrent() {
   const lt  = parseFloat(document.getElementById('lt1').value)  || 0;
   const cc  = parseFloat(document.getElementById('cc1').value)  || 0;
   const s   = parseFloat(document.getElementById('s1').value)   || 0;
   const tcr = lt > 0 ? (cc / lt * 100) : 0;
   const csr = cc > 0 ? (s  / cc * 100) : 0;
-
   document.getElementById('projCurrTCR').textContent   = lt ? tcr.toFixed(1)+'%' : '—';
   document.getElementById('projCurrLT').textContent    = lt || '—';
   document.getElementById('projCurrCC').textContent    = cc || '—';
   document.getElementById('projCurrCSR').textContent   = cc ? csr.toFixed(1)+'%' : '—';
   document.getElementById('projCurrSales').textContent = s  || '—';
-
-  // Auto-fill leads input only if user hasn't manually overridden it
   const leadsEl = document.getElementById('projTargetLeads');
   if (!leadsEl.dataset.userEdited) leadsEl.value = lt || '';
-
   calcProjection();
 }
-
 function calcProjection() {
   const lt  = parseFloat(document.getElementById('lt1').value)  || 0;
   const cc  = parseFloat(document.getElementById('cc1').value)  || 0;
@@ -2389,16 +2175,11 @@ function calcProjection() {
   const csrRate = cc > 0 ? (s / cc) : 0;
   const tcrCurr = lt > 0 ? (cc / lt * 100) : 0;
   const csrCurr = cc > 0 ? (s  / cc * 100) : 0;
-
   const targetTCR   = parseFloat(document.getElementById('projTargetTCR').value);
   const targetCSR   = parseFloat(document.getElementById('projTargetCSR').value);
   const overrideLT  = parseFloat(document.getElementById('projTargetLeads').value);
   const leadsTouch  = overrideLT > 0 ? overrideLT : lt;
-
-  // ─── TCR Lever column ───
-  // Always show current CSR in the CSR% cell (unchanged by this lever)
   document.getElementById('projTCRcsrCell').textContent = cc ? csrCurr.toFixed(1)+'%' : '—';
-
   if (!isNaN(targetTCR) && targetTCR > 0 && leadsTouch > 0) {
     const newCC = (targetTCR / 100) * leadsTouch;
     const newS  = csrRate * newCC;
@@ -2408,109 +2189,64 @@ function calcProjection() {
     document.getElementById('projTCRconnect').textContent = '—';
     document.getElementById('projTCRsales').textContent   = '—';
   }
-
-  // ─── CSR Lever column ───
-  // Always show current TCR in TCR% cell (unchanged by this lever)
   document.getElementById('projCSRtcrCell').textContent = lt ? tcrCurr.toFixed(1)+'%' : '—';
-  // Leads and connects don't change in CSR lever
   document.getElementById('projCSRleadsCell').textContent  = lt || '—';
   document.getElementById('projCSRconnectCell').textContent = cc || '—';
-
   if (!isNaN(targetCSR) && targetCSR > 0 && cc > 0) {
     document.getElementById('projCSRsales').textContent = ((targetCSR / 100) * cc).toFixed(1);
   } else {
     document.getElementById('projCSRsales').textContent = '—';
   }
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// GOOGLE APPS SCRIPT SYNC  (free, unlimited — no third-party dependency)
-// ══════════════════════════════════════════════════════════════════════════
-const SHEETDB_URL = 'https://sheetdb.io/api/v1/r0nbg42fofu0f';
-
-function _sdbHeaders() {
-  return { 'Content-Type': 'application/json', 'Accept': 'application/json' };
-}
-
-function _showSyncStatus(ok) {
-  // Brief non-blocking indicator in the header area
-  const el = document.getElementById('syncStatusBadge');
-  if (!el) return;
-  el.textContent = ok ? '✅ Synced' : '⚠️ Sync failed — use ☁️ Sync button';
-  el.style.color = ok ? '#2e7d32' : '#b71c1c';
-  el.style.display = 'inline';
-  clearTimeout(el._t);
-  el._t = setTimeout(() => { el.style.display = 'none'; }, ok ? 3000 : 8000);
-}
-
+const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/r0nbg42fofu0f';
 function syncToSheets(entry, type, isEdit = false) {
-  if (!SHEETDB_URL) return;
+  if (!SHEETDB_API_URL) return;
   const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
   const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
-  const entryId = data['Entry ID'] || '';
-  if (!entryId) return;
   if (isEdit) {
-    // Update existing row by Entry ID
-    fetch(`${SHEETDB_URL}/Entry%20ID/${encodeURIComponent(entryId)}?sheet=${encodeURIComponent(tabName)}`, {
-      method: 'PUT', headers: _sdbHeaders(), body: JSON.stringify({ data: data })
-    }).then(r => _showSyncStatus(r.ok)).catch(err => { console.warn('syncToSheets error:', err); _showSyncStatus(false); });
+    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(entry.id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ data: data })
+    }).catch(err => console.warn('SheetDB update error:', err));
   } else {
-    // Insert new row
-    fetch(`${SHEETDB_URL}?sheet=${encodeURIComponent(tabName)}`, {
-      method: 'POST', headers: _sdbHeaders(), body: JSON.stringify({ data: [data] })
-    }).then(r => _showSyncStatus(r.ok)).catch(err => { console.warn('syncToSheets error:', err); _showSyncStatus(false); });
+    fetch(SHEETDB_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ data: [data], sheet: tabName })
+    }).catch(err => console.warn('SheetDB sync error:', err));
   }
 }
-
-// Push all locally-stored entries to the cloud — run once to backfill missing data
 async function backfillToSheets() {
-  if (!SHEETDB_URL) { alert('SheetDB not configured.'); return; }
-  if (!entries.length) { alert('No local entries to backfill.'); return; }
-  const btn = document.getElementById('btnBackfill');
-  if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
-  try {
-    const allRows = entries.map(e => buildCoachingRow(e));
-    const CHUNK = 50;
-    let ok = 0, fail = 0;
-
-    for (let i = 0; i < allRows.length; i += CHUNK) {
-      const chunk = allRows.slice(i, i + CHUNK);
-      if (btn) btn.textContent = `Uploading rows ${i + 1}–${Math.min(i + CHUNK, allRows.length)} of ${allRows.length}…`;
-      try {
-        const res = await fetch(`${SHEETDB_URL}?sheet=Coaching%20Logs`, {
-          method: 'POST', headers: _sdbHeaders(), body: JSON.stringify({ data: chunk })
-        });
-        ok += res.ok ? chunk.length : 0;
-        if (!res.ok) fail += chunk.length;
-      } catch(err) { fail += chunk.length; console.warn('Backfill chunk error:', err); }
-    }
-
-    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → Cloud'; }
-    alert(`Sync complete: ${ok} uploaded${fail ? ', ' + fail + ' failed (check console)' : ''}.`);
-    fetchFromSheets();
-  } catch(err) {
-    console.warn('Backfill error:', err);
-    if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → Cloud'; }
-    alert('Sync error — check your internet connection and try again.');
+  if (!SHEETDB_API_URL || !entries.length) {
+    alert('No local entries to backfill.'); return;
   }
+  const btn = document.getElementById('btnBackfill');
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+  let ok = 0, fail = 0;
+  for (const e of entries) {
+    try {
+      const row  = buildCoachingRow(e);
+      const patchRes = await fetch(
+        `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`,
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: row }) }
+      );
+      const patchJson = await patchRes.json().catch(() => ({}));
+      if (!patchJson.updated || patchJson.updated === 0) {
+        await fetch(SHEETDB_API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ data: [row], sheet: 'Coaching Logs' })
+        });
+      }
+      ok++;
+    } catch(err) { fail++; console.warn('Backfill error for', e.id, err); }
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → SheetDB'; }
+  alert(`Backfill complete: ${ok} synced${fail ? ', ' + fail + ' failed (check console)' : ''}.`);
+  fetchFromSheets();
 }
-
-// Silently sync all local entries to cloud in background (called on TL/Admin login)
-// Upserts all entries — Apps Script handles insert vs update by Entry ID
-async function silentSyncAllToSheets() {
-  if (!SHEETDB_URL || !entries.length) return;
-  try {
-    const allRows = entries.map(e => buildCoachingRow(e));
-    const CHUNK = 50;
-    for (let i = 0; i < allRows.length; i += CHUNK) {
-      const chunk = allRows.slice(i, i + CHUNK);
-      await fetch(`${SHEETDB_URL}?sheet=Coaching%20Logs`, {
-        method: 'POST', headers: _sdbHeaders(), body: JSON.stringify({ data: chunk })
-      });
-    }
-  } catch(err) { /* silent */ }
-}
-
+// FIX: keys below match the ACTUAL sheet headers (R, Wk# TCR%, AVG *, Follow up, Action plan, Remartks, trailing spaces)
 function buildCoachingRow(e) {
   const p = e.perfData || [];
   const wkCols = (n) => {
@@ -2518,7 +2254,7 @@ function buildCoachingRow(e) {
     const lt = parseFloat(r.lt)||0, cc = parseFloat(r.cc)||0, s = parseFloat(r.s)||0;
     return {
       [`WK${n} LT`]: lt||'', [`WK${n} CC`]: cc||'', [`WK${n} Sales`]: s||'',
-      [`WK${n} TCR%`]: lt>0?(cc/lt*100).toFixed(1):'',
+      [`Wk${n} TCR%`]: lt>0?(cc/lt*100).toFixed(1):'',
       [`WK${n} CSR%`]: cc>0?(s/cc*100).toFixed(1):'',
       [`WK${n} CVR%`]: lt>0?(s/lt*100).toFixed(1):''
     };
@@ -2526,7 +2262,7 @@ function buildCoachingRow(e) {
   const cluster = (Object.values(TL_EMAILS).find(t=>t.display===e.teamLead)||{}).cluster||'';
   return {
     'Entry ID': e.id||'',
-    'Date': e.dateOfCoaching,
+    'R': e.dateOfCoaching,
     'WK#': e.wkNumber,
     'Cluster': cluster,
     'Team Lead': e.teamLead,
@@ -2545,6 +2281,7 @@ function buildCoachingRow(e) {
     'AVG CVR% (Manual)': e.avgCvrManual||'',
     'Highlights': e.highlights||'',
     'Opportunities': e.opportunities||'',
+    'Key Discussion': e.keyDiscussion||'',
     'Strength': e.strength||'',
     'Areas': e.areas||'',
     'Limiter': e.limiter||'',
@@ -2563,56 +2300,28 @@ function buildCoachingRow(e) {
     'Commitment Status': e.star?.status||''
   };
 }
-
 function buildNTERow(n) {
+  // NOTE: keys below match the ACTUAL "NTE Logs" sheet headers (incl. the
+  // "Dated Logged" typo and trailing spaces). 'Entry ID' has no column in the
+  // sheet yet — it is harmless here and will start persisting if that column is added.
   return {
     'Entry ID': n.id||'',
-    'Date Logged': n.dateLogged,
+    'Dated Logged': n.dateLogged,
     'WK#': n.wkNumber,
     'Cluster': n.cluster,
     'Team Lead': n.teamLead,
     'Agent': n.agentName,
     'NTE Type': n.nteType,
-    'NTE Link': n.nteLink,
-    'Logged By': n.loggedBy||'',
+    'NTE Link ': n.nteLink,
+    'Logged By ': n.loggedBy||'',
     'Acknowledged': n.acknowledgement?.checked ? 'Yes' : 'No',
     'Signature': n.acknowledgement?.signature||'',
-    'Acknowledged At': n.acknowledgement?.acknowledgedAt||'',
-    'Created At': n.createdAt||'',
-    'Updated At': n.updatedAt||''
+    'Acknowledge at': n.acknowledgement?.acknowledgedAt||'',
+    'Created at ': n.createdAt||'',
+    'Updated at ': n.updatedAt||''
   };
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// CROSS-DEVICE SYNC — fetch entries from SheetDB on login
-// ══════════════════════════════════════════════════════════════════════════
-
-// Google Sheets reformats date cells to locale strings (e.g. "8/12/2026").
-// HTML date inputs require YYYY-MM-DD. Normalize whatever SheetDB returns.
-function normalizeDate(raw) {
-  if (!raw) return '';
-  const s = String(raw).trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; // already ISO
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
-  return s; // return as-is if unrecognized; at least it'll display
-}
-
-// Case+whitespace-insensitive column lookup.
-// Google Sheets headers sometimes have trailing spaces or mixed case
-// (e.g. 'AVG TCR% ', 'Logged by ', 'Updated AT ').
-// Try exact key first, then fall back to a trimmed/lowercased match.
-function _col(row, ...keys) {
-  for (const k of keys) {
-    if (Object.prototype.hasOwnProperty.call(row, k)) return row[k] || '';
-    const kl = k.trim().toLowerCase();
-    for (const rk of Object.keys(row)) {
-      if (rk.trim().toLowerCase() === kl) return row[rk] || '';
-    }
-  }
-  return '';
-}
-
+// FIX: read using the ACTUAL sheet headers, with fallbacks to the old names
 function parseSheetRow(row) {
   const perfData = [1,2,3,4].map(n => ({
     lt: row[`WK${n} LT`]||'',
@@ -2621,217 +2330,184 @@ function parseSheetRow(row) {
   }));
   return {
     id:             row['Entry ID']||'',
-    dateOfCoaching: normalizeDate(row['Date']||''),
+    dateOfCoaching: row['R']||row['Date']||'',
     wkNumber:       row['WK#']||'',
+    cluster:        row['Cluster']||'',
     teamLead:       row['Team Lead']||'',
     agentName:      row['Agent']||'',
     coachingType:   row['Coaching Type']||'',
     tenure:         row['Tenure']||'',
-    focusAreas:     _col(row,'Focus Areas','Focus Area').split(',').map(s=>s.trim()).filter(Boolean),
+    focusAreas:     (row['Focus Area']||row['Focus Areas']||'').split(',').map(s=>s.trim()).filter(Boolean),
     perfData,
-    avgTCR:         _col(row,'Avg TCR%','AVG TCR%'),
-    avgCSR:         _col(row,'Avg CSR%','AVG CSR%'),
-    avgCVR:         _col(row,'Avg CVR%','AVG CVR%'),
+    avgTCR:         row['AVG TCR% ']||row['Avg TCR%']||'',
+    avgCSR:         row['AVG CSR%']||row['Avg CSR%']||'',
+    avgCVR:         row['AVG CVR%']||row['Avg CVR%']||'',
     wk1CvrManual:   row['WK1 CVR% (Manual)']||'',
     wk2CvrManual:   row['WK2 CVR% (Manual)']||'',
     wk3CvrManual:   row['WK3 CVR% (Manual)']||'',
     wk4CvrManual:   row['WK4 CVR% (Manual)']||'',
-    avgCvrManual:   _col(row,'Avg CVR% (Manual)','AVG CVR% (Manual)'),
+    avgCvrManual:   row['AVG CVR% (Manual)']||row['Avg CVR% (Manual)']||'',
     highlights:     row['Highlights']||'',
     opportunities:  row['Opportunities']||'',
+    keyDiscussion:  row['Key Discussion']||'',
     strength:       row['Strength']||'',
     areas:          row['Areas']||'',
     limiter:        row['Limiter']||'',
-    followUpDate:   normalizeDate(_col(row,'Follow Up','Follow up')),
-    actionPlan:     _col(row,'Action Plan','Action plan'),
+    followUpDate:   row['Follow up']||row['Follow Up']||'',
+    actionPlan:     row['Action plan']||row['Action Plan']||'',
     receptiveness:  row['Receptiveness']||'',
     coachingStatus: row['Status']||'',
-    remarks:        _col(row,'Remarks','Remartks'),
-    loggedBy:       _col(row,'Logged By','Logged by'),
-    updatedAt:      _col(row,'Updated At','Updated AT'),
+    remarks:        row['Remartks']||row['Remarks']||'',
+    loggedBy:       row['Logged by ']||row['Logged By']||'',
+    updatedAt:      row['Updated AT ']||row['Updated At']||'',
     star: {
       situation: row['Commitment Situation']||'',
       task:      row['Commitment Task']||'',
       action:    row['Commitment Action']||'',
       result:    row['Commitment Result']||'',
-      timeline:  normalizeDate(row['Commitment Timeline']||''),
+      timeline:  row['Commitment Timeline']||'',
       status:    row['Commitment Status']||''
     }
   };
 }
-
 async function fetchFromSheets() {
-  if (!SHEETDB_URL || !currentUser) return;
-  const badge = document.getElementById('syncStatusBadge');
-  if (currentUser.role === 'Agent' && badge) {
-    badge.textContent = '⏳ Loading your coaching sessions…';
-    badge.style.color = '#555';
-    badge.style.display = 'inline';
-  }
+  if (!SHEETDB_API_URL || !currentUser) return;
   try {
-    const resp = await fetch(`${SHEETDB_URL}?sheet=Coaching%20Logs`, { headers: _sdbHeaders() });
-    if (!resp.ok) throw new Error('SheetDB fetch failed: ' + resp.status);
-    let allRows = await resp.json().catch(() => []);
-    if (!Array.isArray(allRows)) allRows = [];
-
-    // Filter by role client-side
-    let rows;
+    let url;
     if (currentUser.role === 'TL' && currentUser.tlInfo) {
-      const tlName = currentUser.tlInfo.display.toLowerCase().trim();
-      rows = allRows.filter(r => (r['Team Lead'] || '').toLowerCase().trim() === tlName);
-
+      const tlDisplay = encodeURIComponent(currentUser.tlInfo.display);
+      url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Team%20Lead=${tlDisplay}`;
     } else if (currentUser.role === 'Admin' || currentUser.role === 'OM') {
-      rows = allRows;
-
+      url = `${SHEETDB_API_URL}?sheet=Coaching%20Logs`;
     } else if (currentUser.role === 'Agent') {
-      const agentName = (ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display).toLowerCase().trim();
-      rows = allRows.filter(r => (r['Agent'] || '').toLowerCase().trim() === agentName);
-
+      const agentName = ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display;
+      url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Agent=${encodeURIComponent(agentName)}`;
     } else {
-      if (badge) badge.style.display = 'none';
       return;
     }
-
-    if (!Array.isArray(rows) || rows.length === 0) {
-      if (currentUser.role === 'Agent' && badge) {
-        badge.textContent = 'ℹ️ No coaching sessions found yet — ask your TL to sync.';
-        badge.style.color = '#795548';
-        badge.style.display = 'inline';
-        clearTimeout(badge._t);
-        badge._t = setTimeout(() => { badge.style.display = 'none'; }, 10000);
-      }
-      return;
-    }
-
-    // Build map from existing local entries (keyed by Entry ID)
+    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!resp.ok) return;
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || rows.length === 0) return;
     const merged = {};
     entries.forEach(e => { if (e.id) merged[e.id] = e; });
-
-    // Supabase is the cross-device source of truth — overwrite/add
-    // Skip any entry the user already deleted on this device
     rows.forEach(row => {
       const parsed = parseSheetRow(row);
-      // If the row has no Entry ID, generate a stable synthetic one from
-      // the composite key so agents can still see and interact with the entry
-      if (!parsed.id) {
-        const key = `${parsed.agentName}|${parsed.dateOfCoaching}|${parsed.teamLead}|${parsed.wkNumber}`;
-        let h = 2166136261; // FNV-1a seed
-        for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0;
-        parsed.id = '_sid' + h.toString(36);
-        parsed._syntheticId = true;
-      }
-      if (!deletedIds.has(parsed.id)) merged[parsed.id] = parsed;
+      if (parsed.id && !deletedIds.has(parsed.id)) merged[parsed.id] = parsed;
     });
-
     entries = Object.values(merged).sort((a, b) => {
       const da = a.updatedAt || a.dateOfCoaching || '';
       const db = b.updatedAt || b.dateOfCoaching || '';
       return db.localeCompare(da);
     });
     saveEntries();
+    reconcileRosterFromEntries();   // auto-register any TL/agent found only in the sheet (e.g. Team Anna)
     renderLogTable();
     renderDashboard();
-    if (currentUser.role === 'Agent' && badge) {
-      badge.textContent = `✅ ${rows.length} coaching session${rows.length !== 1 ? 's' : ''} loaded`;
-      badge.style.color = '#2e7d32';
-      badge.style.display = 'inline';
-      clearTimeout(badge._t);
-      badge._t = setTimeout(() => { badge.style.display = 'none'; }, 5000);
-    }
   } catch (err) {
     console.warn('fetchFromSheets error:', err);
-    if (currentUser?.role === 'Agent' && badge) {
-      badge.textContent = '⚠️ Could not load sessions — check connection';
-      badge.style.color = '#b71c1c';
-      badge.style.display = 'inline';
-      clearTimeout(badge._t);
-      badge._t = setTimeout(() => { badge.style.display = 'none'; }, 8000);
-    }
   }
-
-  // Also sync NTE entries from the "NTE Logs" sheet tab
-  fetchNTEFromSheets();
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// NTE SHEET SYNC — pull NTE entries from SheetDB
-// ══════════════════════════════════════════════════════════════════════════
-async function fetchNTEFromSheets() {
-  if (!SHEETDB_URL || !currentUser) return;
-  try {
-    const resp = await fetch(`${SHEETDB_URL}?sheet=NTE%20Logs`, { headers: _sdbHeaders() });
-    if (!resp.ok) { console.warn('NTE fetch failed:', resp.status); return; }
-    let allRows = await resp.json().catch(() => []);
-    if (!Array.isArray(allRows) || allRows.length === 0) return;
-
-    // Role-based filter
-    let rows;
-    if (currentUser.role === 'Agent') {
-      const agentName = (ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display).toLowerCase().trim();
-      rows = allRows.filter(r => (r['Agent'] || '').toLowerCase().trim() === agentName);
-    } else if (currentUser.role === 'TL' && currentUser.tlInfo) {
-      const tlName = currentUser.tlInfo.display.toLowerCase().trim();
-      rows = allRows.filter(r => (r['Team Lead'] || '').toLowerCase().trim() === tlName);
-    } else if (currentUser.role === 'OM' && currentUser.omInfo) {
-      const cluster = currentUser.omInfo.cluster;
-      rows = allRows.filter(r => (r['Cluster'] || '') === cluster);
-    } else {
-      rows = allRows; // Admin sees all
+// ── NTE cross-device sync (activates once the NTE Logs sheet has an "Entry ID" column) ──
+function parseNTERow(row){
+  return {
+    id:         row['Entry ID'] || '',
+    dateLogged: row['Dated Logged'] || row['Date Logged'] || '',
+    wkNumber:   row['WK#'] || '',
+    cluster:    row['Cluster'] || '',
+    teamLead:   row['Team Lead'] || '',
+    agentName:  row['Agent'] || '',
+    nteType:    row['NTE Type'] || '',
+    nteLink:    row['NTE Link '] || row['NTE Link'] || '',
+    loggedBy:   row['Logged By '] || row['Logged By'] || '',
+    createdAt:  row['Created at '] || row['Created At'] || '',
+    updatedAt:  row['Updated at '] || row['Updated At'] || '',
+    acknowledgement: {
+      checked:        String(row['Acknowledged'] || '').trim().toLowerCase() === 'yes',
+      signature:      row['Signature'] || '',
+      acknowledgedAt: row['Acknowledge at'] || row['Acknowledged At'] || ''
     }
-
-    if (!rows.length) return;
-
-    // Merge with existing local NTE entries — SheetDB wins on conflict
+  };
+}
+async function fetchNTEFromSheets(){
+  if (!SHEETDB_API_URL || !currentUser) return;
+  try {
+    const resp = await fetch(`${SHEETDB_API_URL}?sheet=NTE%20Logs`, { headers: { 'Accept': 'application/json' } });
+    if (!resp.ok) return;
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || !rows.length) return;
     const merged = {};
     nteEntries.forEach(n => { if (n.id) merged[n.id] = n; });
-
+    let matched = 0;
     rows.forEach(row => {
-      const id        = _col(row, 'Entry ID') || '';
-      const acked     = (_col(row, 'Acknowledged') || '').toLowerCase() === 'yes';
-      const parsed = {
-        id,
-        dateLogged  : _col(row, 'Date Logged'),
-        wkNumber    : _col(row, 'WK#'),
-        cluster     : _col(row, 'Cluster'),
-        teamLead    : _col(row, 'Team Lead'),
-        agentName   : _col(row, 'Agent'),
-        nteType     : _col(row, 'NTE Type'),
-        nteLink     : _col(row, 'NTE Link'),
-        loggedBy    : _col(row, 'Logged By'),
-        createdAt   : _col(row, 'Created At'),
-        updatedAt   : _col(row, 'Updated At'),
-        acknowledgement: acked ? {
-          checked        : true,
-          signature      : _col(row, 'Signature'),
-          acknowledgedAt : _col(row, 'Acknowledged At')
-        } : null
-      };
-
-      // If no Entry ID, generate a stable synthetic one
-      if (!parsed.id) {
-        const key = `${parsed.agentName}|${parsed.dateLogged}|${parsed.teamLead}|${parsed.wkNumber}|${parsed.nteType}`;
-        let h = 2166136261;
-        for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0;
-        parsed.id = '_nid' + h.toString(36);
-        parsed._syntheticId = true;
-      }
-
-      merged[parsed.id] = parsed;
+      const p = parseNTERow(row);
+      if (p.id) { merged[p.id] = p; matched++; }   // only rows carrying an Entry ID value
     });
-
-    nteEntries = Object.values(merged).sort((a, b) =>
-      (b.updatedAt || b.dateLogged || '').localeCompare(a.updatedAt || a.dateLogged || '')
-    );
+    if (matched === 0) return;   // sheet has no Entry ID column yet → keep local-only, change nothing
+    nteEntries = Object.values(merged);
     saveNTEEntries();
     renderNTETable();
   } catch (err) {
     console.warn('fetchNTEFromSheets error:', err);
   }
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// CSV EXPORT
-// ══════════════════════════════════════════════════════════════════════════
+// ── SELF-HEALING TL/AGENT MAPPING ───────────────────────────────────────────
+// Any Team Lead or Agent that appears in the Coaching Logs data but is missing
+// from the built-in registries is auto-registered from that data (the source of
+// truth), so new teams like "Team Anna" work with no code edit. Derived entries
+// get NO login email, so this never lets anyone log in or see another agent's
+// logs — it only makes filters, dashboards and completion counts recognise them.
+function reconcileRosterFromEntries(){
+  let rosterChanged = false;
+  entries.forEach(e => {
+    const tlName = (e.teamLead || '').trim();
+    if (!tlName) return;
+    let tl = Object.values(TL_EMAILS).find(t => t.display === tlName);
+    if (!tl) {
+      const key = 'sheet-tl:' + tlName.toLowerCase();   // synthetic key — never matches a typed login email
+      if (!TL_EMAILS[key]) TL_EMAILS[key] = { display: tlName, fullName: tlName, cluster: e.cluster || '' };
+      tl = TL_EMAILS[key];
+    } else if (!tl.cluster && e.cluster) {
+      tl.cluster = e.cluster;
+    }
+    const an = (e.agentName || '').trim();
+    if (an && !ROSTER.some(a => a.name === an)) {
+      ROSTER.push({ name: an, email: '', manager: tl.fullName, cluster: tl.cluster || e.cluster || '', startDate: '' });
+      rosterChanged = true;
+    }
+  });
+  if (rosterChanged) saveRoster();
+}
+// Optional cloud roster for LOGIN: if an "Agents" tab exists in the sheet with
+// columns Email, Name, Team Lead, Cluster (and optional Start Date), it becomes
+// the dynamic source of truth for agent logins — new endorsements need only a row,
+// never a code change. Guarded: a no-op until that tab exists.
+async function fetchAgentsFromSheets(){
+  if (!SHEETDB_API_URL) return;
+  try {
+    const res = await fetch(`${SHEETDB_API_URL}?sheet=Agents`, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) return;
+    let changed = false;
+    rows.forEach(r => {
+      const email = String(r['Email'] || r['email'] || '').trim().toLowerCase();
+      const name  = String(r['Name'] || r['Agent'] || '').trim();
+      if (!email || !name || !isHomeaglowEmail(email)) return;
+      const tlDisp  = String(r['Team Lead'] || r['TL'] || '').trim();
+      const t       = Object.values(TL_EMAILS).find(x => x.display === tlDisp);
+      const manager = t ? t.fullName : tlDisp;
+      const cluster = String(r['Cluster'] || '').trim() || (t ? t.cluster : '');
+      const obj = { name, email, manager, cluster, startDate: String(r['Start Date'] || r['Start'] || '') };
+      const idx = ROSTER.findIndex(a => a.email && a.email.toLowerCase() === email);
+      if (idx >= 0) ROSTER[idx] = { ...ROSTER[idx], ...obj }; else ROSTER.push(obj);
+      changed = true;
+    });
+    if (changed) saveRoster();
+  } catch (err) {
+    console.warn('fetchAgentsFromSheets error:', err);
+  }
+}
 function downloadCSV(rows, filename) {
   const csv = rows.map(r =>
     r.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')
@@ -2842,7 +2518,6 @@ function downloadCSV(rows, filename) {
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
-
 function exportCoachingCSV() {
   const visible = getVisibleEntries();
   const cl = document.getElementById('filterCluster').value;
@@ -2877,7 +2552,6 @@ function exportCoachingCSV() {
   });
   downloadCSV([headers, ...rows], 'coaching-log-' + new Date().toISOString().slice(0,10) + '.csv');
 }
-
 function exportNTECSV() {
   const visible = getVisibleNTEEntries();
   const cl = document.getElementById('nteFilterCluster').value;
@@ -2898,10 +2572,6 @@ function exportNTECSV() {
   ]);
   downloadCSV([headers, ...rows], 'nte-log-' + new Date().toISOString().slice(0,10) + '.csv');
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// SAVE
-// ══════════════════════════════════════════════════════════════════════════
 function saveEntry() {
   const req = ['fDate','fAgent','fTL'];
   for(const id of req){
@@ -2909,7 +2579,6 @@ function saveEntry() {
       alert('Please fill in all required fields (Date, Agent Name, Team Lead).'); return;
     }
   }
-
   const perfData = [];
   for(let i=1;i<=4;i++){
     perfData.push({
@@ -2918,11 +2587,6 @@ function saveEntry() {
       s:  document.getElementById('s'+i).value,
     });
   }
-
-  const totalLT=perfData.reduce((a,r)=>a+(parseFloat(r.lt)||0),0);
-  const totalCC=perfData.reduce((a,r)=>a+(parseFloat(r.cc)||0),0);
-  const totalS =perfData.reduce((a,r)=>a+(parseFloat(r.s )||0),0);
-
   const entry = {
     id: document.getElementById('editId').value || crypto.randomUUID(),
     coachingType: document.getElementById('fCoachingType').value,
@@ -2934,6 +2598,7 @@ function saveEntry() {
     focusAreas: [...document.querySelectorAll('#focusAreas input:checked')].map(c=>c.value),
     highlights: document.getElementById('fHighlights').value,
     opportunities: document.getElementById('fOpportunities').value,
+    keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength: document.getElementById('fStrength').value,
     areas: document.getElementById('fAreas').value,
     limiter: document.getElementById('fLimiter').value,
@@ -2960,27 +2625,22 @@ function saveEntry() {
     loggedBy: currentUser.email,
     updatedAt: new Date().toISOString(),
   };
-
   const idx = entries.findIndex(x=>x.id===entry.id);
   const isEdit = idx >= 0;
   if(isEdit){
     const existingStar = entries[idx].star;
     entries[idx] = entry;
-    if(existingStar) entries[idx].star = existingStar; // preserve commitment
+    if(existingStar) entries[idx].star = existingStar;
   } else {
     entries.unshift(entry);
   }
   saveEntries();
   syncToSheets(entry, 'coaching', isEdit);
-  clearDraft(); // draft successfully saved as a real entry — remove it
+  clearDraft();
   closeModal('formModal');
   renderDashboard();
   renderLogTable();
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// VIEW
-// ══════════════════════════════════════════════════════════════════════════
 function viewEntry(id) {
   const e = entries.find(x=>x.id===id);
   if (!e) return;
@@ -2992,7 +2652,6 @@ function viewEntry(id) {
       <td>${r.cc>0?(parseFloat(r.s||0)/parseFloat(r.cc)*100).toFixed(1)+'%':'—'}</td>
       <td>${r.lt>0?(parseFloat(r.s||0)/parseFloat(r.lt)*100).toFixed(1)+'%':'—'}</td>
     </tr>`).join('');
-
   document.getElementById('viewModalBody').innerHTML = `
     <div class="info-row" style="margin-bottom:16px">
       <span class="info-chip">📅 ${e.dateOfCoaching||'—'}</span>
@@ -3009,6 +2668,7 @@ function viewEntry(id) {
         <div class="view-field">${(e.focusAreas||[]).join(', ')||'—'}</div></div>
       <div class="form-group"><label>Highlights</label><div class="view-field">${e.highlights||'—'}</div></div>
       <div class="form-group"><label>Opportunities</label><div class="view-field">${e.opportunities||'—'}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Key Discussion</label><div class="view-field big">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Strength Identified</label><div class="view-field big">${(e.strength||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Areas of Improvement</label><div class="view-field big">${(e.areas||'—').replace(/\n/g,'<br>')}</div></div>
     </div>
@@ -3021,9 +2681,9 @@ function viewEntry(id) {
           <td>${e.perfData?.reduce((a,r)=>a+(parseFloat(r.lt)||0),0)||'—'}</td>
           <td>${e.perfData?.reduce((a,r)=>a+(parseFloat(r.cc)||0),0)||'—'}</td>
           <td>${e.perfData?.reduce((a,r)=>a+(parseFloat(r.s)||0),0)||'—'}</td>
-          <td>${e.avgTCR!=null?e.avgTCR+'%':'—'}</td>
-          <td>${e.avgCSR!=null?e.avgCSR+'%':'—'}</td>
-          <td>${e.avgCVR!=null?e.avgCVR+'%':'—'}</td>
+          <td>${e.avgTCR!=null&&e.avgTCR!==''?e.avgTCR+'%':'—'}</td>
+          <td>${e.avgCSR!=null&&e.avgCSR!==''?e.avgCSR+'%':'—'}</td>
+          <td>${e.avgCVR!=null&&e.avgCVR!==''?e.avgCVR+'%':'—'}</td>
         </tr></tbody>
       </table>
     </div>
@@ -3035,25 +2695,32 @@ function viewEntry(id) {
         <div class="form-group" style="grid-column:1/-1"><label>Additional Remarks</label><div class="view-field big">${(e.remarks||'—').replace(/\n/g,'<br>')}</div></div>
       </div>
     </div>
+    <div class="form-section">
+      <h4>⭐ Agent Commitment (My Commitment) &nbsp; ${agentStatusBadge(agentStatusCoaching(e))}</h4>
+      ${(() => { const s = e.star || {}; const has = s.situation||s.task||s.action||s.result||s.timeline;
+        return has ? `<div class="form-grid" style="grid-template-columns:1fr">
+          <div class="form-group"><label>📍 Situation</label><div class="view-field big">${(s.situation||'—').replace(/\n/g,'<br>')}</div></div>
+          <div class="form-group"><label>🎯 Task</label><div class="view-field big">${(s.task||'—').replace(/\n/g,'<br>')}</div></div>
+          <div class="form-group"><label>⚡ Action</label><div class="view-field big">${(s.action||'—').replace(/\n/g,'<br>')}</div></div>
+          <div class="form-group"><label>✅ Result</label><div class="view-field big">${(s.result||'—').replace(/\n/g,'<br>')}</div></div>
+          <div class="form-group"><label>📅 Timeline</label><div class="view-field">${s.timeline||'—'}</div></div>
+        </div>`
+        : `<div style="color:#999;font-size:.88rem;padding:14px 0;font-style:italic">Agent has not submitted their commitment yet.</div>`; })()}
+    </div>
     <div style="font-size:.75rem;color:#aaa;margin-top:12px">Logged by: ${e.loggedBy||'—'} · ${e.updatedAt?new Date(e.updatedAt).toLocaleString():'—'}</div>
   `;
   openModal('viewModal');
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// DELETE
-// ══════════════════════════════════════════════════════════════════════════
 function deleteFromSheets(entryId, type) {
-  if (!SHEETDB_URL || !entryId) return;
+  if (!SHEETDB_API_URL) return;
   const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
-  fetch(`${SHEETDB_URL}/Entry%20ID/${encodeURIComponent(entryId)}?sheet=${encodeURIComponent(tabName)}`, {
-    method: 'DELETE', headers: _sdbHeaders()
-  }).catch(err => console.warn('deleteFromSheets error:', err));
+  fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(entryId)}`, {
+    method: 'DELETE',
+    headers: { 'Accept': 'application/json' }
+  }).catch(err => console.warn('SheetDB delete error:', err));
 }
-
 function deleteEntry(id) {
   if (!confirm('Are you sure you want to delete this coaching log?')) return;
-  // Record the deleted ID so fetchFromSheets never re-imports it
   if (id) { deletedIds.add(id); saveDeletedIds(); }
   deleteFromSheets(id, 'coaching');
   entries = entries.filter(x=>x.id!==id);
@@ -3061,34 +2728,21 @@ function deleteEntry(id) {
   renderDashboard();
   renderLogTable();
 }
-
-// ══════════════════════════════════════════════════════════════════════════
-// MODAL HELPERS
-// ══════════════════════════════════════════════════════════════════════════
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-// Close modal on overlay click — for formModal, save draft first
 document.getElementById('formModal').addEventListener('click', function(e){
   if(e.target===this) closeFormModal();
 });
 document.getElementById('viewModal').addEventListener('click', function(e){
   if(e.target===this) closeModal('viewModal');
 });
-
-// ══════════════════════════════════════════════════════════════════════════
-// DRAFT AUTO-SAVE (coaching log form)
-// ══════════════════════════════════════════════════════════════════════════
 const DRAFT_KEY = 'apexCoachingDraft';
-
 function closeFormModal() {
-  // Save draft if this is a NEW entry (not editing an existing one)
   if (!document.getElementById('editId').value) {
     saveDraft();
   }
   closeModal('formModal');
 }
-
 function saveDraft() {
   const draft = {
     savedAt      : Date.now(),
@@ -3100,6 +2754,7 @@ function saveDraft() {
     agent        : document.getElementById('fAgent').value,
     highlights   : document.getElementById('fHighlights').value,
     opportunities: document.getElementById('fOpportunities').value,
+    keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength     : document.getElementById('fStrength').value,
     areas        : document.getElementById('fAreas').value,
     limiter      : document.getElementById('fLimiter').value,
@@ -3116,39 +2771,34 @@ function saveDraft() {
       cvrManual : document.getElementById('wk'+i+'CvrManual')?.value || ''
     }))
   };
-  // Only persist if at least one meaningful field was filled
-  if (draft.agent || draft.date || draft.highlights || draft.opportunities) {
+  if (draft.agent || draft.date || draft.highlights || draft.opportunities || draft.keyDiscussion) {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   }
 }
-
 function clearDraft() {
   localStorage.removeItem(DRAFT_KEY);
   const banner = document.getElementById('draftBanner');
   if (banner) banner.style.display = 'none';
 }
-
 function discardDraft() {
   clearDraft();
 }
-
 function resumeDraft() {
   const draftStr = localStorage.getItem(DRAFT_KEY);
   if (!draftStr) return;
   const draft = JSON.parse(draftStr);
   clearDraft();
-  // Restore cluster first so TL dropdown populates
   setVal('fCluster', draft.cluster||'');
   populateFormTLs(draft.cluster||'');
   setVal('fTL', draft.tl||'');
   populateFormAgents(draft.tl||'');
-  // Restore all other fields
   setVal('fCoachingType', draft.coachingType||'');
   setVal('fDate', draft.date||'');
   setVal('fWK', draft.wk||'');
   setVal('fAgent', draft.agent||'');
   setVal('fHighlights', draft.highlights||'');
   setVal('fOpportunities', draft.opportunities||'');
+  setVal('fKeyDiscussion', draft.keyDiscussion||'');
   setVal('fStrength', draft.strength||'');
   setVal('fAreas', draft.areas||'');
   setVal('fLimiter', draft.limiter||'');
@@ -3169,43 +2819,32 @@ function resumeDraft() {
   calcPerf();
   calcTenure();
 }
-
 function setVal(id, val) {
   const el = document.getElementById(id);
   if (el && val !== undefined && val !== null) el.value = val;
 }
-
-// Keyboard: Escape closes modal
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     ['formModal','viewModal'].forEach(closeModal);
     closeCommitmentModal();
   }
 });
-
-// ══════════════════════════════════════════════════════════════════════════
-// COMMITMENT VIEW (TABBED — Coaching Content + STAR Commitment)
-// ══════════════════════════════════════════════════════════════════════════
 let _commitmentEntryId = null;
-
 function openCommitmentView(entryId) {
   const e = entries.find(x => String(x.id) === String(entryId));
   if (!e) return;
   _commitmentEntryId = entryId;
   const star = e.star || {};
-
-  // ── Tab 1: Coaching Content ──────────────────────────────────────────
   const perfRows = (e.perfData || []).map((p,i) => `
     <tr>
       <td style="padding:5px 8px;border:1px solid #ddd;font-weight:600">Week ${i+1}</td>
       <td style="padding:5px 8px;border:1px solid #ddd">${p.lt||'—'}</td>
       <td style="padding:5px 8px;border:1px solid #ddd">${p.cc||'—'}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd">${p.sales||'—'}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd">${p.tcr||'—'}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd">${p.csr||'—'}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd">${p.cvr||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.sales||p.s||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.lt>0?(parseFloat(p.cc||0)/parseFloat(p.lt)*100).toFixed(1)+'%':(p.tcr||'—')}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.cc>0?(parseFloat(p.s||0)/parseFloat(p.cc)*100).toFixed(1)+'%':(p.csr||'—')}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd">${p.lt>0?(parseFloat(p.s||0)/parseFloat(p.lt)*100).toFixed(1)+'%':(p.cvr||'—')}</td>
     </tr>`).join('');
-
   const tab1 = `
     <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid #eee">
       <div style="font-size:1.05rem;font-weight:800;margin-bottom:4px">${esc(e.agentName||'—')}</div>
@@ -3220,6 +2859,10 @@ function openCommitmentView(entryId) {
       <div class="coaching-detail-item">
         <div class="cd-label">🔧 Opportunities</div>
         <div class="cd-val">${(e.opportunities||'—').replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="coaching-detail-item full">
+        <div class="cd-label">💬 Key Discussion Points</div>
+        <div class="cd-val">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div>
       </div>
       <div class="coaching-detail-item">
         <div class="cd-label">💪 Strengths</div>
@@ -3265,17 +2908,16 @@ function openCommitmentView(entryId) {
       </div>
     </div>` : ''}
   `;
-
-  // ── Tab 2: STAR Commitment (editable by agent, read-only for others) ──
-  const currentStatus = getCommitmentStatus(e);
-  const statusColor = currentStatus==='Completed'?'#388e3c':currentStatus==='In Progress'?'#f57c00':currentStatus==='Not Met'?'#d32f2f':'#888';
+  const agentStat = agentStatusCoaching(e);          // Agent Complete / Agent Pending
+  const agentDone = agentStat === 'Agent Complete';
+  const statusColor = agentDone ? '#388e3c' : '#c62828';
   const isAgentUser = currentUser.role === 'Agent';
-
   const tab2 = isAgentUser ? `
-    <div id="commitSaveMsg" style="display:none;margin-bottom:12px;background:#e8f5e9;border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:700;color:#388e3c">✅ Commitment submitted! Status updated to <strong>Completed</strong>.</div>
+    <div id="commitSaveMsg" style="display:none;margin-bottom:12px;background:#e8f5e9;border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:700;color:#388e3c">✅ Commitment saved. Your Agent Status is now <strong>Agent Complete</strong>.</div>
+    <div id="commitErrMsg" style="display:none;margin-bottom:12px;background:#ffebee;border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:700;color:#c62828"></div>
     <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px">
-      <span style="font-size:.78rem;color:#666">Current Status:</span>
-      <span id="commitStatusBadge" style="background:${statusColor};color:#fff;border-radius:12px;padding:3px 12px;font-size:.78rem;font-weight:700">${currentStatus}</span>
+      <span style="font-size:.78rem;color:#666">Agent Status:</span>
+      <span id="commitStatusBadge" style="background:${statusColor};color:#fff;border-radius:12px;padding:3px 12px;font-size:.78rem;font-weight:700">${agentStat}</span>
     </div>
     <div class="star-field">
       <label>📍 Situation — What is the current performance situation?</label>
@@ -3298,12 +2940,12 @@ function openCommitmentView(entryId) {
       <input type="date" id="cTimeline" value="${star.timeline||''}">
     </div>
     <div style="margin-top:18px;text-align:right">
-      <button class="btn-primary" style="width:auto;padding:10px 32px" onclick="saveCommitment('${entryId}')">💾 Submit Commitment</button>
+      <button class="btn-primary" style="width:auto;padding:10px 32px" onclick="saveCommitment('${entryId}')">${agentDone ? '💾 Update Commitment' : '💾 Submit Commitment'}</button>
     </div>
   ` : `
     <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
-      <span style="font-size:.78rem;color:#666">Commitment Status:</span>
-      <span style="background:${statusColor};color:#fff;border-radius:12px;padding:3px 12px;font-size:.78rem;font-weight:700">${currentStatus}</span>
+      <span style="font-size:.78rem;color:#666">Agent Status:</span>
+      <span style="background:${statusColor};color:#fff;border-radius:12px;padding:3px 12px;font-size:.78rem;font-weight:700">${agentStat}</span>
     </div>
     ${(star.situation||star.task||star.action||star.result) ? `
     <div class="coaching-detail-grid">
@@ -3326,88 +2968,101 @@ function openCommitmentView(entryId) {
       ${star.timeline ? `<div class="coaching-detail-item"><div class="cd-label">📅 Timeline</div><div class="cd-val">${star.timeline}</div></div>` : ''}
     </div>` : `<div style="color:#999;font-size:.88rem;padding:24px 0;text-align:center;font-style:italic">Agent has not submitted a commitment yet.</div>`}
   `;
-
-  // ── Build modal body with tabs ───────────────────────────────────────
   document.getElementById('agentModalName').textContent = e.agentName || '—';
   document.getElementById('agentTab1Content').innerHTML = tab1;
   document.getElementById('agentTab2Content').innerHTML = tab2;
-  // Agents land directly on the commitment form (Tab 2); others see coaching content (Tab 1)
-  switchAgentTab(currentUser.role === 'Agent' ? 2 : 1);
+  switchAgentTab(1);
   document.getElementById('agentCommitmentModal').classList.add('open');
 }
-
 function switchAgentTab(n) {
   document.querySelectorAll('.agent-tab').forEach((t,i) => t.classList.toggle('active', i+1===n));
   document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i+1===n));
 }
-
-function saveCommitment(entryId) {
+async function saveCommitment(entryId) {
   const e = entries.find(x => String(x.id) === String(entryId));
-  if (!e) return;
-  e.star = {
+  const errBox = document.getElementById('commitErrMsg');
+  const showErr = (m) => { if (errBox){ errBox.textContent = m; errBox.style.display='block'; } else { alert(m); } };
+  if (errBox) errBox.style.display = 'none';
+  if (!e) { showErr('This coaching log could not be found. Please refresh and try again.'); return; }
+  if (!e.id) { showErr('This record has no unique ID, so it cannot be saved safely. Please contact your admin.'); return; }
+  // Gather the five My Commitment fields
+  const commit = {
     situation : (document.getElementById('cSituation')||{}).value?.trim() || '',
     task      : (document.getElementById('cTask')||{}).value?.trim() || '',
     action    : (document.getElementById('cAction')||{}).value?.trim() || '',
     result    : (document.getElementById('cResult')||{}).value?.trim() || '',
-    timeline  : (document.getElementById('cTimeline')||{}).value || '',
-    status    : 'Completed'   // submitting commitment always marks as Completed
+    timeline  : (document.getElementById('cTimeline')||{}).value || ''
   };
+  // Validate — all five required before we can mark Agent Complete
+  if (!commit.situation || !commit.task || !commit.action || !commit.result || !commit.timeline) {
+    showErr('Please complete all five fields (Situation, Task, Action, Result, Timeline) before submitting.');
+    return;
+  }
+  // Prevent duplicate submissions while the request is in flight
+  const btn = document.querySelector('#agentTab2Content .btn-primary');
+  if (btn && btn.dataset.saving === '1') return;
+  const restore = () => { if (btn){ btn.disabled=false; btn.dataset.saving=''; btn.textContent='💾 Submit Commitment'; } };
+  if (btn) { btn.disabled=true; btn.dataset.saving='1'; btn.textContent='Saving…'; }
+  // Persist to SheetDB FIRST — only mark complete after a confirmed successful save
+  if (SHEETDB_API_URL) {
+    try {
+      const res = await fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ data: {
+          'Commitment Situation': commit.situation,
+          'Commitment Task'     : commit.task,
+          'Commitment Action'   : commit.action,
+          'Commitment Result'   : commit.result,
+          'Commitment Timeline' : commit.timeline,
+          'Commitment Status'   : 'Completed'
+        }})
+      });
+      if (!res.ok) { restore(); showErr('Could not save your commitment (server error ' + res.status + '). It was NOT saved — please try again. If this keeps happening, the SheetDB monthly limit may be reached.'); return; }
+      const j = await res.json().catch(()=>({}));
+      if (j && typeof j.updated !== 'undefined' && j.updated === 0) {
+        restore(); showErr('Your coaching log could not be matched in the database, so nothing was saved. Please refresh and try again.'); return;
+      }
+    } catch(err) {
+      console.warn('SheetDB commitment save failed:', err);
+      restore();
+      showErr('Could not reach the database, so your commitment was NOT saved. Please check your connection and try again.');
+      return;
+    }
+  }
+  // Save succeeded (or no backend configured) → commit locally and mark complete
+  e.star = { ...commit, status: 'Completed' };
   saveEntries();
   renderDashboard();
   renderLogTable();
-  // Sync commitment to cloud — upsert the full entry row (includes updated star/commitment fields)
-  if (!e.id || e._syntheticId) {
-    // Ensure the entry has a real Entry ID before syncing
-    e.id = crypto.randomUUID(); e._syntheticId = false; saveEntries();
-  }
-  syncToSheets(e, 'coaching', true);
-  // update the live status badge inside the modal
   const badge = document.getElementById('commitStatusBadge');
-  if (badge) { badge.textContent='Completed'; badge.style.background='#388e3c'; }
+  if (badge) { badge.textContent='Agent Complete'; badge.style.background='#388e3c'; }
   const msg = document.getElementById('commitSaveMsg');
-  if (msg) { msg.style.display='block'; setTimeout(()=>{ msg.style.display='none'; },4000); }
+  if (msg) { msg.style.display='block'; }
+  if (btn) { btn.dataset.saving=''; btn.disabled=false; btn.textContent='💾 Update Commitment'; }
 }
-
 function closeAgentCommitmentModal() {
   document.getElementById('agentCommitmentModal').classList.remove('open');
 }
-
-// keep old alias in case referenced elsewhere
 function closeCommitmentModal() { closeAgentCommitmentModal(); }
-
-// ══════════════════════════════════════════════════════════════════════════
-// NTE MODULE
-// ══════════════════════════════════════════════════════════════════════════
-
 let nteEntries = [];
-
 function loadNTEEntries() {
   try { nteEntries = JSON.parse(localStorage.getItem('apexNTELogs') || '[]'); }
   catch(e) { nteEntries = []; }
 }
-
 function saveNTEEntries() {
   localStorage.setItem('apexNTELogs', JSON.stringify(nteEntries));
 }
-
 function getNTEStatus(n) {
   return (n.acknowledgement && n.acknowledgement.checked) ? 'Completed' : 'Pending';
 }
-
-// ── NTE Filter helpers ──────────────────────────────────────────────────
-
 function populateNTEFilterTLs(cluster) {
   buildTLOptions('nteFilterTL', getTLsForUser(cluster), 'All TLs');
 }
-
 function onNTEClusterChange() {
   const cluster  = document.getElementById('nteFilterCluster').value;
-
-  // Rebuild TL dropdown via central function (role + cluster aware)
   populateNTEFilterTLs(cluster);
   document.getElementById('nteFilterTL').value = '';
-
-  // Rebuild Agent dropdown filtered by cluster (and scoped to user's visible agents)
   const agentSel = document.getElementById('nteFilterAgent');
   agentSel.innerHTML = '<option value="">All Agents</option>';
   let agentPool = ROSTER;
@@ -3417,7 +3072,6 @@ function onNTEClusterChange() {
       return tl && tl.cluster === cluster;
     });
   }
-  // OM: further limit to their cluster agents
   if (currentUser.role === 'OM') {
     agentPool = agentPool.filter(a => a.cluster === currentUser.omInfo.cluster);
   }
@@ -3426,10 +3080,8 @@ function onNTEClusterChange() {
     o.value = a.name; o.textContent = a.name;
     agentSel.appendChild(o);
   });
-
   renderNTETable();
 }
-
 function onNTETLChange() {
   const tl = document.getElementById('nteFilterTL').value;
   const agentSel = document.getElementById('nteFilterAgent');
@@ -3442,7 +3094,6 @@ function onNTETLChange() {
   });
   renderNTETable();
 }
-
 function clearNTEFilters() {
   document.getElementById('nteFilterWK').value      = '';
   document.getElementById('nteFilterCluster').value = '';
@@ -3456,7 +3107,6 @@ function clearNTEFilters() {
   });
   renderNTETable();
 }
-
 function getVisibleNTEEntries() {
   if (currentUser.role === 'Agent') {
     return nteEntries.filter(n => n.agentName === currentUser.display);
@@ -3469,9 +3119,8 @@ function getVisibleNTEEntries() {
     const cluster = currentUser.omInfo.cluster;
     return nteEntries.filter(n => n.cluster === cluster);
   }
-  return nteEntries; // Admin
+  return nteEntries;
 }
-
 function applyNTEFilters(list) {
   const wk      = document.getElementById('nteFilterWK')?.value || '';
   const cluster = document.getElementById('nteFilterCluster')?.value || '';
@@ -3485,20 +3134,15 @@ function applyNTEFilters(list) {
     return true;
   });
 }
-
-// ── NTE Table Render ────────────────────────────────────────────────────
-
 function renderNTETable() {
   const body = document.getElementById('nteTableBody');
   if (!body) return;
   const visible  = getVisibleNTEEntries();
   const filtered = applyNTEFilters(visible);
-
   if (!filtered.length) {
     body.innerHTML = '<tr><td colspan="8" class="empty-state">No NTE entries found.</td></tr>';
     return;
   }
-
   const canEdit = ['TL','OM','Admin'].includes(currentUser.role);
   const rows = filtered.map(n => {
     const status   = getNTEStatus(n);
@@ -3519,6 +3163,7 @@ function renderNTETable() {
         <td>${link}</td>
         <td>${escHtml(n.nteType)}</td>
         <td><span class="badge ${badgeCls}">${status}</span></td>
+        <td>${agentStatusBadge(agentStatusNTE(n))}</td>
         <td>
           <div class="action-btns">
             <button class="btn-sm btn-view" onclick="viewNTE('${n.id}')">View</button>
@@ -3529,14 +3174,10 @@ function renderNTETable() {
   });
   body.innerHTML = rows.join('');
 }
-
-// ── NTE CRUD ────────────────────────────────────────────────────────────
-
 function openNTEForm(id) {
   document.getElementById('nteFormError').style.display = 'none';
   document.getElementById('nteFormTitle').textContent = id ? 'Edit NTE Entry' : 'New NTE Entry';
   document.getElementById('nteEditId').value = id || '';
-
   if (id) {
     const n = nteEntries.find(x => x.id === id);
     if (!n) return;
@@ -3552,7 +3193,6 @@ function openNTEForm(id) {
   } else {
     document.getElementById('nteFDate').value    = new Date().toISOString().slice(0,10);
     document.getElementById('nteFWK').value      = '';
-    // Pre-select cluster/TL for TL users
     if (currentUser.role === 'TL') {
       document.getElementById('nteFCluster').value = currentUser.tlInfo.cluster;
       onNTEFormClusterChange();
@@ -3566,14 +3206,11 @@ function openNTEForm(id) {
     document.getElementById('nteFType').value    = '';
     document.getElementById('nteFLink').value    = '';
   }
-
   document.getElementById('nteFormModal').classList.add('open');
 }
-
 function closeNTEForm() {
   document.getElementById('nteFormModal').classList.remove('open');
 }
-
 function onNTEFormClusterChange() {
   const cluster = document.getElementById('nteFCluster').value;
   const tlSel   = document.getElementById('nteFTL');
@@ -3590,7 +3227,6 @@ function onNTEFormClusterChange() {
     tlSel.appendChild(o);
   });
 }
-
 function onNTEFormTLChange() {
   const tl       = document.getElementById('nteFTL').value;
   const agentSel = document.getElementById('nteFAgent');
@@ -3603,11 +3239,9 @@ function onNTEFormTLChange() {
     agentSel.appendChild(o);
   });
 }
-
 function saveNTE() {
   const errEl = document.getElementById('nteFormError');
   errEl.style.display = 'none';
-
   const dateLogged = document.getElementById('nteFDate').value;
   const wkNumber   = document.getElementById('nteFWK').value;
   const cluster    = document.getElementById('nteFCluster').value;
@@ -3615,16 +3249,13 @@ function saveNTE() {
   const agentName  = document.getElementById('nteFAgent').value;
   const nteType    = document.getElementById('nteFType').value;
   const nteLink    = document.getElementById('nteFLink').value.trim();
-
   if (!dateLogged || !wkNumber || !cluster || !teamLead || !agentName || !nteType || !nteLink) {
     errEl.textContent = 'Please fill in all required fields.';
     errEl.style.display = 'block';
     return;
   }
-
   const editId = document.getElementById('nteEditId').value;
   const now    = new Date().toISOString();
-
   if (editId) {
     const idx = nteEntries.findIndex(x => x.id === editId);
     if (idx >= 0) {
@@ -3641,15 +3272,12 @@ function saveNTE() {
       acknowledgement: { checked: false, signature: '', acknowledgedAt: '' }
     });
   }
-
   saveNTEEntries();
-  // sync the saved entry (look it up so we get the full object including id/createdAt)
   const savedNTE = nteEntries.find(x => x.dateLogged===dateLogged && x.teamLead===teamLead && x.agentName===agentName && x.nteLink===nteLink);
   if (savedNTE) syncToSheets(savedNTE, 'nte');
   closeNTEForm();
   renderNTETable();
 }
-
 function viewNTE(id) {
   const n = nteEntries.find(x => x.id === id);
   if (!n) return;
@@ -3679,12 +3307,10 @@ function viewNTE(id) {
     ${ackSection}`;
   document.getElementById('nteViewModal').classList.add('open');
 }
-
 function editNTE(id) {
   closeModal('nteViewModal');
   openNTEForm(id);
 }
-
 function deleteNTE(id) {
   if (!confirm('Delete this NTE entry? This action cannot be undone.')) return;
   deleteFromSheets(id, 'nte');
@@ -3692,14 +3318,10 @@ function deleteNTE(id) {
   saveNTEEntries();
   renderNTETable();
 }
-
-// ── NTE Acknowledgement Modal ───────────────────────────────────────────
-
 let _nteAckCanvas = null;
 let _nteAckDrawing = false;
 let _nteAckLastX = 0;
 let _nteAckLastY = 0;
-
 function openNTEAck(id) {
   const n = nteEntries.find(x => x.id === id);
   if (!n) return;
@@ -3707,10 +3329,8 @@ function openNTEAck(id) {
   const isComplete = ack.checked && ack.signature;
   const status     = getNTEStatus(n);
   const badgeCls   = status === 'Completed' ? 'badge-green' : 'badge-yellow';
-
-  // Build receipt content
   const receiptHtml = `
-    <div style="background:#FAF9F7;border:1.5px solid var(--accent);border-radius:8px;padding:18px;margin-bottom:20px">
+    <div style="background:#fffde7;border:1.5px solid var(--yellow);border-radius:8px;padding:18px;margin-bottom:20px">
       <div style="font-weight:800;font-size:1rem;margin-bottom:12px;color:#111">📋 NTE Acknowledgement Receipt</div>
       <div class="coaching-detail-grid" style="gap:10px">
         <div class="coaching-detail-item"><div class="cd-label">Agent</div><div class="cd-val">${escHtml(n.agentName)}</div></div>
@@ -3722,7 +3342,6 @@ function openNTEAck(id) {
         <div class="coaching-detail-item full"><div class="cd-label">Status</div><div class="cd-val"><span class="badge ${badgeCls}" id="nteAckStatusBadge">${status}</span></div></div>
       </div>
     </div>`;
-
   let ackFormHtml = '';
   if (isComplete) {
     ackFormHtml = `
@@ -3736,7 +3355,7 @@ function openNTEAck(id) {
     ackFormHtml = `
       <div style="margin-bottom:14px">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px;background:#f9f9f9;border-radius:8px;border:1.5px solid var(--border)">
-          <input type="checkbox" id="nteAckCheck" style="width:18px;height:18px;margin-top:1px;accent-color:var(--accent);cursor:pointer" onchange="onNTEAckCheckChange()"/>
+          <input type="checkbox" id="nteAckCheck" style="width:18px;height:18px;margin-top:1px;accent-color:var(--yellow);cursor:pointer" onchange="onNTEAckCheckChange()"/>
           <span style="font-size:.88rem;line-height:1.5;color:#222">
             I, <strong>${escHtml(n.agentName)}</strong>, acknowledge that I have read and understood the contents of this Notice to Explain (NTE) and that I have received a copy of this document.
           </span>
@@ -3756,17 +3375,13 @@ function openNTEAck(id) {
         </div>
       </div>`;
   }
-
   document.getElementById('nteAckBody').innerHTML = receiptHtml + ackFormHtml;
   document.getElementById('nteAckModal').classList.add('open');
-
-  // Init canvas if shown
   if (!isComplete) {
     _nteAckCanvas = null;
     requestAnimationFrame(() => { initNTEAckCanvas(); });
   }
 }
-
 function onNTEAckCheckChange() {
   const checked = document.getElementById('nteAckCheck').checked;
   document.getElementById('nteAckSignSection').style.display = checked ? 'block' : 'none';
@@ -3774,7 +3389,6 @@ function onNTEAckCheckChange() {
     requestAnimationFrame(() => { initNTEAckCanvas(); });
   }
 }
-
 function initNTEAckCanvas() {
   const canvas = document.getElementById('nteAckCanvas');
   if (!canvas || _nteAckCanvas === canvas) return;
@@ -3784,7 +3398,6 @@ function initNTEAckCanvas() {
   ctx.lineWidth   = 2.2;
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
-
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width  / rect.width;
@@ -3800,7 +3413,6 @@ function initNTEAckCanvas() {
       y: (e.clientY - rect.top)  * scaleY
     };
   }
-
   function startDraw(e) {
     e.preventDefault();
     _nteAckDrawing = true;
@@ -3818,7 +3430,6 @@ function initNTEAckCanvas() {
     _nteAckLastX = p.x; _nteAckLastY = p.y;
   }
   function stopDraw(e) { _nteAckDrawing = false; ctx.beginPath(); }
-
   canvas.addEventListener('mousedown',  startDraw, {passive:false});
   canvas.addEventListener('mousemove',  draw,      {passive:false});
   canvas.addEventListener('mouseup',    stopDraw);
@@ -3827,14 +3438,12 @@ function initNTEAckCanvas() {
   canvas.addEventListener('touchmove',  draw,      {passive:false});
   canvas.addEventListener('touchend',   stopDraw);
 }
-
 function clearNTEAckCanvas() {
   const canvas = document.getElementById('nteAckCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
 function isCanvasEmpty(canvas) {
   const ctx  = canvas.getContext('2d');
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -3843,14 +3452,11 @@ function isCanvasEmpty(canvas) {
   }
   return true;
 }
-
 function saveNTEAck(id) {
   const errEl = document.getElementById('nteAckError');
   if (errEl) errEl.style.display = 'none';
-
   const check  = document.getElementById('nteAckCheck');
   const canvas = document.getElementById('nteAckCanvas');
-
   if (!check || !check.checked) {
     if (errEl) { errEl.textContent = 'Please check the acknowledgement checkbox.'; errEl.style.display='block'; }
     return;
@@ -3859,28 +3465,34 @@ function saveNTEAck(id) {
     if (errEl) { errEl.textContent = 'Please provide your signature before submitting.'; errEl.style.display='block'; }
     return;
   }
-
+  // Prevent duplicate submissions
+  const ackBtn = document.querySelector('#nteAckSignSection .btn-primary');
+  if (ackBtn) { if (ackBtn.dataset.saving === '1') return; ackBtn.dataset.saving='1'; ackBtn.disabled=true; ackBtn.textContent='Saving…'; }
   const signature = canvas.toDataURL('image/png');
   const idx = nteEntries.findIndex(x => x.id === id);
-  if (idx < 0) return;
-
+  if (idx < 0) { if (errEl){ errEl.textContent='This NTE record could not be found. Please refresh.'; errEl.style.display='block'; } if(ackBtn){ackBtn.dataset.saving='';ackBtn.disabled=false;ackBtn.textContent='✅ Submit Acknowledgement';} return; }
+  const ackAt = new Date().toISOString();
   nteEntries[idx].acknowledgement = {
     checked        : true,
     signature      : signature,
-    acknowledgedAt : new Date().toISOString()
+    acknowledgedAt : ackAt
   };
-  nteEntries[idx].updatedAt = new Date().toISOString();
-
+  nteEntries[idx].updatedAt = ackAt;
   saveNTEEntries();
   renderNTETable();
-
-  // Update badge inside still-open modal
+  // Best-effort cross-device sync (only lands if NTE Logs has an "Entry ID" column)
+  if (SHEETDB_API_URL && nteEntries[idx].id) {
+    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('NTE Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(nteEntries[idx].id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ data: { 'Acknowledged': 'Yes', 'Acknowledge at': ackAt, 'Updated at ': ackAt } })
+    }).catch(err => console.warn('NTE ack sync (non-blocking) failed:', err));
+  }
   const badge = document.getElementById('nteAckStatusBadge');
   if (badge) {
     badge.textContent  = 'Completed';
     badge.className    = 'badge badge-green';
   }
-  // Replace form with success message
   const signSection = document.getElementById('nteAckSignSection');
   if (signSection) {
     signSection.innerHTML = `
@@ -3893,8 +3505,6 @@ function saveNTEAck(id) {
   if (check) check.disabled = true;
 }
 </script>
-
-<!-- NTE FORM MODAL -->
 <div class="modal-overlay" id="nteFormModal">
   <div class="modal" style="max-width:640px">
     <div class="modal-header">
@@ -3952,8 +3562,6 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
-
-<!-- NTE VIEW MODAL -->
 <div class="modal-overlay" id="nteViewModal">
   <div class="modal" style="max-width:600px">
     <div class="modal-header">
@@ -3966,8 +3574,6 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
-
-<!-- NTE ACKNOWLEDGEMENT MODAL -->
 <div class="modal-overlay" id="nteAckModal">
   <div class="modal" style="max-width:680px">
     <div class="modal-header">
@@ -3980,8 +3586,6 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
-
-<!-- AGENT COMMITMENT MODAL (TABBED) -->
 <div class="modal-overlay" id="agentCommitmentModal">
   <div class="modal" style="max-width:760px">
     <div class="modal-header">
@@ -4001,6 +3605,5 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
-
 </body>
 </html>
