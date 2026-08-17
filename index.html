@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>APEX Coaching Log</title>
+<title>APEX Coaching Dashboard</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;min-height:100vh}
@@ -192,7 +192,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="logo-box">A</div>
       <div>
         <div style="font-weight:900;font-size:1.1rem">APEX</div>
-        <div style="font-size:.75rem;color:#666">Coaching Log System</div>
+        <div style="font-size:.75rem;color:#666">Coaching Dashboard</div>
       </div>
     </div>
     <h1>Sign In</h1>
@@ -205,7 +205,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 </div>
 <div id="app" style="display:none;flex-direction:column;min-height:100vh">
   <header>
-    <div class="brand">⚡ APEX Coaching Log</div>
+    <div class="brand">⚡ APEX Coaching Dashboard</div>
     <div class="user-area">
       <div class="user-badge" id="userBadge"></div>
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
@@ -218,7 +218,8 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
   <nav>
     <button id="navDashboard" class="active" onclick="showView('dashboard')">📊 Dashboard</button>
     <button id="navLog" onclick="showView('log')">📋 Coaching Log</button>
-    <button id="navNTE" onclick="showView('nte')">📝 NTE</button>
+    <button id="navRainmaker" onclick="showView('rainmaker')">🎯 Rainmaker Practice</button>
+    <!-- NTE top-level tab removed from the UI (data + functions retained/dormant; NTE Logs sheet untouched). -->
   </nav>
   <main>
     <div id="viewDashboard">
@@ -357,6 +358,84 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </thead>
           <tbody id="nteTableBody"><tr><td colspan="9" class="empty-state">No NTE entries found.</td></tr></tbody>
         </table>
+      </div>
+    </div>
+    <div id="viewRainmaker" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button id="rmSubScript" class="btn-add" style="background:#7a3b12" onclick="rmShowSub('script')">📖 Rainmaker Script</button>
+        <button id="rmSubReview" class="btn-add" style="background:#b0490f" onclick="rmShowSub('review')">📝 Call Review</button>
+        <button id="rmSubHistory" class="btn-add" style="background:#1a3353" onclick="rmShowSub('history')">📊 Results &amp; History</button>
+      </div>
+
+      <!-- ===== Rainmaker Script (read-only, static, 0 SheetDB) ===== -->
+      <div id="rmPaneScript">
+        <div style="font-size:.85rem;color:#555;margin-bottom:10px">Complete approved Rainmaker Script — read-only reference for TLs and agents (call listening, coaching, practice, role-play, feedback). This is static content and makes no server requests.</div>
+        <iframe id="rmScriptFrame" title="Rainmaker Script" style="width:100%;height:72vh;border:1px solid var(--border);border-radius:8px;background:#fff" sandbox="allow-same-origin allow-scripts"></iframe>
+      </div>
+
+      <!-- ===== Call Review ===== -->
+      <div id="rmPaneReview" style="display:none">
+        <div class="form-section">
+          <h4>📝 Rainmaker Call Review</h4>
+          <div class="form-grid">
+            <div class="form-group"><label>Agent <span class="required">*</span></label>
+              <select id="rmAgent" onchange="rmOnAgentChange()"><option value="">— Select Agent —</option></select></div>
+            <div class="form-group"><label>WK # <span class="required">*</span></label>
+              <select id="rmWK"><option value="">— Select WK # —</option></select></div>
+            <div class="form-group"><label>Linked Coaching Log <span style="font-weight:400;color:#888">(optional)</span></label>
+              <select id="rmCoachingLink"><option value="">— None —</option></select></div>
+            <div class="form-group"><label>Aircall Call Link</label>
+              <input type="url" id="rmAircall" placeholder="https://…"/><div id="rmAircallErr" style="display:none;color:#c62828;font-size:.75rem;margin-top:3px">Please enter a valid URL (starting with http:// or https://).</div></div>
+          </div>
+          <div id="rmFocusRef" style="font-size:.82rem;color:#555;margin-top:6px"></div>
+        </div>
+        <div class="form-section">
+          <h4>Rainmaker Adherence Checklist</h4>
+          <div style="font-size:.8rem;color:#666;margin-bottom:8px">Mark each step: <b>Followed</b> / <b>Needs Coaching</b> / <b>N/A</b>. N/A is excluded from Adherence. Complete the whole review, then Save once.</div>
+          <div id="rmChecklist"></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:14px">
+            <div class="stat-card" style="flex:1;min-width:180px"><div class="label">Rainmaker Adherence</div><div class="value" id="rmAdherenceLive">—</div><div class="sublabel">Followed ÷ applicable (N/A excluded)</div></div>
+            <div class="stat-card" style="flex:2;min-width:220px"><div class="label">Areas to Reinforce</div><div id="rmAreasLive" style="font-size:.9rem;font-weight:700;color:#b0490f;margin-top:6px">None yet</div><div class="sublabel">Auto-generated from “Needs Coaching”</div></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h4>Call Review Notes</h4>
+          <div class="form-group"><textarea id="rmNotes" rows="4" placeholder="What the agent did well, what was missed, feedback given, what to improve on the next call…"></textarea></div>
+        </div>
+        <div class="error-msg" id="rmSaveErr" style="display:none"></div>
+        <div id="rmSaveMsg" style="display:none;margin:10px 0;background:#e8f5e9;border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:700;color:#388e3c">✅ Rainmaker Practice saved.</div>
+        <input type="hidden" id="rmEditId"/>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn-primary" style="width:auto;padding:10px 28px" onclick="saveRainmaker()">💾 Save Rainmaker Practice</button>
+          <button style="background:#f5f5f5;border:none;border-radius:6px;padding:10px 20px;font-weight:700;cursor:pointer" onclick="rmResetReviewForm()">Clear</button>
+        </div>
+      </div>
+
+      <!-- ===== Results & History ===== -->
+      <div id="rmPaneHistory" style="display:none">
+        <div class="filters-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+          <select id="rmFilterWK" onchange="renderRainmakerDashboard()"><option value="">All Weeks</option></select>
+          <select id="rmFilterCluster" onchange="rmOnFilterClusterChange()"><option value="">All Clusters</option><option>Jubee</option><option>Kendryck</option><option>Princess</option></select>
+          <select id="rmFilterTL" onchange="rmOnFilterTLChange()"><option value="">All TLs</option></select>
+          <select id="rmFilterAgent" onchange="renderRainmakerDashboard()"><option value="">All Agents</option></select>
+          <button style="background:#f5f5f5;border:none;border-radius:6px;padding:8px 14px;font-weight:700;cursor:pointer" onclick="rmClearFilters()">Clear</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="label">Calls Reviewed</div><div class="value" id="rmCardReviewed">0</div><div class="sublabel">Unique Practice IDs in view</div></div>
+          <div class="stat-card"><div class="label">Avg. Rainmaker Adherence</div><div class="value" id="rmCardAvg">—</div><div class="sublabel">Mean adherence across reviews</div></div>
+          <div class="stat-card"><div class="label">Top Area to Reinforce</div><div class="value" id="rmCardTop" style="font-size:1rem">—</div><div class="sublabel">Most-frequent “Needs Coaching”</div></div>
+          <div class="stat-card"><div class="label">Fully Adherent Calls</div><div class="value" id="rmCardFully">—</div><div class="sublabel">100% of applicable steps followed</div></div>
+        </div>
+        <div class="form-section" style="margin-top:8px">
+          <h4>Rainmaker Step Performance</h4>
+          <div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">
+            <th style="text-align:left">Step</th><th>Followed</th><th>Needs Coaching</th><th>N/A</th><th>Adherence %</th>
+          </tr></thead><tbody id="rmStepPerf"></tbody></table></div>
+        </div>
+        <div class="section-header" style="margin:14px 0 8px"><h2 style="font-size:.95rem">Review History</h2></div>
+        <div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">
+          <th style="text-align:left">Date</th><th>WK#</th><th>Agent</th><th>Team Lead</th><th>Rainmaker Focus</th><th>Adherence</th><th>Areas to Reinforce</th><th>Aircall</th><th>Action</th>
+        </tr></thead><tbody id="rmHistoryBody"><tr><td colspan="9" class="empty-state">No Rainmaker Practice reviews in view.</td></tr></tbody></table></div>
       </div>
     </div>
   </main>
@@ -592,6 +671,21 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               Flow: Performance Metrics → <b>Primary Opportunity</b> → <b>Projected Impact</b> → Areas of Improvement → Action Plan → Agent My Commitment
             </div>
           </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h4>🎯 Rainmaker Practice Focus</h4>
+        <div style="font-size:.8rem;color:#666;margin-bottom:8px">Which part(s) of the Rainmaker process should this agent practice? (Guides the coaching → does not overwrite Areas of Improvement or Action Plan.) Select all that apply.</div>
+        <div class="checkbox-group" id="rmFocusAreas">
+          <label><input type="checkbox" value="Warm Open / Assumptive Open"> Warm Open / Assumptive Open</label>
+          <label><input type="checkbox" value="Discovery"> Discovery</label>
+          <label><input type="checkbox" value="Recommend the Hours"> Recommend the Hours</label>
+          <label><input type="checkbox" value="Pricing & Membership"> Pricing &amp; Membership</label>
+          <label><input type="checkbox" value="Objection Handling / ECOC"> Objection Handling / ECOC</label>
+          <label><input type="checkbox" value="Logistics"> Logistics</label>
+          <label><input type="checkbox" value="Confirmation Readback"> Confirmation Readback</label>
+          <label><input type="checkbox" value="Secure Payment"> Secure Payment</label>
+          <label><input type="checkbox" value="Closing"> Closing</label>
         </div>
       </div>
       <div class="form-section">
@@ -1592,7 +1686,8 @@ async function doLogin() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   fetchFromSheets();
-  fetchNTEFromSheets();
+  // NTE top-level tab removed from the UI — no longer auto-fetch NTE on login (saves 1 GET/login).
+  // fetchNTEFromSheets() and the dormant NTE view/functions remain for future recovery/use.
   function showErr(msg) {
     if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
     errEl.textContent = msg; errEl.style.display = 'block';
@@ -1684,13 +1779,18 @@ function getAgentsForTL(tlDisplay) {
   return ROSTER.filter(a => a.manager === tlEntry.fullName);
 }
 function showView(view) {
-  document.getElementById('viewDashboard').style.display = view==='dashboard' ? 'block' : 'none';
-  document.getElementById('viewLog').style.display       = view==='log'        ? 'block' : 'none';
-  document.getElementById('viewNTE').style.display       = view==='nte'        ? 'block' : 'none';
-  document.getElementById('navDashboard').classList.toggle('active', view==='dashboard');
-  document.getElementById('navLog').classList.toggle('active', view==='log');
-  document.getElementById('navNTE').classList.toggle('active', view==='nte');
-  if (view==='nte') renderNTETable();
+  const setDisp = (id,on) => { const el=document.getElementById(id); if(el) el.style.display = on ? 'block' : 'none'; };
+  const setAct  = (id,on) => { const el=document.getElementById(id); if(el) el.classList.toggle('active', on); };
+  setDisp('viewDashboard', view==='dashboard');
+  setDisp('viewLog',       view==='log');
+  setDisp('viewNTE',       view==='nte');            // dormant: no nav button points here anymore
+  setDisp('viewRainmaker', view==='rainmaker');
+  setAct('navDashboard', view==='dashboard');
+  setAct('navLog',       view==='log');
+  setAct('navNTE',       view==='nte');              // guarded — button removed from UI
+  setAct('navRainmaker', view==='rainmaker');
+  if (view==='nte' && typeof renderNTETable==='function') renderNTETable();  // dormant path
+  if (view==='rainmaker') openRainmakerTab();
 }
 function onClusterChange() {
   const cluster = document.getElementById('filterCluster').value;
@@ -2127,6 +2227,9 @@ function editEntry(id) {
   document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb => {
     cb.checked = (e.focusAreas||[]).includes(cb.value);
   });
+  document.querySelectorAll('#rmFocusAreas input[type=checkbox]').forEach(cb => {
+    cb.checked = (e.rainmakerFocus||[]).includes(cb.value);
+  });
   (e.perfData||[]).forEach((row,i)=>{
     const n = i+1;
     setVal('lt'+n, row.lt); setVal('cc'+n, row.cc); setVal('s'+n, row.s);
@@ -2159,6 +2262,7 @@ function clearForm() {
     const el = document.getElementById(id); if(el) el.value='';
   });
   document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb=>cb.checked=false);
+  document.querySelectorAll('#rmFocusAreas input[type=checkbox]').forEach(cb=>cb.checked=false);
   for(let i=1;i<=4;i++){
     ['lt','cc','s'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.value=''; });
     ['tcr','csr','cvr'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.textContent='—'; });
@@ -2614,6 +2718,7 @@ function buildCoachingRow(e) {
     'Coaching Type': e.coachingType,
     'Tenure': e.tenure||'',
     'Focus Area': (e.focusAreas||[]).join(', '),
+    'Rainmaker Practice Focus': (e.rainmakerFocus||[]).join(', '),
     ...wkCols(1), ...wkCols(2), ...wkCols(3), ...wkCols(4),
     'AVG TCR% ': e.avgTCR||'',
     'AVG CSR%': e.avgCSR||'',
@@ -2682,6 +2787,7 @@ function parseSheetRow(row) {
     coachingType:   row['Coaching Type']||'',
     tenure:         row['Tenure']||'',
     focusAreas:     (row['Focus Area']||row['Focus Areas']||'').split(',').map(s=>s.trim()).filter(Boolean),
+    rainmakerFocus: (row['Rainmaker Practice Focus']||'').split(',').map(s=>s.trim()).filter(Boolean),
     perfData,
     avgTCR:         row['AVG TCR% ']||row['Avg TCR%']||'',
     avgCSR:         row['AVG CSR%']||row['Avg CSR%']||'',
@@ -2956,6 +3062,7 @@ function saveEntry() {
     agentName: document.getElementById('fAgent').value,
     tenure: document.getElementById('tenureBadge').textContent,
     focusAreas: [...document.querySelectorAll('#focusAreas input:checked')].map(c=>c.value),
+    rainmakerFocus: [...document.querySelectorAll('#rmFocusAreas input:checked')].map(c=>c.value),
     highlights: document.getElementById('fHighlights').value,
     opportunities: document.getElementById('fOpportunities').value,
     keyDiscussion: document.getElementById('fKeyDiscussion').value,
@@ -3027,6 +3134,8 @@ function viewEntry(id) {
       <div class="form-group"><label>Agent's Receptiveness</label><div class="view-field">${e.receptiveness||'—'}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Focus Areas</label>
         <div class="view-field">${(e.focusAreas||[]).join(', ')||'—'}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>🎯 Rainmaker Practice Focus</label>
+        <div class="view-field">${(e.rainmakerFocus||[]).join(', ')||'—'}</div></div>
       <div class="form-group"><label>Highlights</label><div class="view-field">${e.highlights||'—'}</div></div>
       <div class="form-group"><label>Opportunities</label><div class="view-field">${e.opportunities||'—'}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Key Discussion</label><div class="view-field big">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div></div>
@@ -3126,6 +3235,7 @@ function saveDraft() {
     status       : document.getElementById('fStatus').value,
     remarks      : document.getElementById('fRemarks').value,
     focusAreas   : Array.from(document.querySelectorAll('#focusAreas input[type=checkbox]:checked')).map(c=>c.value),
+    rainmakerFocus : Array.from(document.querySelectorAll('#rmFocusAreas input[type=checkbox]:checked')).map(c=>c.value),
     perf         : [1,2,3,4].map(i=>({
       lt        : document.getElementById('lt'+i)?.value || '',
       cc        : document.getElementById('cc'+i)?.value || '',
@@ -3171,6 +3281,10 @@ function resumeDraft() {
   setVal('fRemarks', draft.remarks||'');
   (draft.focusAreas||[]).forEach(v => {
     const cb = document.querySelector(`#focusAreas input[value="${v}"]`);
+    if (cb) cb.checked = true;
+  });
+  (draft.rainmakerFocus||[]).forEach(v => {
+    const cb = document.querySelector(`#rmFocusAreas input[value="${v}"]`);
     if (cb) cb.checked = true;
   });
   (draft.perf||[]).forEach((row,i)=>{
@@ -3976,5 +4090,443 @@ function saveNTEAck(id) {
     </div>
   </div>
 </div>
+
+<script>
+// ==== Rainmaker Practice module (appended) ====
+const RAINMAKER_SCRIPT_B64 = "PCFET0NUWVBFIGh0bWw+PHNjcmlwdCB0eXBlPSJhcHBsaWNhdGlvbi9qc29uIiBpZD0iY293b3JrLWFydGlmYWN0LW1ldGEiPgp7CiAgIm5hbWUiOiAiUmFpbm1ha2VyIFNjcmlwdCIsCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJkZXNjcmlwdGlvbiI6ICJIb21lQWdsb3cgSW5zaWRlIFNhbGVzIFJhaW5tYWtlciBTY3JpcHQg4oCUIHRoZSBzdGF0aWMgYWdlbnQgdHJhaW5pbmcvcHJhY3RpY2Ugc2NyaXB0IChwZXIgT3NjYXIgJmFtcDsgQ2xheXRvbiwgMjAyNi0wOC0wNjogaGVsZCBmaXhlZCBiZXR3ZWVuIHJldmlld3Mgc28gYWdlbnRzIGJ1aWxkIHByb2ZpY2llbmN5IG9uIG9uZSBjb25zaXN0ZW50IHZlcnNpb24pLiBJbmNsdWRlcyBjb3JwdXMgY3Jvc3MtY2hlY2tzIGFnYWluc3QgNDcgcmVhbCBjYWxsIHRyYW5zY3JpcHRzIGFzIG9mIGl0cyBsYXN0IHJldmlldy4gQ2FuZGlkYXRlIHVwZGF0ZXMgZnJvbSBvbmdvaW5nIGNvcnB1cyBncm93dGggYXJlIHN0YWdlZCBpbiBSYWlubWFrZXIgT3BlbiBJdGVtcyBhbmQgcmV2aWV3ZWQgbW9udGhseSBiZWZvcmUgYW55dGhpbmcgaXMgcHVzaGVkIGhlcmU7IHRoZSBydW5uaW5nIGxpc3Qgb2YgZGVjaXNpb25zIHBlbmRpbmcgQ2xheXRvbidzIGlucHV0IGFsc28gbGl2ZXMgdGhlcmUuIgp9Cjwvc2NyaXB0Pgo8aHRtbD4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPHN0eWxlPgogIDpyb290IHsgY29sb3Itc2NoZW1lOiBsaWdodDsgfQogIGJvZHkgewogICAgZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgIlNlZ29lIFVJIiwgSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZjsKICAgIGJhY2tncm91bmQ6ICNmZmZmZmY7CiAgICBjb2xvcjogIzFhMWExYTsKICAgIG1heC13aWR0aDogODYwcHg7CiAgICBtYXJnaW46IDAgYXV0bzsKICAgIHBhZGRpbmc6IDMycHggMjRweCA4MHB4OwogICAgbGluZS1oZWlnaHQ6IDEuNTU7CiAgfQogIGgxIHsgZm9udC1zaXplOiAyNnB4OyBtYXJnaW4tYm90dG9tOiA0cHg7IH0KICAuc3VidGl0bGUgeyBjb2xvcjogIzU1NTsgZm9udC1zaXplOiAxNHB4OyBtYXJnaW4tYm90dG9tOiAyNHB4OyB9CiAgaDIgewogICAgZm9udC1zaXplOiAxNnB4OwogICAgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsKICAgIGxldHRlci1zcGFjaW5nOiAwLjA0ZW07CiAgICBjb2xvcjogIzdhM2IxMjsKICAgIGJvcmRlci1ib3R0b206IDJweCBzb2xpZCAjZjBkOWM0OwogICAgcGFkZGluZy1ib3R0b206IDZweDsKICAgIG1hcmdpbi10b3A6IDQwcHg7CiAgfQogIGgzIHsgZm9udC1zaXplOiAxNXB4OyBjb2xvcjogI2IwNDkwZjsgbWFyZ2luLXRvcDogMjRweDsgfQogIC5zYXkgewogICAgZm9udC13ZWlnaHQ6IDYwMDsKICAgIGJhY2tncm91bmQ6ICNmZmY4ZWY7CiAgICBib3JkZXItbGVmdDogM3B4IHNvbGlkICNlOGExNWM7CiAgICBwYWRkaW5nOiAxMHB4IDE0cHg7CiAgICBtYXJnaW46IDEwcHggMDsKICAgIGJvcmRlci1yYWRpdXM6IDAgNHB4IDRweCAwOwogIH0KICAuc3RhZ2UgeyBjb2xvcjogIzZhNmE2YTsgZm9udC1zdHlsZTogaXRhbGljOyBmb250LXNpemU6IDE0cHg7IG1hcmdpbjogNnB4IDA7IH0KICAucGF1c2UgeyBjb2xvcjogI2IwNDkwZjsgZm9udC13ZWlnaHQ6IDYwMDsgZm9udC1zaXplOiAxM3B4OyB9CiAgLmdvbGRlbiB7CiAgICBiYWNrZ3JvdW5kOiAjZmJmM2U3OwogICAgYm9yZGVyOiAxcHggc29saWQgI2U4Y2ZhODsKICAgIGJvcmRlci1yYWRpdXM6IDhweDsKICAgIHBhZGRpbmc6IDE2cHggMjBweDsKICAgIG1hcmdpbjogMTZweCAwOwogICAgZm9udC1zaXplOiAxNHB4OwogIH0KICAuZ29sZGVuIG9sIHsgbWFyZ2luOiA0cHggMCAwIDE4cHg7IHBhZGRpbmc6IDA7IH0KICB0YWJsZSB7CiAgICB3aWR0aDogMTAwJTsKICAgIGJvcmRlci1jb2xsYXBzZTogY29sbGFwc2U7CiAgICBtYXJnaW46IDEycHggMDsKICAgIGZvbnQtc2l6ZTogMTRweDsKICB9CiAgdGgsIHRkIHsKICAgIGJvcmRlcjogMXB4IHNvbGlkICNlMGUwZTA7CiAgICBwYWRkaW5nOiA4cHggMTBweDsKICAgIHRleHQtYWxpZ246IGNlbnRlcjsKICB9CiAgdGggeyBiYWNrZ3JvdW5kOiAjZjZmMWVhOyBmb250LXdlaWdodDogNjAwOyB9CiAgdGQucGVuZGluZyB7IGNvbG9yOiAjYjc4NjJmOyBiYWNrZ3JvdW5kOiAjZmZmYWYwOyBmb250LXdlaWdodDogNjAwOyB9CiAgLmJveCB7CiAgICBib3JkZXItcmFkaXVzOiA4cHg7CiAgICBwYWRkaW5nOiAxNHB4IDE4cHg7CiAgICBtYXJnaW46IDE2cHggMDsKICAgIGZvbnQtc2l6ZTogMTRweDsKICB9CiAgLmJveC5saW1pdHMgeyBiYWNrZ3JvdW5kOiAjZmRmMWVhOyBib3JkZXI6IDFweCBzb2xpZCAjZWRjOWE4OyB9CiAgLmJveC5vcGVuIHsgYmFja2dyb3VuZDogI2ZmZjRlNTsgYm9yZGVyOiAxcHggc29saWQgI2YwYzM3YzsgfQogIC5ib3guaW5zaWdodCB7IGJhY2tncm91bmQ6ICNlZWY0ZWU7IGJvcmRlcjogMXB4IHNvbGlkICNiY2Q2YmM7IH0KICAuYm94LmZsYWcgeyBiYWNrZ3JvdW5kOiAjZmRlY2VjOyBib3JkZXI6IDFweCBzb2xpZCAjZTNhOGE4OyB9CiAgLmJveC5zZWxlY3RvciB7IGJhY2tncm91bmQ6ICNmZmY0ZTU7IGJvcmRlcjogMXB4IHNvbGlkICNmMGMzN2M7IH0KICAuaG91ci1zZWxlY3QgeyBkaXNwbGF5OiBmbGV4OyBnYXA6IDhweDsgZmxleC13cmFwOiB3cmFwOyBtYXJnaW4tdG9wOiAxMHB4OyB9CiAgLmhvdXItYnRuIHsKICAgIGZvbnQtZmFtaWx5OiBpbmhlcml0OwogICAgZm9udC1zaXplOiAxNHB4OwogICAgZm9udC13ZWlnaHQ6IDYwMDsKICAgIHBhZGRpbmc6IDhweCAxOHB4OwogICAgYm9yZGVyLXJhZGl1czogNnB4OwogICAgYm9yZGVyOiAxcHggc29saWQgI2UwYTg1NjsKICAgIGJhY2tncm91bmQ6ICNmZmZmZmY7CiAgICBjb2xvcjogI2IwNDkwZjsKICAgIGN1cnNvcjogcG9pbnRlcjsKICB9CiAgLmhvdXItYnRuOmhvdmVyIHsgYmFja2dyb3VuZDogI2ZmZjBkYzsgfQogIC5ob3VyLWJ0bi5hY3RpdmUgeyBiYWNrZ3JvdW5kOiAjYjA0OTBmOyBjb2xvcjogI2ZmZmZmZjsgYm9yZGVyLWNvbG9yOiAjYjA0OTBmOyB9CiAgI3ByaWNlLXBhc3NhZ2UgeyBtYXJnaW4tdG9wOiAxMnB4OyB9CiAgLm5vdGUgewogICAgY29sb3I6ICM3Nzc7CiAgICBmb250LXNpemU6IDEyLjVweDsKICAgIG1hcmdpbi10b3A6IDRweDsKICAgIGxpbmUtaGVpZ2h0OiAxLjU7CiAgfQogIC50YWcgewogICAgZGlzcGxheTogaW5saW5lLWJsb2NrOwogICAgZm9udC1zaXplOiAxMXB4OwogICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgIHRleHQtdHJhbnNmb3JtOiB1cHBlcmNhc2U7CiAgICBsZXR0ZXItc3BhY2luZzogMC4wM2VtOwogICAgcGFkZGluZzogMnB4IDdweDsKICAgIGJvcmRlci1yYWRpdXM6IDRweDsKICAgIG1hcmdpbi1sZWZ0OiA2cHg7CiAgICB2ZXJ0aWNhbC1hbGlnbjogbWlkZGxlOwogIH0KICAudGFnLmNvbmZpcm1lZCB7IGJhY2tncm91bmQ6ICNkY2VmZTA7IGNvbG9yOiAjMmY3YTNjOyB9CiAgLnRhZy5wZW5kaW5nIHsgYmFja2dyb3VuZDogI2ZiZTZjODsgY29sb3I6ICM5NjYwMWE7IH0KICAudGFnLmRyYWZ0IHsgYmFja2dyb3VuZDogI2YwZTBmNTsgY29sb3I6ICM3YTNhOTY7IH0KICAudGFnLm5ld2NhbCB7IGJhY2tncm91bmQ6ICNkYmU5ZmI7IGNvbG9yOiAjMWM1YTljOyB9CiAgLnRhZy5mbGFnZ2VkIHsgYmFja2dyb3VuZDogI2Y4ZDRkNDsgY29sb3I6ICNhMzM7IH0KICAuZWNvYy1zdGVwIHsKICAgIGRpc3BsYXk6IGJsb2NrOwogICAgZm9udC1zaXplOiAxMC41cHg7CiAgICBmb250LXdlaWdodDogNzAwOwogICAgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsKICAgIGxldHRlci1zcGFjaW5nOiAwLjA4ZW07CiAgICBtYXJnaW46IDE0cHggMCAycHg7CiAgfQogIC5lY29jLXN0ZXAuZW1wYXRoeSB7IGNvbG9yOiAjMmY3YTNjOyB9CiAgLmVjb2Mtc3RlcC5jbGFyaWZ5IHsgY29sb3I6ICMxYzVhOWM7IH0KICAuZWNvYy1zdGVwLm92ZXJjb21lIHsgY29sb3I6ICNiMDQ5MGY7IH0KICAuZWNvYy1zdGVwLmNvbmZpcm0geyBjb2xvcjogIzdhM2E5NjsgfQogIC5jYWxsaWQgeyBjb2xvcjogIzk5OTsgZm9udC1zaXplOiAxMS41cHg7IH0KICB1bC5jb21wYWN0IHsgbWFyZ2luOiA2cHggMDsgcGFkZGluZy1sZWZ0OiAyMHB4OyBmb250LXNpemU6IDE0cHg7IH0KICAuZGl2aWRlciB7IGJvcmRlcjogbm9uZTsgYm9yZGVyLXRvcDogMXB4IHNvbGlkICNlY2VjZWM7IG1hcmdpbjogMzJweCAwOyB9Cjwvc3R5bGU+CjwvaGVhZD4KPGJvZHk+Cgo8aDE+SG9tZUFnbG93IEZvcmV2ZXJDbGVhbiDigJQgVGhlIFJhaW5tYWtlciBTY3JpcHQ8L2gxPgo8ZGl2IGNsYXNzPSJzdWJ0aXRsZSI+U3RhdGljIHRyYWluaW5nIHNjcmlwdCDCtyBoZWxkIGZpeGVkIGJldHdlZW4gbW9udGhseSByZXZpZXdzIMK3IEluc2lkZSBTYWxlcyBwcmFjdGljZSBzY3JpcHQsIHN5bnRoZXNpemVkIGZyb20gcmVhbCB0b3AtcGVyZm9ybWVyIGNhbGxzPC9kaXY+Cgo8ZGl2IGNsYXNzPSJnb2xkZW4iPgo8c3Ryb25nPkdvbGRlbiBydWxlcyBiZWZvcmUgeW91IHBpY2sgdXA6PC9zdHJvbmc+CjxvbD4KPGxpPlNtaWxlIGJlZm9yZSB5b3Ugc3BlYWsg4oCUIHRoZXkgY2FuIGhlYXIgaXQuPC9saT4KPGxpPkxlYWQgd2l0aCA8ZW0+d2hlbjwvZW0+LCBuZXZlciA8ZW0+aWY8L2VtPi48L2xpPgo8bGk+U2F5IHRoZSBwcmljZSBicmVha2Rvd24gPHN0cm9uZz5vbmNlLCBzbG93bHkuPC9zdHJvbmc+IE5ldmVyIGxldCBudW1iZXJzIHBpbGUgdXAuPC9saT4KPGxpPlNpbGVuY2UgaXMgeW91ciBmcmllbmQuIEFmdGVyIGEg4o+477iPLCBjb3VudCAib25lLW9uZS10aG91c2FuZCIgYmVmb3JlIHlvdSBmaWxsIGl0LjwvbGk+Cjwvb2w+CjwvZGl2PgoKPGgyPlBhcnQgMSDigJQgVGhlIFdhcm0gT3BlbjwvaDI+CjxkaXYgY2xhc3M9InN0YWdlIj5EaWFsLiBXaGVuIHRoZXkgcGljayB1cCwgc291bmQgZ2VudWluZWx5IHBsZWFzZWQgdG8gcmVhY2ggdGhlbS48L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iSGkgW0ZpcnN0IE5hbWVdISBUaGlzIGlzIFtZb3VyIE5hbWVdIHdpdGggSG9tZUFnbG93LCBvbiBhIHJlY29yZGVkIGxpbmUuIEkgc2F3IHlvdSBjaGVja2VkIG91dCBob21lIGNsZWFuaW5nIG9uIG91ciBzaXRlIOKAlCBob3cgYXJlIHlvdSBkb2luZyB0b2RheT8iPC9kaXY+CjxkaXYgY2xhc3M9InBhdXNlIj7ij7jvuI8gU21hbGwgcGF1c2UuIExldCB0aGVtIHNldHRsZSBpbi48L2Rpdj4KCjxoMj5QYXJ0IDIg4oCUIFRoZSBGcmFtZSArIFRoZSBBc3N1bXB0aXZlIE9wZW48L2gyPgo8ZGl2IGNsYXNzPSJzYXkiPiJTbyBJJ2xsIG1ha2UgdGhpcyBxdWljayBhbmQgZWFzeSBmb3IgeW91IOKAlCBJJ2xsIHdhbGsgeW91IHRocm91Z2ggaG93IGV2ZXJ5dGhpbmcgd29ya3MsIGFuZCBpZiBpdCdzIGEgZ29vZCBmaXQsIHdlJ2xsIGdldCB5b3VyIGZpcnN0IGNsZWFuaW5nIG9uIHRoZSBjYWxlbmRhci4gU291bmQgZ29vZD8gUGVyZmVjdC4gU28gdGVsbCBtZSDigJQgd2hlbiB3ZXJlIHlvdSBob3BpbmcgdG8gaGF2ZSB0aGUgY2xlYW5pbmcgZG9uZT8gTG92ZSBpdCwgdGhhdCB3b3JrcyBncmVhdC4gTGV0IG1lIGdldCBldmVyeXRoaW5nIHNldCB1cCBmb3IgeW91LiI8L2Rpdj4KPGRpdiBjbGFzcz0ic3RhZ2UiPklmIHRoZXkgaGVzaXRhdGUgKCJJJ20gbm90IHN1cmUgeWV0Iik6PC9kaXY+CjxkaXYgY2xhc3M9InNheSI+Ik5vIHByb2JsZW0gYXQgYWxsIOKAlCBsZXQncyBmaWd1cmUgb3V0IHdoYXQgd29ya3MuIjwvZGl2Pgo8ZGl2IGNsYXNzPSJzdGFnZSI+VHJhbnNpdGlvbiDigJQgYmVmb3JlIG1vdmluZyBpbnRvIERpc2NvdmVyeTo8L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iSGVyZSdzIGEgYml0IG1vcmUgaW5mb3JtYXRpb24gYWJvdXQgdXM6IEhvbWVhZ2xvdyBpcyB0aGUgbGFyZ2VzdCBob21lIGNsZWFuaW5nIGNvbXBhbnkgaW4gdGhlIFUuUy4sIHdpdGggb3ZlciAxMCB5ZWFycyBvZiBleHBlcmllbmNlIGFuZCBvdmVyIDQgbWlsbGlvbiBjbGVhbmluZ3MgY29tcGxldGVkIGZvciBvdmVyIDEuMyBtaWxsaW9uIGN1c3RvbWVycy4gWW91IGNhbiBhbHNvIGRvd25sb2FkIG91ciBhcHAsIHdoaWNoIGhlbHBzIHlvdSBtYW5hZ2UgeW91ciBib29raW5nLCBjaGF0IGRpcmVjdGx5IHdpdGggeW91ciBjbGVhbmVyLCBnZXQgbm90aWZpZWQgYmVmb3JlIHRoZXkgYXJyaXZlLCBhbmQgcmVib29rIHlvdXIgZmF2b3JpdGUgY2xlYW5lciBhbGwgaW4gb25lIHRhcC4iPC9kaXY+Cgo8aDI+UGFydCAzIOKAlCBEaXNjb3Zlcnk8L2gyPgo8ZGl2IGNsYXNzPSJzdGFnZSI+QXNrIHRoZXNlIGxpa2UgYSBoZWxwZnVsIGZyaWVuZCwgbm90IGEgZm9ybS4gTm9kIGFsb25nIG91dCBsb3VkLjwvZGl2Pgo8ZGl2IGNsYXNzPSJzdGFnZSI+S2VlcCB0aGUgIndoYXQncyBnb3QgeW91IGxvb2tpbmcgZm9yIGhlbHAiIHF1ZXN0aW9uIE9QRU4g4oCUIGRvbid0IGd1ZXNzIG9yIGxpc3QgcmVhc29ucywgYW5kIGRvIE5PVCBwcm9tcHQgImhlYWx0aCIg4oCUIGN1c3RvbWVycyB2b2x1bnRlZXIgaXQgb24gdGhlaXIgb3duLjwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJKdXN0IHNvIEkgc2V0IHlvdSB1cCB3aXRoIGV4YWN0bHkgdGhlIHJpZ2h0IGNsZWFuaW5nIOKAlCBob3cgbWFueSBiZWRyb29tcyBhbmQgYmF0aHJvb21zIGFyZSB3ZSBsb29raW5nIGF0LCBhbmQgYW55IG1haW4gYXJlYXMgbGlrZSB0aGUga2l0Y2hlbiBhbmQgbGl2aW5nIHJvb20/IEFuZCBpcyB0aGlzIHlvdXIgZmlyc3QgdGltZSBnZXR0aW5nIGEgcHJvZmVzc2lvbmFsIGNsZWFuaW5nLCBvciBoYXZlIHlvdSBoYWQgc29tZW9uZSBiZWZvcmU/IEdvdGNoYS4gQW5kIHdoYXQncyBnb3QgeW91IGxvb2tpbmcgZm9yIHNvbWUgaGVscCByaWdodCBub3c/IFRoYXQgbWFrZXMgdG90YWwgc2Vuc2UuIEFuZCBob3cgb2Z0ZW4gYXJlIHlvdSB0aGlua2luZyB5b3UnbGwgd2FudCBhIGNsZWFuaW5nIGdvaW5nIGZvcndhcmQg4oCUIHdlZWtseSwgZXZlcnkgY291cGxlIG9mIHdlZWtzLCBvciBhYm91dCBvbmNlIGEgbW9udGg/IjwvZGl2PgoKPGgyPlBhcnQgNCDigJQgUmVjb21tZW5kIHRoZSBIb3VyczwvaDI+CjxkaXYgY2xhc3M9InNheSI+Ik9rYXksIGhlcmUncyB3aGF0IEknZCByZWNvbW1lbmQuIEZvciBhIGhvbWUgeW91ciBzaXplLCBJJ2QgZ28gd2l0aCBbWF0gaG91cnMgZm9yIHRoaXMgZmlyc3QgY2xlYW5pbmcg4oCUIHRoYXQgd2F5IHlvdXIgY2xlYW5lciBjYW4gZ2V0IGV2ZXJ5dGhpbmcgZG9uZSByZWFsbHkgdGhvcm91Z2hseSB0aGUgZmlyc3QgdGltZS4gVGhlIG5pY2UgcGFydCBpcywgb25jZSBpdCdzIGRlZXAtY2xlYW5lZCwgeW91ciBmdXR1cmUgY2xlYW5pbmdzIG5lZWQgd2F5IGZld2VyIGhvdXJzLCBzbyBpdCBhY3R1YWxseSBzYXZlcyB5b3UgbW9uZXkgZG93biB0aGUgcm9hZC4gQW5kIGp1c3Qgc28geW91IGhhdmUgcGVhY2Ugb2YgbWluZCDigJQgZXZlcnkgY2xlYW5lciBvbiBvdXIgcGxhdGZvcm0gaXMgYmFja2dyb3VuZC1jaGVja2VkIGFuZCB0b3AtcmF0ZWQuIFlvdSdsbCBldmVuIGdldCB0byBzZWUgdGhlaXIgcHJvZmlsZSBhbmQgcmV2aWV3cywgYW5kIHlvdSBwaWNrIHdobyBjb21lcyB0byB5b3VyIGhvbWUuIERvZXMgdGhhdCBzb3VuZCBnb29kPyI8L2Rpdj4KPGRpdiBjbGFzcz0iYm94IGxpbWl0cyI+CjxzdHJvbmc+SG91cnMgZ3VpZGUg4oCUIHJlY29tbWVuZGVkIGhvdXJzIGJ5IGJlZCDDlyBiYXRoPC9zdHJvbmc+Ogo8dGFibGUgc3R5bGU9Im1hcmdpbi10b3A6MTBweDsiPgo8dHI+PHRoPkJlZHMgXCBCYXRoczwvdGg+PHRoPjEgYmF0aDwvdGg+PHRoPjIgYmF0aHM8L3RoPjx0aD4zKyBiYXRoczwvdGg+PC90cj4KPHRyPjx0ZD4w4oCTMSBiZWQ8L3RkPjx0ZD4zIGhyczwvdGQ+PHRkPjQgaHJzPC90ZD48dGQ+NiBocnM8L3RkPjwvdHI+Cjx0cj48dGQ+MiBiZWQ8L3RkPjx0ZD40IGhyczwvdGQ+PHRkPjQgaHJzPC90ZD48dGQ+NiBocnM8L3RkPjwvdHI+Cjx0cj48dGQ+MysgYmVkPC90ZD48dGQ+NiBocnM8L3RkPjx0ZD42IGhyczwvdGQ+PHRkPjYgaHJzPC90ZD48L3RyPgo8L3RhYmxlPgo8L2Rpdj4KCjxoMj5QYXJ0IDUg4oCUIFRoZSBQcmljZSAoc2F5IG9uY2UsIHNsb3dseSwgdGhlbiBzdG9wKTwvaDI+CjxwPjxzdHJvbmc+Rmlyc3QtVmlzaXQgUHJpY2luZyBHcmlkPC9zdHJvbmc+PC9wPgo8dGFibGU+Cjx0cj48dGg+SG91cnM8L3RoPjx0aD5QYXkgdG9kYXkgKGJlZm9yZSB0YXgpPC90aD48dGg+Q292ZXJzPC90aD48dGg+RWFybHktY2FuY2VsIGZlZSAoYmVmb3JlIDYgcGFpZCBtb250aHMsIGJlZm9yZSB0YXgpPC90aD48L3RyPgo8dHI+PHRkPjIgaHJzPC90ZD48dGQ+JDE5PC90ZD48dGQ+Zmlyc3QgbW9udGggbWVtYmVyc2hpcCAoJDE5KSArIDMgaHJzIGZyZWUgKG9ubHkgMiBuZWVkZWQg4oCUIDEgdW51c2VkKTwvdGQ+PHRkPiQ3MCAoJDM1IMOXIDIpPC90ZD48L3RyPgo8dHI+PHRkPjMgaHJzPC90ZD48dGQ+JDE5PC90ZD48dGQ+Zmlyc3QgbW9udGggbWVtYmVyc2hpcCArIDMgaHJzIChmcmVlKTwvdGQ+PHRkPiQxMDUgKCQzNSDDlyAzKTwvdGQ+PC90cj4KPHRyPjx0ZD40IGhyczwvdGQ+PHRkPiQzODwvdGQ+PHRkPmZpcnN0IG1vbnRoIG1lbWJlcnNoaXAgKCQxOSkgKyAzIGhycyBmcmVlICsgMSBleHRyYSBociAoJDE5KTwvdGQ+PHRkPiQxNDAgKCQzNSDDlyA0KTwvdGQ+PC90cj4KPHRyPjx0ZD42IGhyczwvdGQ+PHRkPiQ3ODwvdGQ+PHRkPmZpcnN0IG1vbnRoICsgMyBleHRyYSBocnMgKCQ1OSk8L3RkPjx0ZD4kMjEwICgkMzUgw5cgNik8L3RkPjwvdHI+CjwvdGFibGU+CjxwIGNsYXNzPSJub3RlIj5FYXJseS1jYW5jZWwgZmVlIGFtb3VudHMgYWJvdmUgYXJlIHByZS10YXgg4oCUIHNhbGVzIHRheCBtYXkgYXBwbHkgb24gdG9wLCBkZXBlbmRpbmcgb24gdGhlIGN1c3RvbWVyJ3Mgc3RhdGUsIHVwIHRvIGEgJDMwMCBjYXAuPC9wPgo8cCBjbGFzcz0ibm90ZSI+V2FzaGluZ3RvbiBjdXN0b21lcnM6IG5vIG1pbmltdW0gY29tbWl0bWVudCB0ZXJtIGFwcGxpZXMg4oCUIE1DVCBpcyAwLCBzbyB0aGVyZSdzIG5vIGVhcmx5LWNhbmNlbCBmZWUgYXQgYWxsLCByZWdhcmRsZXNzIG9mIHdoZW4gdGhleSBjYW5jZWwuPC9wPgoKPHAgc3R5bGU9Im1hcmdpbi10b3A6MThweDsiPjxzdHJvbmc+T25nb2luZyByYXRlPC9zdHJvbmc+IOKAlCBhYm91dCAkMjMvaG91ciBzdGFydGluZyBjbGVhbmluZyAyICh0aGUgY2xlYW5lcidzIG93biByYXRlICsgMTUlIHRyYW5zYWN0aW9uIGZlZTsgdmFyaWVzIHNsaWdodGx5IGJ5IGNsZWFuZXIsIHNvIGFsd2F5cyBzYXkgImFib3V0Iik8L3A+Cgo8ZGl2IGNsYXNzPSJib3ggc2VsZWN0b3IiPgo8c3Ryb25nPlNlbGVjdCB0aGUgaG91cnMgZm9yIHRoaXMgY2FsbCDigJQgZ2V0IHRoZSBleGFjdCBwYXNzYWdlIHRvIHNheTo8L3N0cm9uZz4KPGRpdiBjbGFzcz0iaG91ci1zZWxlY3QiIHJvbGU9Imdyb3VwIiBhcmlhLWxhYmVsPSJTZWxlY3QgY2xlYW5pbmcgaG91cnMiPgo8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgY2xhc3M9ImhvdXItYnRuIiBkYXRhLWhvdXJzPSIyIj4yIGhyczwvYnV0dG9uPgo8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgY2xhc3M9ImhvdXItYnRuIiBkYXRhLWhvdXJzPSIzIj4zIGhyczwvYnV0dG9uPgo8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgY2xhc3M9ImhvdXItYnRuIiBkYXRhLWhvdXJzPSI0Ij40IGhyczwvYnV0dG9uPgo8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgY2xhc3M9ImhvdXItYnRuIiBkYXRhLWhvdXJzPSI2Ij42IGhyczwvYnV0dG9uPgo8L2Rpdj4KPC9kaXY+CjxkaXYgY2xhc3M9InNheSIgaWQ9InByaWNlLXBhc3NhZ2UiPiIkMTkgaXMgeW91ciBmaXJzdCBtb250aCBvZiBtZW1iZXJzaGlwIHBsdXMgeW91ciBmaXJzdCAzLWhvdXIgY2xlYW5pbmcuIFN0YXJ0aW5nIG1vbnRoIDIsIGl0J3MgJDU5IGEgbW9udGggZm9yIHRoZSBtZW1iZXJzaGlwLCBhbmQgZXZlcnkgY2xlYW5pbmcgYWZ0ZXIgeW91ciBmaXJzdCBvbmUgcnVucyBhYm91dCAkMjMgYW4gaG91ciDigJQgcm91Z2hseSA1MCB0byA2MCUgbGVzcyB0aGFuIHdoYXQgYSBvbmUtdGltZSBjbGVhbmluZyBub3JtYWxseSBjb3N0cy4gQW5kIEkgd2FudCB0byBiZSB1cGZyb250IHdpdGggeW91IG9uIG9uZSB0aGluZzogeW91IGNhbiBjYW5jZWwgYW55dGltZSwgYnV0IGlmIHlvdSBjYW5jZWwgYmVmb3JlIDYgcGFpZCBtb250aHMsIHRoZXJlJ3MgYSBvbmUtdGltZSBjYW5jZWxsYXRpb24gZmVlIOKAlCBpdCdzICQzNSB0aW1lcyB0aGUgaG91cnMgb2YgeW91ciBmaXJzdCBjbGVhbmluZywgc28gZm9yIHlvdXIgMy1ob3VyIGNsZWFuIHRoYXQncyAkMzUgdGltZXMgMyBob3Vycywgb3IgJDEwNS4gQWZ0ZXIgNiBtb250aHMsIHRoZXJlJ3Mgbm8gZmVlIGF0IGFsbC4gRG9lcyB0aGF0IGFsbCBzb3VuZCBmYWlyPyI8L2Rpdj4KPGRpdiBjbGFzcz0icGF1c2UiPuKPuO+4jyBTVE9QLiBXYWl0LiBEbyBub3QgYWRkIGFub3RoZXIgbnVtYmVyLjwvZGl2PgoKPGgyPlBhcnQgNiDigJQgUmVhZCB0aGUgUm9vbTwvaDI+CjxkaXYgY2xhc3M9InN0YWdlIj5JZiB0aGV5IHNheSAieWVzIC8gc291bmRzIGdvb2QiIOKGkiBza2lwIHN0cmFpZ2h0IHRvIFBhcnQgOCAoTG9naXN0aWNzKS48L2Rpdj4KPGRpdiBjbGFzcz0icGF1c2UiPuKPuO+4jyBXYWl0LCB0aGVuIGdvIHRvIHRoZSBtYXRjaGluZyBvYmplY3Rpb24gYnJhbmNoIGluIFBhcnQgNy48L2Rpdj4KPGRpdiBjbGFzcz0ic3RhZ2UiPklmIHRoZXkgc3RhdGUgYSBzcGVjaWZpYyBvYmplY3Rpb24gb3V0cmlnaHQgaW5zdGVhZCBvZiBnb2luZyBxdWlldCDigJQgZG9uJ3QgYm90aGVyIHdpdGggdGhlIHByb2JpbmcgcXVlc3Rpb24gYWJvdmUsIGdvIHN0cmFpZ2h0IHRvIHRoZSBtYXRjaGluZyBQYXJ0IDcgYnJhbmNoOjwvZGl2PgoKPGgyPlBhcnQgNyDigJQgT2JqZWN0aW9uIEJyYW5jaGVzPC9oMj4KCjxkaXYgY2xhc3M9ImJveCBpbnNpZ2h0IiBzdHlsZT0ibWFyZ2luLWJvdHRvbToxNHB4OyI+CjxzdHJvbmc+VGhlIEVDT0MgbW9kZWwgJiM4MjEyOyBob3cgdG8gcmVhZCBldmVyeSBvYmplY3Rpb24gYmVsb3c6PC9zdHJvbmc+Cjx1bCBjbGFzcz0iY29tcGFjdCIgc3R5bGU9Im1hcmdpbi10b3A6OHB4OyI+CjxsaT48c3BhbiBjbGFzcz0iZWNvYy1zdGVwIGVtcGF0aHkiIHN0eWxlPSJkaXNwbGF5OmlubGluZTsgbWFyZ2luOjA7Ij5FbXBhdGh5PC9zcGFuPiAmIzgyMTI7IGdlbnVpbmVseSBzaGFyZSB0aGVpciBwZXJzcGVjdGl2ZS4gPGVtPiJJJ2QgcHJvYmFibHkgZmVlbCB0aGUgc2FtZSB3YXkuIjwvZW0+PC9saT4KPGxpPjxzcGFuIGNsYXNzPSJlY29jLXN0ZXAgY2xhcmlmeSIgc3R5bGU9ImRpc3BsYXk6aW5saW5lOyBtYXJnaW46MDsiPkNsYXJpZnk8L3NwYW4+ICYjODIxMjsgcGFyYXBocmFzZSBiYWNrIHRoZSB2YWx1ZSB0aGV5IGFscmVhZHkgc2VlIGFuZCBpc29sYXRlIHRoZSBvbmUgYmxvY2tlci4gPGVtPiJJdCdzIG5vdCB0aGF0IHlvdSBkb24ndCBzZWUgdGhlIHZhbHVlICYjODIxMjsgaXQncyBqdXN0IFtibG9ja2VyXS4gRmFpciB0byBzYXk/IjwvZW0+PC9saT4KPGxpPjxzcGFuIGNsYXNzPSJlY29jLXN0ZXAgb3ZlcmNvbWUiIHN0eWxlPSJkaXNwbGF5OmlubGluZTsgbWFyZ2luOjA7Ij5PdmVyY29tZTwvc3Bhbj4gJiM4MjEyOyBlYXJuZWQgb25seSBhZnRlciBFbXBhdGh5IGFuZCBDbGFyaWZ5LiBUcmFuc2xhdGUgZmVhdHVyZXMgaW50byBiZW5lZml0cywgZG9uJ3QgZmVhdHVyZS1kdW1wLjwvbGk+CjxsaT48c3BhbiBjbGFzcz0iZWNvYy1zdGVwIGNvbmZpcm0iIHN0eWxlPSJkaXNwbGF5OmlubGluZTsgbWFyZ2luOjA7Ij5Db25maXJtPC9zcGFuPiAmIzgyMTI7IGNvbmZpcm0gdGhlIGNvbmNlcm4gaXMgcmVzb2x2ZWQsIHRoZW4gZ2V0IGEgY29uY3JldGUgbmV4dCBzdGVwLiA8ZW0+IkRvZXMgdGhhdCBzb2x2ZSBpdD8gQW55IG90aGVyIHF1ZXN0aW9ucyBiZWZvcmUgd2UgbG9jayB0aGlzIGluPyI8L2VtPjwvbGk+CjwvdWw+CjwvZGl2PgoKPGgzPjdBIOKAlCAiSSdkIHJhdGhlciBqdXN0IHBheSBjYXNoIC8gcGF5IHdoZW4gdGhleSdyZSBkb25lIjwvaDM+CjxkaXYgY2xhc3M9ImVjb2Mtc3RlcCBlbXBhdGh5Ij5FbXBhdGh5PC9kaXY+CjxkaXYgY2xhc3M9InNheSI+IlRvdGFsbHkgZ2V0IGl0IOKAlCB0aGF0J3MgYSByZWFsbHkgY29tbW9uIHRoaW5nIHBlb3BsZSBicmluZyB1cC4iPC9kaXY+CjxkaXYgY2xhc3M9ImVjb2Mtc3RlcCBjbGFyaWZ5Ij5DbGFyaWZ5PC9kaXY+CjxkaXYgY2xhc3M9InNheSI+Ikp1c3Qgd2FudCB0byBtYWtlIHN1cmUgSSdtIGZvbGxvd2luZyDigJQgc291bmRzIGxpa2UgeW91J2QgcmF0aGVyIG5vdCByZWFkIHlvdXIgY2FyZCBudW1iZXIgb3V0IGxvdWQgb3ZlciB0aGUgcGhvbmUuIElzIHRoYXQgYWJvdXQgcmlnaHQ/IjwvZGl2Pgo8ZGl2IGNsYXNzPSJlY29jLXN0ZXAgb3ZlcmNvbWUiPk92ZXJjb21lPC9kaXY+CjxkaXYgY2xhc3M9InNheSI+IlRoYXQgbWFrZXMgYSBsb3Qgb2Ygc2Vuc2UsIGFuZCBob25lc3RseSBhIGJ1bmNoIG9mIG91ciBjdXN0b21lcnMgZmVlbCB0aGUgc2FtZSB3YXkgYXQgZmlyc3QuIEdvb2QgbmV3cyBpcyB5b3UgZG9uJ3QgaGF2ZSB0byDigJQgSSBjYW4gc2VuZCB5b3UgYSBzZWN1cmUgbGluayByaWdodCBub3cgc28geW91IGNhbiBlbnRlciB5b3VyIHBheW1lbnQgaW5mbyB5b3Vyc2VsZiwgd2l0aG91dCBzYXlpbmcgYSBzaW5nbGUgbnVtYmVyIG91dCBsb3VkLiI8L2Rpdj4KPGRpdiBjbGFzcz0ic3RhZ2UiPlNoYXJlIHRoZSBzZWxmLWNoZWNrb3V0IFVSTCBvcHRpb24uPC9kaXY+CjxkaXYgY2xhc3M9ImVjb2Mtc3RlcCBjb25maXJtIj5Db25maXJtPC9kaXY+CjxkaXYgY2xhc3M9InNheSI+IldhbnQgbWUgdG8gc2VuZCB0aGF0IG92ZXIgcmlnaHQgbm93IHdoaWxlIEkndmUgZ290IHlvdSBvbiB0aGUgbGluZT8gQXdlc29tZSEiIDxzcGFuIHN0eWxlPSJjb2xvcjojNjY2OyI+KHdhbGsgdGhyb3VnaCB0aGUgcGF5bWVudCBvbiB0aGUgd2Vic2l0ZSB0b2dldGhlciwgbGl2ZSBvbiB0aGUgY2FsbCk8L3NwYW4+PC9kaXY+Cgo8aDM+N0Ig4oCUICJJIGRvbid0IGxpa2UgYmVpbmcgdGllZCB0byBhIG1lbWJlcnNoaXAgLyBhIGNvbW1pdG1lbnQiPC9oMz4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIGVtcGF0aHkiPkVtcGF0aHk8L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iVGhhdCdzIGEgZmFpciBjb25jZXJuLCBhbmQgSSBhcHByZWNpYXRlIHlvdSBiZWluZyBzdHJhaWdodCB3aXRoIG1lLiI8L2Rpdj4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIGNsYXJpZnkiPkNsYXJpZnk8L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iSXMgaXQgbW9yZSB0aGUgcHJpY2UsIG9yIG1vcmUgdGhlIGJlaW5nLWxvY2tlZC1pbiBwYXJ0PyBGcm9tIHdoYXQgSSdtIGhlYXJpbmcsIGl0J3Mgbm90IHRoYXQgeW91IGRvbid0IHNlZSB0aGUgdmFsdWUgaW4gdGhlIGNsZWFuaW5nIOKAlCBpdCdzIGp1c3QgdGhhdCB5b3UgZG9uJ3Qgd2FudCB0byBiZSBpbiBhIGNvbnRyYWN0IGlmIHlvdSBkb24ndCBsaWtlIHRoZSBzZXJ2aWNlLiBJcyB0aGF0IGZhaXIgdG8gc2F5PyI8L2Rpdj4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIG92ZXJjb21lIj5PdmVyY29tZTwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJUaGUgd2hvbGUgcG9pbnQgb2YgdGhlIG1lbWJlcnNoaXAgaXMgdGhhdCB5b3UncmUgbm90IHBheWluZyBmdWxsIHByaWNlIGV2ZXJ5IHNpbmdsZSB0aW1lIHNvbWVvbmUgY29tZXMgb3V0IOKAlCB5b3UncmUgc2F2aW5nIDUwIHRvIDYwJSBvbiBldmVyeSBjbGVhbmluZywgYW5kIHlvdSBjYW4gY2FuY2VsIGFueXRpbWUuIjwvZGl2Pgo8ZGl2IGNsYXNzPSJwYXVzZSI+4o+477iPIFdhaXQuIFBlciB0aGUgRkMgU2FsZXMgUUEgR3VpZGUncyBQcmljaW5nIE5lZ290aWF0aW9uL09mZmVycyBwYXJhbWV0ZXIsIGRvIG5vdCByZWR1Y2UgdGhlIG1lbWJlcnNoaXAgZmVlIG9yIHRoZSBjb21taXRtZW50IHRlcm0gYXQgYWxsIHVudGlsIHRoZSBjdXN0b21lciBnaXZlcyB5b3UgYSByZWFsIEJ1ZGdldCBvciBNZW1iZXJzaGlwIHRyaWdnZXIg4oCUIGxlYWQgd2l0aCB0aGUgdmFsdWUgcmVmcmFtZSBhZ2FpbiBpbnN0ZWFkLjwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJUZWxsIHlvdSB3aGF0IOKAlCBJIGNhbiBzaG9ydGVuIHlvdXIgY29tbWl0bWVudCBieSAxIG1vbnRoLCBzbyBpbnN0ZWFkIG9mIDYgcGFpZCBtb250aHMgaXQncyBqdXN0IDUuIFdvdWxkIHRoYXQgZmVlbCBiZXR0ZXI/IjwvZGl2Pgo8ZGl2IGNsYXNzPSJzdGFnZSI+T1IsIGlmIGl0J3MgYWJvdXQgdGhlIG1vbnRobHkgY29zdDo8L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iVGVsbCB5b3Ugd2hhdCDigJQgSSBjYW4gYnJpbmcgeW91ciBtb250aGx5IGRvd24gZnJvbSAkNTkgdG8gJDQ5IGEgbW9udGguIFdvdWxkIHRoYXQgbWFrZSBpdCBlYXNpZXI/IjwvZGl2Pgo8ZGl2IGNsYXNzPSJlY29jLXN0ZXAgY29uZmlybSI+Q29uZmlybTwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJEbyB5b3Ugc2VlIGhvdyB0aGUgbWVtYmVyc2hpcCBhY3R1YWxseSBzYXZlcyB5b3UgbW9uZXkgdmVyc3VzIHBheWluZyBmdWxsIHByaWNlIGV2ZXJ5IHRpbWU/IFdhbnQgbWUgdG8gZ28gYWhlYWQgYW5kIGdldCB5b3UgYm9va2VkPyI8L2Rpdj4KCjxoMz43QyDigJQgIldoYXQgaWYgSSdtIG5vdCBzYXRpc2ZpZWQgd2l0aCB0aGUgY2xlYW5pbmc/IjwvaDM+CjxkaXYgY2xhc3M9ImVjb2Mtc3RlcCBlbXBhdGh5Ij5FbXBhdGh5PC9kaXY+CjxkaXYgY2xhc3M9InNheSI+IkdyZWF0IHF1ZXN0aW9uLiI8L2Rpdj4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIGNsYXJpZnkiPkNsYXJpZnk8L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iRnJvbSB3aGF0IEknbSBoZWFyaW5nLCB5b3UncmUgb24gYm9hcmQgd2l0aCBnZXR0aW5nIHlvdXIgaG9tZSBjbGVhbmVkIOKAlCB5b3UganVzdCB3YW50IHRvIGtub3cgeW91J3JlIGNvdmVyZWQgaWYgc29tZXRoaW5nJ3Mgbm90IHJpZ2h0LiBJcyB0aGF0IGZhaXIgdG8gc2F5PyI8L2Rpdj4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIG92ZXJjb21lIj5PdmVyY29tZTwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJGb3IgY29udGV4dCwgSG9tZWFnbG93IGlzIHRoZSBsYXJnZXN0IGhvbWUgY2xlYW5pbmcgY29tcGFueSBpbiB0aGUgVS5TLiwgd2l0aCBvdmVyIDEwIHllYXJzIG9mIGV4cGVyaWVuY2UgYW5kIG92ZXIgNCBtaWxsaW9uIGNsZWFuaW5ncyBjb21wbGV0ZWQgZm9yIG92ZXIgMS4zIG1pbGxpb24gY3VzdG9tZXJzLiBFdmVyeSBjbGVhbmluZyBpcyBiYWNrZWQgYnkgb3VyIEhhcHBpbmVzcyBHdWFyYW50ZWUg4oCUIGlmIHNvbWV0aGluZydzIG5vdCByaWdodCwgeW91IGp1c3QgbGV0IHVzIGtub3cgYW5kIHdlIG1ha2UgaXQgcmlnaHQsIHNpbXBsZSBhcyB0aGF0LiBZb3UgY2FuIGFsc28gZG93bmxvYWQgb3VyIGFwcCDigJQgdGhpcyBoZWxwcyB5b3UgbWFuYWdlIHlvdXIgYm9va2luZywgY2hhdCBkaXJlY3RseSB3aXRoIHlvdXIgY2xlYW5lciwgZ2V0IG5vdGlmaWVkIGJlZm9yZSB0aGV5IGFycml2ZSwgYW5kIHJlYm9vayB5b3VyIGZhdm9yaXRlIGNsZWFuZXIgYWxsIGluIG9uZSB0YXAuIjwvZGl2Pgo8ZGl2IGNsYXNzPSJlY29jLXN0ZXAgY29uZmlybSI+Q29uZmlybTwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJEb2VzIHRoYXQgcHV0IHlvdXIgbWluZCBhdCBlYXNlPyBBbnkgb3RoZXIgcXVlc3Rpb25zIGJlZm9yZSB3ZSBnZXQgeW91ciBmaXJzdCBjbGVhbmluZyBvbiB0aGUgY2FsZW5kYXI/IjwvZGl2PgoKPGgzPjdEIOKAlCAiTGV0IG1lIHRoaW5rIGFib3V0IGl0IC8gSSBuZWVkIHRvIGFzayBteSBzcG91c2UiPC9oMz4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIGVtcGF0aHkiPkVtcGF0aHk8L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iT2YgY291cnNlIOKAlCB0aGF0J3MgYSB0b3RhbGx5IGZhaXIgdGhpbmcgdG8gdGFsayBvdmVyLiI8L2Rpdj4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIGNsYXJpZnkiPkNsYXJpZnk8L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iSSB3YW50IHRvIG1ha2Ugc3VyZSBJIHBvaW50IHlvdSBpbiB0aGUgcmlnaHQgZGlyZWN0aW9uIOKAlCBpcyBpdCBtb3JlIHRoZSBtZW1iZXJzaGlwIGZlZSwgdGhlIGxlbmd0aCBvZiB0aGUgY29tbWl0bWVudCwgb3Igc29tZXRoaW5nIGVsc2UgSSBjYW4gY2xlYXIgdXAgZm9yIHlvdSByaWdodCBub3c/IjwvZGl2Pgo8ZGl2IGNsYXNzPSJlY29jLXN0ZXAgb3ZlcmNvbWUiPk92ZXJjb21lPC9kaXY+CjxkaXYgY2xhc3M9InBhdXNlIj7ij7jvuI8gV2FpdC48L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iVG90YWxseSBmYWlyIOKAlCBoZXJlJ3Mgd2hhdCBJIGNhbiBkbzogaWYgaXQncyB0aGUgZmVlLCBJIGNhbiBicmluZyBpdCBkb3duIHRvICQ0OSBhIG1vbnRoLiBXb3VsZCB0aGF0IG1ha2UgaXQgZWFzaWVyPyI8L2Rpdj4KPGRpdiBjbGFzcz0ic3RhZ2UiPk9SLCBpZiBpdCdzIHRoZSBsZW5ndGg6PC9kaXY+CjxkaXYgY2xhc3M9InNheSI+IkkgY2FuIHNob3J0ZW4gaXQgYnkgYSBtb250aCBpbnN0ZWFkIOKAlCBzbyBpbnN0ZWFkIG9mIDYgcGFpZCBtb250aHMgaXQncyA1LiBXb3VsZCB0aGF0IGZlZWwgYmV0dGVyPyI8L2Rpdj4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIGNvbmZpcm0iPkNvbmZpcm08L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iRG9lcyB0aGF0IHNvbHZlIGl0IGZvciB5b3U/IFdhbnQgbWUgdG8gZ28gYWhlYWQgYW5kIGdldCB5b3UgYm9va2VkPyI8L2Rpdj4KPGRpdiBjbGFzcz0ic3RhZ2UiPklmIHRoZXkgc3RpbGwgd2FudCB0byBjb25zdWx0IHRoZWlyIHNwb3VzZSBhZnRlciB0aGF0LCBob2xkIHRoZSBvZmZlciBhbmQgbG9jayBhIHNwZWNpZmljIGNhbGxiYWNrIHRpbWUgcmF0aGVyIHRoYW4gbGVhdmluZyBpdCBvcGVuLWVuZGVkOjwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJObyBwcm9ibGVtIOKAlCBJJ2xsIGhvbGQgdGhpcyByYXRlIGZvciB5b3UuIEFyZSB5b3UgYXJvdW5kIGxhdGVyIHRvZGF5LCBzYXkgYXJvdW5kIDIgbydjbG9jaywgc28gSSBjYW4gZ2l2ZSB5b3UgYSBjYWxsIGJhY2sgb25jZSB5b3UndmUgaGFkIGEgY2hhbmNlIHRvIGNoYXQ/IjwvZGl2Pgo8ZGl2IGNsYXNzPSJwYXVzZSI+4o+477iPIFdhaXQg4oCUIGFuZCBsb2NrIGEgc3BlY2lmaWMgdGltZS48L2Rpdj4KCjxoMz43RSDigJQgIkkgb25seSB3YW50IGEgc2luZ2xlIGNsZWFuaW5nLCBub3QgYSBtZW1iZXJzaGlwIjwvaDM+CjxkaXYgY2xhc3M9ImVjb2Mtc3RlcCBlbXBhdGh5Ij5FbXBhdGh5PC9kaXY+CjxkaXYgY2xhc3M9InNheSI+Ik5vIHByb2JsZW0gYXQgYWxsLiI8L2Rpdj4KPGRpdiBjbGFzcz0iZWNvYy1zdGVwIG92ZXJjb21lIj5PdmVyY29tZTwvZGl2Pgo8ZGl2IGNsYXNzPSJzdGFnZSI+U3RlcCAyIOKAlCBHYXVnZSBvcGVubmVzcyB0byBtZW1iZXJzaGlwICh0aGUgcmVxdWlyZWQgREhKIGF0dGVtcHQpOjwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJPdXQgb2YgY3VyaW9zaXR5LCBpZiB0aGlzIGZpcnN0IGNsZWFuaW5nIGVuZHMgdXAgYmVpbmcgc3VwZXIgaGVscGZ1bCwgZG8geW91IHNlZSB5b3Vyc2VsZiBuZWVkaW5nIHRoaXMga2luZCBvZiBoZWxwIGV2ZXJ5IHNvIG9mdGVuPyBJIG9ubHkgYXNrIGJlY2F1c2UgYSBsb3Qgb2Ygb3VyIGN1c3RvbWVycyBzdGFydCB3aXRoIGEgb25lLXRpbWUgY2xlYW4gYnV0IGVuZCB1cCBmaW5kaW5nIHZhbHVlIGluIGhhdmluZyBvbmdvaW5nIHN1cHBvcnQsIGFuZCBvdXIgRm9yZXZlckNsZWFuIG1lbWJlcnNoaXAgY291bGQgc2F2ZSB5b3UgdXAgdG8gNjAlIGVhY2ggdGltZSB5b3UgaGF2ZSBhIGNsZWFuaW5nLiBJdCBzdGFydHMgYXMgbG93IGFzICQ1OSBhIG1vbnRoLCBhbmQgdGhlIHNhdmluZ3MgZnJvbSB0b2RheSBhbG9uZSBjb3VsZCBhbHJlYWR5IG1ha2UgdXAgZm9yIGl0LiBXb3VsZCB5b3UgbGlrZSBtZSB0byB3YWxrIHlvdSB0aHJvdWdoIHdoYXQgdGhhdCBjb3VsZCBsb29rIGxpa2U/IjwvZGl2Pgo8ZGl2IGNsYXNzPSJzdGFnZSI+U3RlcCAzIOKAlCBJZiB0aGV5IGRlY2xpbmUsIHF1YWxpZnkgdGhlIG9iamVjdGlvbi4gPGVtPkFnZW50IG5vdGU6IGV4cGxvcmUgIndoeSIgdG8gYmV0dGVyIG1hdGNoIHRoZWlyIG5lZWRzIOKAlCBkb24ndCByZS1waXRjaCwganVzdCB1bmRlcnN0YW5kLjwvZW0+PC9kaXY+CjxkaXYgY2xhc3M9InNheSI+IlRvdGFsbHkgZmFpci4gSnVzdCBzbyBJIGNhbiBiZXR0ZXIgdW5kZXJzdGFuZCwgaXMgaXQgbW9yZSBhYm91dCB0aGUgY29zdCwgYmVjYXVzZSB0aGVyZSdzIGEgY29tbWl0bWVudCwgb3IgZG8geW91IGp1c3QgZmVlbCBsaWtlIHlvdSBkb24ndCBuZWVkIHJlZ3VsYXIgY2xlYW5pbmdzIHJpZ2h0IG5vdz8iPC9kaXY+CjxkaXYgY2xhc3M9InN0YWdlIj5JZiB0aGV5IHN0aWxsIHdhbnQgb25lLXRpbWUgb25seSBhZnRlciBTdGVwIDMsIGFncmVlIGNsZWFubHkgYW5kIG1vdmUgc3RyYWlnaHQgdG8gdGhlIHJhdGUg4oCUIGRvIG5vdCByZS1waXRjaCBtZW1iZXJzaGlwIGFnYWluOjwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJJIGNhbiBkbyBhIG9uZS10aW1lIGNsZWFuaW5nIGZvciB5b3UsIG5vIG1lbWJlcnNoaXAsIG5vIGNvbW1pdG1lbnQsIG5vdGhpbmcgcmVxdWlyZWQuIEZvciBbWF0gaG91cnMgdGhhdCdzIFtvbmUtdGltZSByYXRlXS4iPC9kaXY+CjxkaXYgY2xhc3M9ImVjb2Mtc3RlcCBjb25maXJtIj5Db25maXJtPC9kaXY+CjxkaXYgY2xhc3M9InNheSI+IldhbnQgbWUgdG8gZ2V0IHRoYXQgYm9va2VkPyI8L2Rpdj4KCjxoMj5QYXJ0IDgg4oCUIExvZ2lzdGljczwvaDI+CjxkaXYgY2xhc3M9InNheSI+IldvbmRlcmZ1bCDigJQgbGV0J3MgZ2V0IHlvdSBhbGwgc2V0LiBXaGF0J3MgdGhlIGJlc3QgZW1haWwgZm9yIHlvdXIgY29uZmlybWF0aW9uPyI8L2Rpdj4KPGRpdiBjbGFzcz0icGF1c2UiPuKPuO+4jyBXYWl0IGZvciB0aGVpciBlbWFpbC48L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iQW5kIHdoYXQgZGF5IHdvcmtzIGJlc3Q/IEknbGwgcGVuY2lsIGluIGEgYmFja3VwIGRheSB0b28sIGp1c3QgaW4gY2FzZS4iPC9kaXY+CjxkaXYgY2xhc3M9InBhdXNlIj7ij7jvuI8gV2FpdCBmb3IgdGhlaXIgZGF0ZS48L2Rpdj4KPGRpdiBjbGFzcz0ic2F5Ij4iQW55IHBldHMgSSBzaG91bGQgbm90ZSBmb3IgeW91ciBjbGVhbmVyIOKAlCBhIGRvZywgYSBjYXQ/IEp1c3Qgc28gSSBjYW4gbWF0Y2ggeW91IHdpdGggYSBjbGVhbmVyIHdobyBpc24ndCBhbGxlcmdpYy4iPC9kaXY+CjxkaXYgY2xhc3M9InBhdXNlIj7ij7jvuI8gV2FpdCBmb3IgdGhlaXIgYW5zd2VyLjwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJBbmQgd2hlcmUgY2FuIHRoZSBjbGVhbmVyIHBhcmsg4oCUIGRyaXZld2F5IG9yIHN0cmVldD8gV2lsbCB5b3UgYmUgaG9tZSwgb3Igc2hvdWxkIEkgbm90ZSBob3cgdGhleSBnZXQgaW4/IE1vc3QgY3VzdG9tZXJzIGVpdGhlciBsZWF2ZSB0aGUgcGxhY2Ugb3BlbiBhbmQgdGhlIGNsZWFuZXIgbG9ja3MgdXAgYWZ0ZXIsIG9yIGxlYXZlIGEgc3BhcmUga2V5IOKAlCB3aGF0ZXZlcidzIGVhc2llc3QgZm9yIHlvdS4iPC9kaXY+CjxkaXYgY2xhc3M9InBhdXNlIj7ij7jvuI8gV2FpdCBmb3IgdGhlaXIgYW5zd2VyLjwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJBbnkgc3BlY2lmaWMgYXJlYXMgeW91IHdhbnQgcHJpb3JpdGl6ZWQsIG9yIHNob3VsZCBJIGp1c3QgcHV0IGEgdGhvcm91Z2ggY2xlYW5pbmcgYWxsIGFyb3VuZD8iPC9kaXY+CjxkaXYgY2xhc3M9InBhdXNlIj7ij7jvuI8gV2FpdCBmb3IgdGhlaXIgYW5zd2VyLjwvZGl2PgoKPGgyPlBhcnQgOSDigJQgVGhlIENvbmZpcm1hdGlvbiBSZWFkYmFjazwvaDI+CjxkaXYgY2xhc3M9InNheSI+Ik9rYXkgW05hbWVdLCBiZWZvcmUgSSBwcm9jZXNzIGFueXRoaW5nLCBsZXQgbWUgcXVpY2tseSBnbyBvdmVyIGV2ZXJ5dGhpbmcgd2UgZGlzY3Vzc2VkLiBKdXN0IGFuc3dlciB3aXRoIGEgY2xlYXIgJ3llcycgaWYgaXQncyBjb3JyZWN0IOKAlCBva2F5PyBZb3VyIG5hbWUgaXMgW0Z1bGwgTmFtZV0sIHlvdXIgZW1haWwgaXMgW2VtYWlsXSwgeW91ciBwaG9uZSBpcyBbbnVtYmVyXSwgYW5kIHlvdXIgYWRkcmVzcyBpcyBbZnVsbCBhZGRyZXNzXS4gWW91ciBjbGVhbmluZyBmb3IgW2RheSwgZGF0ZV0gYXQgW3RpbWVdLCBmb3IgW1hdIGhvdXJzLCBpcyBib29rZWQg4oCUIHdpdGggW2JhY2t1cCBkYXRlXSBhcyB5b3VyIGJhY2t1cC4gWW91ciBmaXJzdCBbWF0taG91ciBjbGVhbmluZyBpcyBjb3ZlcmVkIGJ5IHlvdXIgRm9yZXZlckNsZWFuIG1lbWJlcnNoaXAgdm91Y2hlciBhbmQgYW55IGFwcGxpY2FibGUgZmlyc3QtdmlzaXQgdXBjaGFyZ2UuIFN0YXJ0aW5nIHdpdGggeW91ciBzZWNvbmQgY2xlYW5pbmcsIHlvdXIgbWVtYmVyIHJhdGUgaXMgYWJvdXQgJDIzIGFuIGhvdXIuIFRvZGF5LCBhIGNoYXJnZSBvZiBbZXhhY3QgdG90YWwgaW5jbC4gdGF4XSBnb2VzIHRocm91Z2gg4oCUIHRoYXQncyB5b3VyIFtUb3RhbF0gZG9sbGFyIGZpcnN0IG1vbnRoIHBsdXMgc2FsZXMgdGF4LiBJdCByZW5ld3MgYXQgJDU5IGEgbW9udGggb24gdGhlIHNhbWUgZGF0ZSB1bnRpbCB5b3UgY2hvb3NlIHRvIGNhbmNlbC4gQW5kIHlvdSBjYW4gY2FuY2VsIGFueXRpbWUg4oCUIHRoZSBvbmx5IHRoaW5nIHRvIG5vdGUgaXMgaWYgeW91IGNhbmNlbCBiZWZvcmUgNiBwYWlkIG1vbnRocywgdGhlcmUncyBhIG9uZS10aW1lIGZlZSBvZiAkMzUgdGltZXMgdGhlIGhvdXJzIG9mIHlvdXIgZmlyc3QgY2xlYW5pbmcuIEFyZSBhbGwgdGhlc2UgdGVybXMgY2xlYXIgYW5kIGNvcnJlY3QgZm9yIHlvdT8iPC9kaXY+CjxkaXYgY2xhc3M9ImJveCBsaW1pdHMiPgo8c3Ryb25nPklmIHRoZSBjdXN0b21lciBxdWVzdGlvbnMgYSBudW1iZXIgYWdhaW4gZHVyaW5nIHRoZSByZWFkYmFjayBpdHNlbGY8L3N0cm9uZz4gKG5vdCBqdXN0IGF0IGRlbGl2ZXJ5IGluIFBhcnQgNSk6IGJyaWVmbHkgcmUtZXhwbGFpbiBpbiB5b3VyIG93biB3b3JkcyByYXRoZXIgdGhhbiBqdXN0IHJlcGVhdGluZyB0aGUgcmVhZGJhY2sgbGluZSB2ZXJiYXRpbSwgdGhlbiByZS1jb25maXJtIGJlZm9yZSBtb3ZpbmcgdG8gdGhlIG5leHQgYmxvY2suCjwvZGl2PgoKPGgyPlBhcnQgMTAg4oCUIFNlY3VyZSBQYXltZW50PC9oMj4KPGRpdiBjbGFzcz0ic2F5Ij4iUGVyZmVjdC4gTm93LCBiZWZvcmUgSSB0YWtlIHlvdXIgY2FyZCwgSSdtIGdvaW5nIHRvIHBhdXNlIHRoZSByZWNvcmRpbmcg4oCUIHRoYXQga2VlcHMgeW91ciBwYXltZW50IGluZm9ybWF0aW9uIHNlY3VyZS4gSnVzdCBvbmUgbW9tZW50LiI8L2Rpdj4KPGRpdiBjbGFzcz0icGF1c2UiPvCfm5EgWkVSTyBUT0xFUkFOQ0UgUE9MSUNZIOKAlCBQQVVTRSBUSEUgUkVDT1JESU5HIEJFRk9SRSBUQUtJTkcgUEFZTUVOVC4gTmV2ZXIgc2F5LCByZWFkIGJhY2ssIG9yIGVudGVyIGNhcmQgZGV0YWlscyB3aGlsZSB0aGUgY2FsbCBpcyBiZWluZyByZWNvcmRlZC4gVGFrZSBwYXltZW50IHBlciBwb2xpY3ksIHRoZW4gcmVzdW1lIHJlY29yZGluZyBiZWZvcmUgeW91IHNheSBhbnl0aGluZyBlbHNlLjwvZGl2Pgo8ZGl2IGNsYXNzPSJzYXkiPiJBbHJpZ2h0LCBJJ3ZlIHJlc3VtZWQgdGhlIHJlY29yZGluZywgYW5kIHlvdXIgcGF5bWVudCB3ZW50IHRocm91Z2gg4oCUIHlvdSdyZSBhbGwgc2V0LiI8L2Rpdj4KCjxoMj5QYXJ0IDExIOKAlCBSZWFzc3VyZSArIFdhcm0gRXhpdDwvaDI+CjxkaXYgY2xhc3M9InNheSI+IldlbGNvbWUgdG8gSG9tZUFnbG93LCBbTmFtZV0g4oCUIGV4Y2l0ZWQgdG8gaGF2ZSB5b3Ugb24gYm9hcmQhIEFyZSB0aGVyZSBhbnkgb3RoZXIgcXVlc3Rpb25zIEkgY2FuIGFuc3dlciBmb3IgeW91PyAuLi4gSWYgbm90LCBJIGhvcGUgeW91IGhhdmUgYSB3b25kZXJmdWwgZGF5ISI8L2Rpdj4KPGRpdiBjbGFzcz0ic3RhZ2UiPlNlbmQgdGhlIGNvbmZpcm1hdGlvbiBhbmQgZGFzaGJvYXJkIGxpbmsgd2l0aGluIHRoZSBuZXh0IGNvdXBsZSBtaW51dGVzLjwvZGl2PgoKPGhyIGNsYXNzPSJkaXZpZGVyIj4KCjxoMj5UaGUgNjAtU2Vjb25kIE1pcnJvciBEcmlsbDwvaDI+Cjx1bCBjbGFzcz0iY29tcGFjdCI+CjxsaT4iV2hlbiB3ZXJlIHlvdSBob3BpbmcgdG8gaGF2ZSB0aGUgY2xlYW5pbmcgZG9uZT8iIDxlbT4odGhlIGFzc3VtcHRpdmUgb3Blbik8L2VtPjwvbGk+CjxsaT4iV2hhdCdzIGdvdCB5b3UgbG9va2luZyBmb3IgaGVscCByaWdodCBub3c/IiA8ZW0+KHRoZSBlbW90aW9uYWwga2V5KTwvZW0+PC9saT4KPGxpPlRoZSBjbGVhbiBwcmljZSBicmVha2Rvd24g4oCUIG9uZSBwYXNzYWdlLCBzYWlkIHNsb3dseS48L2xpPgo8bGk+IkEgbG90IG9mIGZvbGtzIGZlZWwgdGhhdCB3YXkgYXQgZmlyc3TigKYiIDxlbT4odGhlIG9iamVjdGlvbiBicmlkZ2UpPC9lbT48L2xpPgo8bGk+Ikp1c3QgYW5zd2VyIHdpdGggYSBjbGVhciAneWVzJyBpZiBpdCdzIGNvcnJlY3QuIiA8ZW0+KHRoZSByZWFkYmFjayk8L2VtPjwvbGk+CjwvdWw+Cgo8c2NyaXB0PgooZnVuY3Rpb24gKCkgewogIC8vIE51bWVyYWwgdmFsdWVzIHBlciBob3VyIGNvdW50LCBkZXJpdmVkIGZyb20gdGhlIEZpcnN0LVZpc2l0IFByaWNpbmcKICAvLyBHcmlkIGluIFBhcnQgNSAocGF5LXRvZGF5IHRvdGFsLCBlYXJseS1jYW5jZWwgZmVlIGF0ICQzNS9ocikuCiAgdmFyIFBSSUNFX0RBVEEgPSB7CiAgICAiMiI6IHsgdG90YWw6IDE5LCBmZWU6IDcwIH0sCiAgICAiMyI6IHsgdG90YWw6IDE5LCBmZWU6IDEwNSB9LAogICAgIjQiOiB7IHRvdGFsOiAzOCwgZmVlOiAxNDAgfSwKICAgICI2IjogeyB0b3RhbDogNzgsIGZlZTogMjEwIH0KICB9OwoKICBmdW5jdGlvbiBidWlsZFBhc3NhZ2UoaG91cnMpIHsKICAgIHZhciBkID0gUFJJQ0VfREFUQVtTdHJpbmcoaG91cnMpXTsKICAgIGlmICghZCkgcmV0dXJuICIiOwogICAgdmFyIG4gPSBTdHJpbmcoaG91cnMpOwogICAgcmV0dXJuICciJCcgKyBkLnRvdGFsICsgIiBpcyB5b3VyIGZpcnN0IG1vbnRoIG9mIG1lbWJlcnNoaXAgcGx1cyB5b3VyIGZpcnN0ICIgKwogICAgICBuICsgIi1ob3VyIGNsZWFuaW5nLiBTdGFydGluZyBtb250aCAyLCBpdCdzICQ1OSBhIG1vbnRoIGZvciB0aGUgIiArCiAgICAgICJtZW1iZXJzaGlwLCBhbmQgZXZlcnkgY2xlYW5pbmcgYWZ0ZXIgeW91ciBmaXJzdCBvbmUgcnVucyBhYm91dCAkMjMgYW4gIiArCiAgICAgICJob3VyIOKAlCByb3VnaGx5IDUwIHRvIDYwJSBsZXNzIHRoYW4gd2hhdCBhIG9uZS10aW1lIGNsZWFuaW5nIG5vcm1hbGx5IGNvc3RzLiBBbmQgSSB3YW50IHRvIGJlIHVwZnJvbnQgIiArCiAgICAgICJ3aXRoIHlvdSBvbiBvbmUgdGhpbmc6IHlvdSBjYW4gY2FuY2VsIGFueXRpbWUsIGJ1dCBpZiB5b3UgY2FuY2VsIGJlZm9yZSA2IHBhaWQgbW9udGhzLCAiICsKICAgICAgInRoZXJlJ3MgYSBvbmUtdGltZSBjYW5jZWxsYXRpb24gZmVlIOKAlCBpdCdzICQzNSB0aW1lcyB0aGUgaG91cnMgb2YgeW91ciAiICsKICAgICAgImZpcnN0IGNsZWFuaW5nLCBzbyBmb3IgeW91ciAiICsgbiArICItaG91ciBjbGVhbiB0aGF0J3MgJDM1IHRpbWVzICIgKwogICAgICBuICsgIiBob3Vycywgb3IgJCIgKyBkLmZlZSArICIuIEFmdGVyIDYgbW9udGhzLCB0aGVyZSdzIG5vIGZlZSBhdCAiICsKICAgICAgJ2FsbC4gRG9lcyB0aGF0IGFsbCBzb3VuZCBmYWlyPyInOwogIH0KCiAgZnVuY3Rpb24gc2VsZWN0SG91cnMoaG91cnMpIHsKICAgIHZhciBwYXNzYWdlRWwgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgicHJpY2UtcGFzc2FnZSIpOwogICAgaWYgKHBhc3NhZ2VFbCkgcGFzc2FnZUVsLnRleHRDb250ZW50ID0gYnVpbGRQYXNzYWdlKGhvdXJzKTsKICAgIHZhciBidG5zID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgiLmhvdXItYnRuIik7CiAgICBmb3IgKHZhciBpID0gMDsgaSA8IGJ0bnMubGVuZ3RoOyBpKyspIHsKICAgICAgdmFyIGIgPSBidG5zW2ldOwogICAgICBpZiAoYi5nZXRBdHRyaWJ1dGUoImRhdGEtaG91cnMiKSA9PT0gU3RyaW5nKGhvdXJzKSkgewogICAgICAgIGIuY2xhc3NMaXN0LmFkZCgiYWN0aXZlIik7CiAgICAgIH0gZWxzZSB7CiAgICAgICAgYi5jbGFzc0xpc3QucmVtb3ZlKCJhY3RpdmUiKTsKICAgICAgfQogICAgfQogIH0KCiAgZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcigiRE9NQ29udGVudExvYWRlZCIsIGZ1bmN0aW9uICgpIHsKICAgIHZhciBidG5zID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgiLmhvdXItYnRuIik7CiAgICBmb3IgKHZhciBpID0gMDsgaSA8IGJ0bnMubGVuZ3RoOyBpKyspIHsKICAgICAgYnRuc1tpXS5hZGRFdmVudExpc3RlbmVyKCJjbGljayIsIGZ1bmN0aW9uICgpIHsKICAgICAgICBzZWxlY3RIb3Vycyh0aGlzLmdldEF0dHJpYnV0ZSgiZGF0YS1ob3VycyIpKTsKICAgICAgfSk7CiAgICB9CiAgICBzZWxlY3RIb3VycygiMyIpOwogIH0pOwp9KSgpOwo8L3NjcmlwdD4KCjxmb290ZXIgc3R5bGU9Im1hcmdpbi10b3A6NTZweDsgcGFkZGluZy10b3A6MjBweDsgYm9yZGVyLXRvcDoxcHggc29saWQgI2VjZWNlYzsgZm9udC1zaXplOjEycHg7IGNvbG9yOiM4ODg7IGxpbmUtaGVpZ2h0OjEuNzsiPgo8c3Ryb25nIHN0eWxlPSJkaXNwbGF5OmJsb2NrOyBjb2xvcjojNjY2OyBmb250LXNpemU6MTJweDsgdGV4dC10cmFuc2Zvcm06dXBwZXJjYXNlOyBsZXR0ZXItc3BhY2luZzowLjA0ZW07IG1hcmdpbi1ib3R0b206NnB4OyI+QXJ0aWZhY3QgcHJvdmVuYW5jZTwvc3Ryb25nPgo8ZGl2PlNsdWc6IDxjb2RlPnNhbGVzL3JhaW5tYWtlci1zY3JpcHQ8L2NvZGU+IChzYWxlcy1kb21haW4tZ2F0ZWQgY29weTsgY2Fub25pY2FsIHNvdXJjZSBpcyB0aGUgPGNvZGU+cmFpbm1ha2VyLXNjcmlwdDwvY29kZT4gYXJ0aWZhY3QpPC9kaXY+CjxkaXY+Q3VycmVudCBwcm92ZW5hbmNlIHVwZGF0ZSBza2lsbHM6IDxhIGhyZWY9Imh0dHBzOi8vZ2l0aHViLmNvbS9ob21lYWdsb3cvaG9tZWFnbG93LWNsYXVkZS1wbHVnaW5zIiBzdHlsZT0iY29sb3I6Izg4ODsiPmhvbWVhZ2xvdy1rbm93bGVkZ2U6Y3JlYXRlLXRlYW0tYXJ0aWZhY3Q8L2E+PC9kaXY+CjxkaXY+T3JpZ2luYWwgYXV0aG9yaW5nIHNraWxsczogdW5yZWNvcmRlZDwvZGl2Pgo8ZGl2PlNvdXJjZXM6IDxlbT5yYWlubWFrZXItY29ycHVzPC9lbT4gQ293b3JrIGFydGlmYWN0IChjYWxsLXRyYW5zY3JpcHQgY29ycHVzLCA0NyB0cmFuc2NyaXB0cyBhcyBvZiAyMDI2LTA4LTA2KTsgZGlyZWN0IG1hbnVhbCBlZGl0cyBieSBDbGF5dG9uIENvbGxpbnMgJmFtcDsgT3NjYXIgdmlhIENvd29yayBjaGF0IHNlc3Npb25zPC9kaXY+CjxkaXY+UmVuZGVyZXIvYnVpbGQ6IG1hbnVhbGx5IGF1dGhvcmVkL2VkaXRlZCBzdGF0aWMgSFRNTCAobm8gYXV0b21hdGVkIGJ1aWxkIHNjcmlwdCk8L2Rpdj4KPGRpdj5DYWRlbmNlOiBtYW51YWwg4oCUIG1pcnJvciBvZiA8Y29kZT5yYWlubWFrZXItc2NyaXB0PC9jb2RlPjsgcmUtY29weSBvbiBlYWNoIGNvbnRlbnQgdXBkYXRlIHVudGlsIHRoZSBwdWJsaXNoIHN0ZXAgbWlycm9ycyBib3RoIHBhdGhzIGF1dG9tYXRpY2FsbHk8L2Rpdj4KPGRpdj5MaWZlY3ljbGU6IHN0YXRpYzwvZGl2Pgo8ZGl2PkFjY2VzczogaW50ZW5kZWQgdG8gYmUgc2VydmVkIHVuZGVyIGEgcGF0aC1zY29wZWQgQ2xvdWRmbGFyZSBBY2Nlc3MgYXBwbGljYXRpb24gKDxjb2RlPnRlYW0tYXJ0aWZhY3RzLnBhZ2VzLmRldi9zYWxlcy8qPC9jb2RlPikgYWxsb3dpbmcgQGhvbWVhZ2xvdy5jb20gcGx1cyBAaG9tZWFnbG93c2FsZXMuY29tIC8gQGhvbWVhZ2xvd3NhbGVzb25lLmNvbSAvIEBob21lYWdsb3dzYWxlc3R3by5jb20g4oCUIHNlZSBTbGFjayB0aHJlYWQgd2l0aCBYaWFvIFdlaSwgMjAyNi0wOC0xNy48L2Rpdj4KPGRpdj5MZWdhY3kgbm90ZTogb3JpZ2luYWxseSBhdXRob3JlZCBhbmQgaXRlcmF0aXZlbHkgZWRpdGVkIGFjcm9zcyBtdWx0aXBsZSBDb3dvcmsgY2hhdCBzZXNzaW9ucyBiZWZvcmUgdGhpcyBwcm92ZW5hbmNlIHJlY29yZCBleGlzdGVkOyBpbmRpdmlkdWFsIGhpc3RvcmljYWwgZWRpdCB0b29scy9za2lsbHMgd2VyZSBub3QgY2VudHJhbGx5IGxvZ2dlZC4gVGhpcyByZWNvcmQgY292ZXJzIHRoZSBjdXJyZW50IHByb3ZlbmFuY2UtZm9vdGVyIHVwZGF0ZSBvbmx5LjwvZGl2Pgo8L2Zvb3Rlcj4KCjwvYm9keT4KPC9odG1sPgo=";
+// ============================================================================
+// Rainmaker Practice — client-side module. Mirrors the NTE architecture:
+// lazy-loaded + 60s cache, role/cluster scoping, local filtering/derivation,
+// single POST (new) / single PATCH (edit) via the corrected sheetRowUrl() grammar.
+// Adherence % and Areas to Reinforce are ALWAYS derived locally — never stored.
+// ============================================================================
+const RM_SHEET = 'Rainmaker Practice';
+const RM_STEPS = [
+  'Warm Open / Assumptive Open',
+  'Discovery',
+  'Recommend the Hours',
+  'Pricing & Membership',
+  'Objection Handling / ECOC',
+  'Logistics',
+  'Confirmation Readback',
+  'Secure Payment',
+  'Closing'
+];
+const RM_OPTS = ['Followed','Needs Coaching','N/A'];
+let rmEntries = [];
+let rmInited = false;
+function rmEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function rmIsAgent(){ return currentUser && currentUser.role === 'Agent'; }
+
+// ---- persistence (localStorage mirror, 0 requests) ----
+function loadRmEntries(){ try { rmEntries = JSON.parse(localStorage.getItem('apexRainmaker')||'[]'); } catch(e){ rmEntries = []; } }
+function saveRmEntries(){ try { localStorage.setItem('apexRainmaker', JSON.stringify(rmEntries)); } catch(e){} }
+
+// ---- row build / parse (exact 20 headers) ----
+function buildRmRow(r){
+  const row = {
+    'Practice ID': r.id||'',
+    'Coaching Entry ID': r.coachingEntryId||'',
+    'Date': r.date||'',
+    'WK#': r.wk||'',
+    'Cluster': r.cluster||'',
+    'Agent': r.agent||'',
+    'Team Lead': r.teamLead||'',
+    'Aircall Link': r.aircall||'',
+  };
+  RM_STEPS.forEach(step => { row[step] = (r.checklist && r.checklist[step]) || ''; });
+  row['Call Review Notes'] = r.notes||'';
+  row['Created AT'] = r.createdAt||'';
+  row['Updated AT'] = r.updatedAt||'';
+  return row;
+}
+function parseRmRow(row){
+  const checklist = {};
+  RM_STEPS.forEach(step => { checklist[step] = row[step]||''; });
+  return {
+    id: row['Practice ID']||'',
+    coachingEntryId: row['Coaching Entry ID']||'',
+    date: row['Date']||'',
+    wk: row['WK#']||'',
+    cluster: row['Cluster']||'',
+    agent: row['Agent']||'',
+    teamLead: row['Team Lead']||'',
+    aircall: row['Aircall Link']||'',
+    checklist,
+    notes: row['Call Review Notes']||'',
+    createdAt: row['Created AT']||'',
+    updatedAt: row['Updated AT']||''
+  };
+}
+
+// ---- local derivations (never stored) ----
+function rmAdherence(rec){
+  let followed=0, needs=0;
+  RM_STEPS.forEach(step => {
+    const v = rec.checklist ? rec.checklist[step] : '';
+    if (v === 'Followed') followed++;
+    else if (v === 'Needs Coaching') needs++;
+  });
+  const applicable = followed + needs;                 // N/A and blank excluded
+  const pct = applicable > 0 ? Math.round(followed/applicable*100) : null;
+  const fullyAdherent = applicable > 0 && needs === 0; // every applicable step Followed
+  return { followed, needs, applicable, pct, fullyAdherent };
+}
+function rmAreas(rec){
+  return RM_STEPS.filter(step => (rec.checklist ? rec.checklist[step] : '') === 'Needs Coaching');
+}
+
+// ---- role/cluster scoping (self-contained: cluster + TL stored on the record) ----
+function getVisibleRmEntries(){
+  if (!currentUser) return [];
+  if (currentUser.role === 'Agent'){
+    const nm = (ROSTER.find(a => a.email === currentUser.email)||{}).name || currentUser.display;
+    return rmEntries.filter(r => r.agent === nm);
+  }
+  if (currentUser.role === 'TL' && currentUser.tlInfo) return rmEntries.filter(r => r.teamLead === currentUser.tlInfo.display);
+  if (currentUser.role === 'OM' && currentUser.omInfo) return rmEntries.filter(r => r.cluster === currentUser.omInfo.cluster);
+  return rmEntries; // Admin / SOM / Director → all clusters
+}
+
+// ---- lazy fetch (only when Call Review / Results open; 60s cache) ----
+async function fetchRainmakerFromSheets(force){
+  if (!SHEETDB_API_URL || !currentUser) return;
+  if (!force && cacheFresh('rainmaker')) return;   // reuse cache within TTL (an empty sheet is a valid cached state)
+  try {
+    const resp = await fetch(`${SHEETDB_API_URL}?sheet=${encodeURIComponent(RM_SHEET)}`, { headers: { 'Accept':'application/json' } });
+    if (!resp.ok) return;                                              // 404/empty tab → keep whatever we have
+    cacheStamp('rainmaker');
+    const rows = await resp.json();
+    if (!Array.isArray(rows)) return;
+    const merged = {};
+    rmEntries.forEach(r => { if (r.id) merged[r.id] = r; });
+    rows.forEach(row => { const p = parseRmRow(row); if (p.id) merged[p.id] = p; });
+    rmEntries = Object.values(merged);
+    saveRmEntries();
+  } catch(err){ console.warn('fetchRainmakerFromSheets error:', err); }
+}
+async function rmEnsureLoaded(){
+  if (!rmEntries.length) loadRmEntries();     // free localStorage hydrate
+  await fetchRainmakerFromSheets(false);      // 1 GET first time / 0 within cache
+  renderRainmakerDashboard();
+}
+
+// ---- tab + sub-tab control ----
+function openRainmakerTab(){
+  if (!rmInited){
+    loadRmEntries();
+    rmPopulateWk();
+    rmInited = true;
+  }
+  // Agents cannot create/edit reviews — hide the Call Review sub-tab for them.
+  const reviewBtn = document.getElementById('rmSubReview');
+  if (reviewBtn) reviewBtn.style.display = rmIsAgent() ? 'none' : 'inline-block';
+  rmShowSub('script');   // default landing = Script (0 SheetDB requests)
+}
+function rmShowSub(sub){
+  if (sub === 'review' && rmIsAgent()) sub = 'script';   // hard guard
+  const panes = { script:'rmPaneScript', review:'rmPaneReview', history:'rmPaneHistory' };
+  Object.keys(panes).forEach(k => { const el = document.getElementById(panes[k]); if (el) el.style.display = (k===sub)?'block':'none'; });
+  ['rmSubScript','rmSubReview','rmSubHistory'].forEach(id => { const el=document.getElementById(id); if(el) el.style.opacity = '0.6'; });
+  const activeBtn = { script:'rmSubScript', review:'rmSubReview', history:'rmSubHistory' }[sub];
+  const ab = document.getElementById(activeBtn); if (ab) ab.style.opacity = '1';
+  if (sub === 'script') rmRenderScript();                // static, 0 requests
+  if (sub === 'review'){ rmPopulateReviewAgents(); rmRenderChecklist(); rmEnsureLoaded(); }
+  if (sub === 'history'){ rmPopulateFilters(); rmEnsureLoaded(); }
+}
+
+// ---- Rainmaker Script (verbatim, static, iframe-isolated, 0 requests) ----
+function rmRenderScript(){
+  const fr = document.getElementById('rmScriptFrame');
+  if (!fr || fr.dataset.loaded === '1') return;
+  try {
+    const html = new TextDecoder('utf-8').decode(Uint8Array.from(atob(RAINMAKER_SCRIPT_B64), c => c.charCodeAt(0)));
+    fr.srcdoc = html;
+    fr.dataset.loaded = '1';
+  } catch(e){ console.warn('rmRenderScript decode failed', e); }
+}
+
+// ---- WK options (clone 551..1000 like the other selects) ----
+function rmPopulateWk(){
+  let opts = '';
+  for (let i = 551; i <= 1000; i++) opts += `<option value="WK${i}">WK${i}</option>`;
+  const wk = document.getElementById('rmWK');   if (wk) wk.innerHTML = '<option value="">— Select WK # —</option>' + opts;
+  const fw = document.getElementById('rmFilterWK'); if (fw) fw.innerHTML = '<option value="">All Weeks</option>' + opts;
+}
+
+// ---- Call Review form ----
+function rmScopeAgents(){
+  let list = ROSTER.slice();
+  if (currentUser.role === 'TL' && currentUser.tlInfo) list = list.filter(a => a.manager === currentUser.tlInfo.fullName);
+  else if (currentUser.role === 'OM' && currentUser.omInfo) list = list.filter(a => a.cluster === currentUser.omInfo.cluster);
+  return list.sort((a,b) => a.name.localeCompare(b.name));
+}
+function rmAgentContext(agentName){
+  const a = ROSTER.find(x => x.name === agentName);
+  if (!a) return { cluster:'', teamLead:'' };
+  const tl = Object.values(TL_EMAILS).find(t => t.fullName === a.manager);
+  return { cluster: a.cluster || (tl?tl.cluster:'') , teamLead: tl ? tl.display : (a.manager||'') };
+}
+function rmPopulateReviewAgents(){
+  const sel = document.getElementById('rmAgent');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Select Agent —</option>' + rmScopeAgents().map(a => `<option value="${rmEsc(a.name)}">${rmEsc(a.name)}</option>`).join('');
+  if (prev) sel.value = prev;
+}
+function rmOnAgentChange(){
+  const agent = document.getElementById('rmAgent').value;
+  // linked coaching logs for this agent (from already-loaded coaching entries — 0 requests)
+  const link = document.getElementById('rmCoachingLink');
+  const logs = (typeof entries !== 'undefined' ? entries : []).filter(e => e.agentName === agent)
+    .sort((a,b)=> (wkNum(b)-wkNum(a)) || String(b.dateOfCoaching||'').localeCompare(String(a.dateOfCoaching||'')));
+  link.innerHTML = '<option value="">— None —</option>' + logs.map(e =>
+    `<option value="${rmEsc(e.id)}" data-wk="${rmEsc(e.wkNumber||'')}" data-focus="${rmEsc((e.rainmakerFocus||[]).join(', '))}">${rmEsc((e.wkNumber||'?')+' · '+fmtCoachingDate(e.dateOfCoaching)+' · '+(e.coachingType||''))}</option>`).join('');
+  rmUpdateFocusRef();
+}
+function rmUpdateFocusRef(){
+  const link = document.getElementById('rmCoachingLink');
+  const ref = document.getElementById('rmFocusRef');
+  const opt = link.options[link.selectedIndex];
+  if (opt && opt.value){
+    const wk = opt.getAttribute('data-wk'); if (wk) document.getElementById('rmWK').value = wk;
+    const focus = opt.getAttribute('data-focus') || '';
+    ref.innerHTML = focus ? `<b>Rainmaker Practice Focus (from linked Coaching Log):</b> ${rmEsc(focus)}` : '<span style="color:#999">Linked Coaching Log has no Rainmaker Practice Focus set.</span>';
+  } else {
+    ref.innerHTML = '<span style="color:#999">Optionally link a Coaching Log to inherit WK# and show its Rainmaker Practice Focus.</span>';
+  }
+}
+function rmRenderChecklist(){
+  const box = document.getElementById('rmChecklist');
+  if (!box || box.dataset.built === '1') { rmRecalc(); return; }
+  box.innerHTML = RM_STEPS.map((step, i) => {
+    const opts = RM_OPTS.map(o => `<label style="margin-right:14px;font-weight:500;font-size:.85rem"><input type="radio" name="rm_${i}" value="${o}" onchange="rmRecalc()"> ${o}</label>`).join('');
+    return `<div style="padding:8px 0;border-bottom:1px solid #eee"><div style="font-weight:700;font-size:.88rem;margin-bottom:4px">${i+1}. ${rmEsc(step)}</div><div>${opts}</div></div>`;
+  }).join('');
+  box.dataset.built = '1';
+  rmRecalc();
+}
+function rmReadChecklist(){
+  const c = {};
+  RM_STEPS.forEach((step, i) => {
+    const sel = document.querySelector(`input[name="rm_${i}"]:checked`);
+    c[step] = sel ? sel.value : '';
+  });
+  return c;
+}
+function rmRecalc(){
+  const rec = { checklist: rmReadChecklist() };
+  const a = rmAdherence(rec);
+  const adhEl = document.getElementById('rmAdherenceLive');
+  if (adhEl) adhEl.textContent = a.applicable > 0 ? (a.pct + '%') : '—';
+  const areas = rmAreas(rec);
+  const arEl = document.getElementById('rmAreasLive');
+  if (arEl) arEl.innerHTML = areas.length ? areas.map(x=>rmEsc(x)).join('<br>') : 'None';
+}
+function rmValidUrl(u){ if (!u) return true; return /^https?:\/\/[^\s]+$/i.test(u.trim()); }
+function rmResetReviewForm(){
+  document.getElementById('rmEditId').value = '';
+  const ag=document.getElementById('rmAgent'); if(ag) ag.value='';
+  const wk=document.getElementById('rmWK'); if(wk) wk.value='';
+  const lk=document.getElementById('rmCoachingLink'); if(lk) lk.innerHTML='<option value="">— None —</option>';
+  const air=document.getElementById('rmAircall'); if(air) air.value='';
+  document.getElementById('rmAircallErr').style.display='none';
+  document.getElementById('rmNotes').value='';
+  RM_STEPS.forEach((s,i)=>{ document.querySelectorAll(`input[name="rm_${i}"]`).forEach(r=>r.checked=false); });
+  document.getElementById('rmSaveErr').style.display='none';
+  document.getElementById('rmSaveMsg').style.display='none';
+  rmUpdateFocusRef(); rmRecalc();
+}
+
+async function saveRainmaker(){
+  if (rmIsAgent()) return;   // agents never create/edit
+  const errBox = document.getElementById('rmSaveErr');
+  const showErr = (m) => { errBox.textContent = m; errBox.style.display='block'; };
+  errBox.style.display='none';
+  document.getElementById('rmSaveMsg').style.display='none';
+  const agent = document.getElementById('rmAgent').value.trim();
+  const wk    = document.getElementById('rmWK').value.trim();
+  const aircall = document.getElementById('rmAircall').value.trim();
+  if (!agent){ showErr('Please select an Agent.'); return; }
+  if (!wk){ showErr('Please select a WK #.'); return; }
+  if (!rmValidUrl(aircall)){ document.getElementById('rmAircallErr').style.display='block'; showErr('The Aircall link is not a valid URL.'); return; }
+  document.getElementById('rmAircallErr').style.display='none';
+  const ctx = rmAgentContext(agent);
+  const nowIso = new Date().toISOString();
+  const editId = document.getElementById('rmEditId').value;
+  const existing = editId ? rmEntries.find(r => r.id === editId) : null;
+  const rec = {
+    id: editId || crypto.randomUUID(),
+    coachingEntryId: document.getElementById('rmCoachingLink').value || '',
+    date: existing ? (existing.date || nowIso.slice(0,10)) : nowIso.slice(0,10),
+    wk, cluster: ctx.cluster, agent, teamLead: ctx.teamLead,
+    aircall,
+    checklist: rmReadChecklist(),
+    notes: document.getElementById('rmNotes').value.trim(),
+    createdAt: existing ? (existing.createdAt || nowIso) : nowIso,
+    updatedAt: nowIso
+  };
+  const btn = document.querySelector('#rmPaneReview .btn-primary');
+  if (btn && btn.dataset.saving === '1') return;                 // prevent double-submit
+  const restore = () => { if (btn){ btn.disabled=false; btn.dataset.saving=''; btn.textContent='💾 Save Rainmaker Practice'; } };
+  if (btn){ btn.disabled=true; btn.dataset.saving='1'; btn.textContent='Saving…'; }
+  try {
+    let res;
+    if (editId){
+      // 1 PATCH by Practice ID — NEVER POST a replacement on failure.
+      res = await fetch(sheetRowUrl(RM_SHEET, 'Practice ID', rec.id), {
+        method:'PATCH', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({ data: buildRmRow(rec) })
+      });
+      if (!res.ok){ restore(); showErr(sheetErrorMessage(res.status)); return; }
+      const j = await res.json().catch(()=>({}));
+      if (j && typeof j.updated !== 'undefined' && j.updated === 0){ restore(); showErr('Rainmaker Practice record not found — nothing was saved. Refresh and try again.'); return; }
+    } else {
+      // 1 POST for a new review.
+      res = await fetch(SHEETDB_API_URL, {
+        method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({ data:[buildRmRow(rec)], sheet: RM_SHEET })
+      });
+      if (!res.ok){ restore(); showErr(sheetErrorMessage(res.status)); return; }
+    }
+  } catch(err){ restore(); showErr('Could not reach the database — nothing was saved. Check your connection and try again.'); return; }
+  // confirmed save → update local cache
+  const idx = rmEntries.findIndex(r => r.id === rec.id);
+  if (idx >= 0) rmEntries[idx] = rec; else rmEntries.push(rec);
+  saveRmEntries();
+  cacheStamp('rainmaker');
+  if (btn){ btn.disabled=false; btn.dataset.saving=''; btn.textContent='💾 Save Rainmaker Practice'; }
+  document.getElementById('rmSaveMsg').style.display='block';
+  document.getElementById('rmEditId').value = rec.id;   // subsequent saves edit the same record
+  renderRainmakerDashboard();
+}
+
+// ---- Results & History ----
+function rmPopulateFilters(){
+  // TL options respect role via the existing getTLsForUser()
+  const tlSel = document.getElementById('rmFilterTL');
+  if (tlSel){ const prev=tlSel.value; tlSel.innerHTML='<option value="">All TLs</option>'+getTLsForUser().map(d=>`<option value="${rmEsc(d)}">${rmEsc(d)}</option>`).join(''); if(prev) tlSel.value=prev; }
+  rmPopulateFilterAgents();
+}
+function rmPopulateFilterAgents(){
+  const sel = document.getElementById('rmFilterAgent');
+  if (!sel) return;
+  const cl = document.getElementById('rmFilterCluster').value;
+  const tl = document.getElementById('rmFilterTL').value;
+  let list = rmScopeAgents();
+  if (cl) list = list.filter(a => a.cluster === cl);
+  if (tl){ const t = Object.values(TL_EMAILS).find(x=>x.display===tl); list = t ? list.filter(a=>a.manager===t.fullName) : []; }
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">All Agents</option>' + list.map(a=>`<option value="${rmEsc(a.name)}">${rmEsc(a.name)}</option>`).join('');
+  if (prev) sel.value = prev;
+}
+function rmOnFilterClusterChange(){ document.getElementById('rmFilterTL').value=''; rmPopulateFilterAgents(); renderRainmakerDashboard(); }
+function rmOnFilterTLChange(){ rmPopulateFilterAgents(); renderRainmakerDashboard(); }
+function rmClearFilters(){
+  ['rmFilterWK','rmFilterCluster','rmFilterTL','rmFilterAgent'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  rmPopulateFilterAgents(); renderRainmakerDashboard();
+}
+function rmApplyFilters(list){
+  const wk = document.getElementById('rmFilterWK')?.value || '';
+  const cl = document.getElementById('rmFilterCluster')?.value || '';
+  const tl = document.getElementById('rmFilterTL')?.value || '';
+  const ag = document.getElementById('rmFilterAgent')?.value || '';
+  return list.filter(r => (!wk||r.wk===wk) && (!cl||r.cluster===cl) && (!tl||r.teamLead===tl) && (!ag||r.agent===ag));
+}
+function renderRainmakerDashboard(){
+  const list = rmApplyFilters(getVisibleRmEntries());
+  // Card 1 — calls reviewed (unique Practice IDs)
+  const uniq = new Set(list.map(r=>r.id));
+  document.getElementById('rmCardReviewed').textContent = uniq.size;
+  // Card 2 — avg adherence across reviews with applicable steps
+  const adhs = list.map(rmAdherence).filter(a => a.pct !== null);
+  const avg = adhs.length ? Math.round(adhs.reduce((s,a)=>s+a.pct,0)/adhs.length) : null;
+  document.getElementById('rmCardAvg').textContent = avg===null ? '—' : (avg+'%');
+  // Card 4 — fully adherent %
+  const applicableReviews = list.filter(r => rmAdherence(r).applicable > 0);
+  const fully = applicableReviews.filter(r => rmAdherence(r).fullyAdherent).length;
+  document.getElementById('rmCardFully').textContent = applicableReviews.length ? Math.round(fully/applicableReviews.length*100)+'%' : '—';
+  // Card 3 + step performance — Needs Coaching frequency per step
+  const perf = {}; RM_STEPS.forEach(s => perf[s] = { followed:0, needs:0, na:0 });
+  list.forEach(r => RM_STEPS.forEach(s => {
+    const v = r.checklist ? r.checklist[s] : '';
+    if (v==='Followed') perf[s].followed++; else if (v==='Needs Coaching') perf[s].needs++; else if (v==='N/A') perf[s].na++;
+  }));
+  const maxNeeds = Math.max(0, ...RM_STEPS.map(s => perf[s].needs));
+  const topAreas = maxNeeds > 0 ? RM_STEPS.filter(s => perf[s].needs === maxNeeds) : [];
+  document.getElementById('rmCardTop').textContent = topAreas.length ? topAreas.join(', ') : '—';
+  // step performance table
+  const perfBody = document.getElementById('rmStepPerf');
+  if (perfBody){
+    perfBody.innerHTML = RM_STEPS.map(s => {
+      const p = perf[s]; const appl = p.followed + p.needs;
+      const pct = appl > 0 ? Math.round(p.followed/appl*100)+'%' : '—';
+      return `<tr><td class="proj-label">${rmEsc(s)}</td><td>${p.followed}</td><td>${p.needs}</td><td>${p.na}</td><td>${pct}</td></tr>`;
+    }).join('');
+  }
+  renderRmHistory(list);
+}
+function renderRmHistory(list){
+  const body = document.getElementById('rmHistoryBody');
+  if (!body) return;
+  const canEdit = !rmIsAgent();
+  const rows = [...list].sort((a,b)=> (wkNum({wkNumber:b.wk})-wkNum({wkNumber:a.wk})) || String(b.date||'').localeCompare(String(a.date||''))).map(r => {
+    const a = rmAdherence(r);
+    const areas = rmAreas(r);
+    const focus = r.coachingEntryId ? (((typeof entries!=='undefined'?entries:[]).find(e=>e.id===r.coachingEntryId)||{}).rainmakerFocus||[]).join(', ') : '';
+    const air = r.aircall ? `<a href="${rmEsc(r.aircall)}" target="_blank" rel="noopener" style="color:#1565c0;font-weight:600">Open</a>` : '—';
+    const act = canEdit
+      ? `<button class="btn-sm btn-edit" onclick="rmLoadForEdit('${rmEsc(r.id)}')">Edit</button>`
+      : `<button class="btn-sm btn-view" onclick="rmViewReadOnly('${rmEsc(r.id)}')">View</button>`;
+    return `<tr>
+      <td>${rmEsc(fmtCoachingDate(r.date)||r.date||'—')}</td>
+      <td>${rmEsc(r.wk||'—')}</td>
+      <td>${rmEsc(r.agent||'—')}</td>
+      <td>${rmEsc(r.teamLead||'—')}</td>
+      <td>${rmEsc(focus||'—')}</td>
+      <td>${a.applicable>0?(a.pct+'%'):'—'}</td>
+      <td>${areas.length?rmEsc(areas.join(', ')):'—'}</td>
+      <td>${air}</td>
+      <td>${act}</td>
+    </tr>`;
+  }).join('');
+  body.innerHTML = rows || '<tr><td colspan="9" class="empty-state">No Rainmaker Practice reviews in view.</td></tr>';
+}
+function rmLoadForEdit(id){
+  if (rmIsAgent()) return;
+  const r = rmEntries.find(x => x.id === id); if (!r) return;
+  rmShowSub('review');
+  rmResetReviewForm();
+  document.getElementById('rmEditId').value = r.id;
+  rmPopulateReviewAgents();
+  document.getElementById('rmAgent').value = r.agent;
+  rmOnAgentChange();
+  document.getElementById('rmWK').value = r.wk;
+  if (r.coachingEntryId){ const lk=document.getElementById('rmCoachingLink'); if([...lk.options].some(o=>o.value===r.coachingEntryId)) lk.value=r.coachingEntryId; rmUpdateFocusRef(); }
+  document.getElementById('rmAircall').value = r.aircall||'';
+  document.getElementById('rmNotes').value = r.notes||'';
+  RM_STEPS.forEach((s,i)=>{ const v=r.checklist?r.checklist[s]:''; const sel=document.querySelector(`input[name="rm_${i}"][value="${v}"]`); if(sel) sel.checked=true; });
+  rmRecalc();
+}
+function rmViewReadOnly(id){
+  const r = rmEntries.find(x => x.id === id); if (!r) return;
+  const a = rmAdherence(r); const areas = rmAreas(r);
+  let m = document.getElementById('rmViewModal');
+  if (!m){ m = document.createElement('div'); m.id='rmViewModal'; m.className='modal-overlay'; document.body.appendChild(m); }
+  const rows = RM_STEPS.map((s,i)=>`<tr><td class="proj-label" style="text-align:left">${i+1}. ${rmEsc(s)}</td><td>${rmEsc(r.checklist[s]||'—')}</td></tr>`).join('');
+  m.innerHTML = `<div class="modal" style="max-width:620px">
+    <div class="modal-header"><h3>Rainmaker Practice — ${rmEsc(r.agent)} · ${rmEsc(r.wk)}</h3>
+      <button onclick="document.getElementById('rmViewModal').classList.remove('open')" style="background:none;border:none;font-size:1.3rem;cursor:pointer">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:.85rem"><b>Date:</b> ${rmEsc(fmtCoachingDate(r.date)||r.date)} &nbsp; <b>Team Lead:</b> ${rmEsc(r.teamLead)} &nbsp; <b>Cluster:</b> ${rmEsc(r.cluster)}</p>
+      <p style="font-size:.85rem"><b>Aircall:</b> ${r.aircall?`<a href="${rmEsc(r.aircall)}" target="_blank" rel="noopener">Open call</a>`:'—'}</p>
+      <p style="font-size:.95rem"><b>Rainmaker Adherence:</b> ${a.applicable>0?(a.pct+'%'):'—'} &nbsp; <b>Areas to Reinforce:</b> ${areas.length?rmEsc(areas.join(', ')):'None'}</p>
+      <table class="proj-table"><thead><tr class="proj-row-header"><th style="text-align:left">Step</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table>
+      <p style="font-size:.85rem;margin-top:10px"><b>Call Review Notes:</b><br>${rmEsc(r.notes||'—').replace(/\n/g,'<br>')}</p>
+    </div></div>`;
+  m.classList.add('open');
+}
+
+</script>
 </body>
 </html>
