@@ -497,9 +497,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div style="background:#1a3353;color:#fff;border-radius:8px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:.95rem;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.18);">
             <span>⭐ WK1 CVR% <span style="font-size:.78rem;font-weight:400;opacity:.8;">(Most Recent Week)</span></span>
             <span id="wk1CvrHighlight" style="font-size:1.35rem;font-weight:800;color:#f9d423;letter-spacing:.5px;">—</span>
+            <span style="font-size:.75rem;font-weight:700;background:#f9d423;color:#1a3353;border-radius:6px;padding:2px 8px;">🎯 Benchmark 10%</span>
           </div>
           <div style="font-size:.82rem;color:#666;line-height:1.4;">
-            Most recent week's CVR% — Sales ÷ Leads Touched × 100
+            Most recent week's CVR% — Sales ÷ Leads Touched × 100. <em>Curing metric — tracked against its own 10% benchmark, separate from overall CVR.</em>
           </div>
         </div>
       </div>
@@ -564,6 +565,34 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </tbody>
         </table>
         <p class="proj-footnote">💡 <em>Current column auto-fills from performance data above. Set a target TCR% to project connects &amp; sales; set a target CSR% to project sales impact. Target Leads auto-fills from your entry (override if needed).</em></p>
+        <!-- Core Metrics Lever guidance — 100% client-side, derived from the fields above. No SheetDB calls. -->
+        <div id="leverGuidance" class="lever-guidance" style="margin-top:14px;border:1.5px solid #d7e3f4;border-radius:10px;overflow:hidden">
+          <div style="background:#1a3353;color:#fff;padding:8px 14px;font-weight:800;font-size:.9rem">🎯 Core Metrics Lever — Coaching Guidance</div>
+          <div style="padding:14px;background:#f7faff">
+            <div style="font-size:.8rem;color:#555;margin-bottom:10px;line-height:1.5">
+              <b>Order of operations:</b>
+              <span style="white-space:nowrap">1️⃣ Volume / Leads Touched</span> →
+              <span style="white-space:nowrap">2️⃣ TCR</span> →
+              <span style="white-space:nowrap">3️⃣ CSR</span>.
+              Fix the most fundamental gap first: is the agent touching enough leads? then are leads converting to connects (TCR)? then are connects converting to sales (CSR)?
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+              <span style="font-size:.8rem;color:#666;font-weight:700">Primary Opportunity:</span>
+              <span id="leverPrimaryOpp" style="font-size:1.05rem;font-weight:800;color:#1565c0">—</span>
+            </div>
+            <div id="leverPrimaryWhy" style="font-size:.85rem;color:#333;line-height:1.5;margin-bottom:10px">—</div>
+            <div id="leverImpact" style="font-size:.85rem;color:#333;line-height:1.6;background:#fff;border:1px solid #e3ecf7;border-radius:8px;padding:10px 12px;display:none"></div>
+            <div id="leverFocusWrap" style="font-size:.85rem;color:#333;line-height:1.5;margin-top:10px;display:none">
+              <b>Recommended Coaching Focus:</b> <span id="leverFocus"></span>
+              <div style="font-size:.76rem;color:#888;margin-top:4px;font-style:italic">Guidance only — confirm the actual behavioral root cause with the agent and the reports; this does not replace your judgment.</div>
+            </div>
+            <div id="leverRamp" style="margin-top:12px;display:none"></div>
+            <div id="leverWk1Cvr" style="font-size:.8rem;color:#333;margin-top:10px;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px;display:none"></div>
+            <div style="font-size:.74rem;color:#7a8aa0;margin-top:12px;border-top:1px dashed #d7e3f4;padding-top:8px">
+              Flow: Performance Metrics → <b>Primary Opportunity</b> → <b>Projected Impact</b> → Areas of Improvement → Action Plan → Agent My Commitment
+            </div>
+          </div>
+        </div>
       </div>
       <div class="form-section">
         <h4>Coaching Notes</h4>
@@ -2151,6 +2180,7 @@ function clearForm() {
   });
   document.getElementById('tenureBadge').textContent='—';
   document.getElementById('editId').value='';
+  if (typeof renderLeverGuidance === 'function') renderLeverGuidance();  // reset lever guidance panel
 }
 function populateFormTLs(cluster) {
   const el = document.getElementById('fTL');
@@ -2307,6 +2337,159 @@ function calcProjection() {
     document.getElementById('projCSRsales').textContent = ((targetCSR / 100) * cc).toFixed(1);
   } else {
     document.getElementById('projCSRsales').textContent = '—';
+  }
+  renderLeverGuidance();   // refresh the Core Metrics Lever coaching guidance (client-side only)
+}
+// Official standardized performance benchmarks (client-side constants — NOT TL-entered).
+// TCR/CSR drive the Primary Opportunity + ramp automatically. WK1 CVR is a SEPARATE curing
+// metric, shown against its own 10% benchmark — never mixed into the Volume→TCR→CSR order
+// and never substituted for the overall CVR calculation.
+const BENCH_TCR = 25, BENCH_CSR = 12, BENCH_WK1CVR = 10;
+// Core Metrics Lever guidance — pure presentation over the values computed above.
+// Order of operations: Volume/Leads → TCR → CSR. TCR/CSR are evaluated against the OFFICIAL
+// benchmarks above (no TL entry required); Volume uses the optional TL-entered Target Leads
+// for scenario planning. No network calls, no persistence of its own.
+function renderLeverGuidance(){
+  const box = document.getElementById('leverGuidance');
+  if (!box) return;
+  const oppEl   = document.getElementById('leverPrimaryOpp');
+  const whyEl   = document.getElementById('leverPrimaryWhy');
+  const impEl   = document.getElementById('leverImpact');
+  const focusWrap = document.getElementById('leverFocusWrap');
+  const focusEl = document.getElementById('leverFocus');
+  const lt = parseFloat(document.getElementById('lt1').value) || 0;
+  const cc = parseFloat(document.getElementById('cc1').value) || 0;
+  const s  = parseFloat(document.getElementById('s1').value)  || 0;
+  const f1 = v => v.toFixed(1);
+  if (lt <= 0) {
+    oppEl.textContent = '—';
+    whyEl.textContent = 'Enter this week’s Leads Touched, Connected Calls, and Sales to see the primary opportunity and projected impact.';
+    impEl.style.display = 'none'; impEl.innerHTML = '';
+    focusWrap.style.display = 'none';
+    return;
+  }
+  const tcrCurr = lt > 0 ? (cc / lt * 100) : 0;
+  const csrCurr = cc > 0 ? (s  / cc * 100) : 0;
+  const csrRate = cc > 0 ? (s / cc) : 0;
+  const tgtTCR  = parseFloat(document.getElementById('projTargetTCR').value);
+  const tgtCSR  = parseFloat(document.getElementById('projTargetCSR').value);
+  const leadsRaw = parseFloat(document.getElementById('projTargetLeads').value);
+  const leadsEdited = document.getElementById('projTargetLeads').dataset.userEdited === '1';
+  const tgtLeads = (!isNaN(leadsRaw) && leadsRaw > 0) ? leadsRaw : lt;
+  const FOCUS = {
+    Volume: 'Productivity, lead utilization, cadence, speed-to-lead, pipeline management.',
+    TCR:    'Call cadence, speed-to-lead, callbacks, contact strategy, lead utilization.',
+    CSR:    'Discovery, objection handling, membership presentation, closing, call quality.'
+  };
+  let opp, why, impactHtml = '', focusKey = null;
+  if (leadsEdited && !isNaN(leadsRaw) && leadsRaw > 0 && lt < leadsRaw) {
+    // Step 1 — Volume is the most fundamental lever.
+    opp = 'Volume / Leads Touched'; focusKey = 'Volume';
+    const addConnects = (tcrCurr / 100) * (leadsRaw - lt);
+    const addSales = csrRate * addConnects;
+    why = `Lead volume is below the target you set (${lt} vs ${leadsRaw}). Volume comes first in the order of operations — raise it before working TCR or CSR.`;
+    impactHtml = `Current Leads: <b>${lt}</b> → Target Leads: <b>${leadsRaw}</b><br>`
+      + `Potential Additional Connects: <b>+${Math.round(addConnects)}</b> (at current TCR ${f1(tcrCurr)}%)<br>`
+      + `Projected Additional Sales: <b>+${f1(addSales)}</b> (at current CSR ${f1(csrCurr)}%)`;
+  } else if (tcrCurr < BENCH_TCR - 0.05) {
+    // Step 2 — TCR below the official 25% benchmark (volume ok / not flagged).
+    opp = 'TCR'; focusKey = 'TCR';
+    const newCC = (BENCH_TCR / 100) * tgtLeads;
+    const addConnects = newCC - cc;
+    const addSales = csrRate * addConnects;
+    why = `Lead volume is sufficient, but TCR is below the ${BENCH_TCR}% benchmark (${f1(tcrCurr)}% vs ${BENCH_TCR}%). Improving TCR should be the primary coaching focus.`;
+    impactHtml = `Current TCR: <b>${f1(tcrCurr)}%</b> → Benchmark TCR: <b>${BENCH_TCR}%</b><br>`
+      + `Current Connected Calls: <b>${cc}</b> → Projected: <b>${Math.round(newCC)}</b><br>`
+      + `Potential Additional Connects: <b>+${Math.round(addConnects)}</b><br>`
+      + `Projected Additional Sales: <b>+${f1(addSales)}</b> (at current CSR ${f1(csrCurr)}%)`;
+  } else if (cc > 0 && csrCurr < BENCH_CSR - 0.05) {
+    // Step 3 — CSR below the official 12% benchmark (volume + TCR ok).
+    opp = 'CSR'; focusKey = 'CSR';
+    const newS = (BENCH_CSR / 100) * cc;
+    const addSales = newS - s;
+    why = `Lead volume and TCR are sufficient, but CSR is below the ${BENCH_CSR}% benchmark (${f1(csrCurr)}% vs ${BENCH_CSR}%). Focus coaching on converting connected calls into sales.`;
+    impactHtml = `Current CSR: <b>${f1(csrCurr)}%</b> → Benchmark CSR: <b>${BENCH_CSR}%</b><br>`
+      + `Current Sales: <b>${s}</b> → Projected: <b>${f1(newS)}</b><br>`
+      + `Potential Additional Sales: <b>+${f1(addSales)}</b>`;
+  } else {
+    opp = 'On Track / No major core-metric gap';
+    why = `TCR is at/above the ${BENCH_TCR}% benchmark and CSR at/above ${BENCH_CSR}% (and lead volume meets any target set). No single core-metric gap stands out — coach to sustain and stretch.`;
+  }
+  oppEl.textContent = opp;
+  whyEl.textContent = why;
+  if (impactHtml) { impEl.style.display = 'block'; impEl.innerHTML = impactHtml; }
+  else { impEl.style.display = 'none'; impEl.innerHTML = ''; }
+  if (focusKey) { focusWrap.style.display = 'block'; focusEl.textContent = FOCUS[focusKey]; }
+  else { focusWrap.style.display = 'none'; focusEl.textContent = ''; }
+  // ── 4-Week Target Ramp / Weekly 1:1 Check-In Guide ──────────────────────────
+  // Progressive milestones from CURRENT to the FINAL TARGET of the primary lever.
+  // Week 4 lands exactly on the final target. Pure client-side; it is a coaching
+  // guide only — NOT four Coaching Log records and NOT four separate saves.
+  const rampEl = document.getElementById('leverRamp');
+  if (rampEl) {
+    let cur, fin, valType; // valType: 'pct' (TCR/CSR) or 'leads' (Volume)
+    if      (focusKey === 'Volume') { cur = lt;      fin = leadsRaw; valType = 'leads'; }
+    else if (focusKey === 'TCR')    { cur = tcrCurr; fin = BENCH_TCR; valType = 'pct';   }
+    else if (focusKey === 'CSR')    { cur = csrCurr; fin = BENCH_CSR; valType = 'pct';   }
+    const gap = (fin != null && !isNaN(fin)) ? (fin - cur) : 0;
+    if (focusKey && gap > 0.05) {
+      const curStr = valType === 'pct' ? f1(cur) + '%' : Math.round(cur);
+      const finStr = valType === 'pct' ? f1(fin) + '%' : Math.round(fin);
+      const gapStr = valType === 'pct' ? '+' + f1(gap) + 'pp' : '+' + Math.round(gap) + ' leads';
+      let rowsHtml = '';
+      for (let i = 1; i <= 4; i++) {
+        const wt   = (i === 4) ? fin : (cur + gap * (i / 4));   // Week 4 = final target exactly
+        const impv = wt - cur;
+        const rel  = cur > 0 ? (impv / cur * 100) : 0;
+        let cells;
+        if (focusKey === 'TCR') {
+          const addC = (impv / 100) * tgtLeads;
+          const totC = (wt   / 100) * tgtLeads;
+          const addS = csrRate * addC;
+          cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${f1(addS)}</td>`;
+        } else if (focusKey === 'Volume') {
+          const addC = (tcrCurr / 100) * impv;
+          const totC = (tcrCurr / 100) * wt;
+          const addS = csrRate * addC;
+          cells = `<td>${Math.round(wt)}</td><td>+${Math.round(impv)}</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${f1(addS)}</td>`;
+        } else { // CSR
+          const addS = (impv / 100) * cc;
+          const totS = (wt   / 100) * cc;
+          cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${f1(addS)}</td><td>${f1(totS)}</td>`;
+        }
+        rowsHtml += `<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`;
+      }
+      const cols = focusKey === 'CSR'
+        ? ['CSR Target','Δ vs Today','Rel. Gain','+Sales','Total Sales/Wk']
+        : [ (focusKey === 'TCR' ? 'TCR Target' : 'Leads Target'), 'Δ vs Today','Rel. Gain','+Connects','Total Connects/Wk','+Sales'];
+      const headHtml = '<th style="text-align:left">Week</th>' + cols.map(c => `<th>${c}</th>`).join('');
+      rampEl.style.display = 'block';
+      rampEl.innerHTML =
+        `<div style="font-weight:800;font-size:.85rem;color:#1a3353;margin-bottom:4px">📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp</div>`
+        + `<div style="font-size:.8rem;color:#555;margin-bottom:8px">Current <b>${curStr}</b> → Final Target <b>${finStr}</b> → Gap <b>${gapStr}</b>. Milestones to review at each weekly 1:1 — Week 4 equals the final target.</div>`
+        + `<div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${headHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`
+        + `<div style="font-size:.74rem;color:#888;margin-top:6px;font-style:italic">Coaching guide only — these are weekly milestones, not four Coaching Log records and not separate saves.</div>`;
+    } else {
+      rampEl.style.display = 'none';
+      rampEl.innerHTML = '';
+    }
+  }
+  // WK1 CVR — a SEPARATE curing metric shown against its own 10% benchmark. Not part of the
+  // Volume→TCR→CSR opportunity order, and NOT the overall CVR. Uses the manual override if set,
+  // else Sales ÷ Leads Touched for the most recent week (same basis as the WK1 CVR highlight).
+  const wk1El = document.getElementById('leverWk1Cvr');
+  if (wk1El) {
+    const wk1Manual = parseFloat(document.getElementById('wk1CvrManual').value);
+    const wk1cvr = !isNaN(wk1Manual) ? wk1Manual : (lt > 0 ? (s / lt * 100) : null);
+    if (wk1cvr == null) {
+      wk1El.style.display = 'none'; wk1El.innerHTML = '';
+    } else {
+      const meets = wk1cvr >= BENCH_WK1CVR - 0.005;
+      wk1El.style.display = 'block';
+      wk1El.innerHTML = `<b>WK1 CVR (curing metric):</b> ${f1(wk1cvr)}% vs ${BENCH_WK1CVR}% benchmark — `
+        + (meets ? '<b style="color:#2e7d32">at/above benchmark</b>' : '<b style="color:#c62828">below benchmark</b>')
+        + `. <span style="color:#888">Tracked separately from overall CVR and from the Volume→TCR→CSR opportunity order.</span>`;
+    }
   }
 }
 const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/r0nbg42fofu0f';
