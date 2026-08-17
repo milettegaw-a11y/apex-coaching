@@ -210,7 +210,8 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="user-badge" id="userBadge"></div>
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
-      <button id="btnBackfill" onclick="backfillToSheets()" style="display:none;background:#1565c0;color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.78rem;font-weight:700;cursor:pointer" title="Push all local entries to SheetDB (fixes missing data on Vercel)">☁️ Sync Local → SheetDB</button>
+      <!-- "Sync Local → SheetDB" (backfillToSheets) button removed: no normal UI path may trigger the old bulk sync.
+           backfillToSheets() is retained as a dormant emergency/recovery utility only (not wired to any control). -->
       <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
   </header>
@@ -1125,7 +1126,7 @@ async function fetchCustomTLsFromSheets(force) {
 function syncCustomTLToSheets(tlData) {
   if (!SHEETDB_API_URL) return;
   fetch(
-    `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(tlData.email)}`,
+    sheetRowUrl('Custom TLs', 'email', tlData.email),
     { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ data: tlData }) }
   ).then(r => r.json()).then(j => {
@@ -1140,7 +1141,7 @@ function syncCustomTLToSheets(tlData) {
 function deleteCustomTLFromSheets(email) {
   if (!SHEETDB_API_URL) return;
   fetch(
-    `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(email)}`,
+    sheetRowUrl('Custom TLs', 'email', email),
     { method: 'DELETE', headers: { 'Accept': 'application/json' } }
   ).catch(err => console.warn('deleteCustomTLFromSheets error:', err));
 }
@@ -1152,7 +1153,7 @@ async function pushAllCustomTLsToSheets() {
   for (const tl of CUSTOM_TLS) {
     try {
       const patchRes = await fetch(
-        `${SHEETDB_API_URL}/sheet/Custom+TLs/email/${encodeURIComponent(tl.email)}`,
+        sheetRowUrl('Custom TLs', 'email', tl.email),
         { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({ data: tl }) }
       );
@@ -1584,7 +1585,7 @@ function initApp() {
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
-  document.getElementById('btnBackfill').style.display    = canRunBackfill() ? 'inline-block' : 'none';
+  // (Sync Local → SheetDB button removed — no visibility toggle needed.)
   populateWKOptions();
   populateFilterTLs();
   populateLogFilterTLs();
@@ -2309,6 +2310,24 @@ function calcProjection() {
   }
 }
 const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/r0nbg42fofu0f';
+// ── SheetDB single-row endpoint (UPDATE / DELETE by column value) ──────────────
+// SheetDB's grammar is:  {api}/{column}/{value}?sheet={tab}
+// The tab MUST travel as the ?sheet= query param — NOT as a "/sheet/{tab}/…" path
+// segment. The path form makes SheetDB read the first segment ("sheet") as the
+// column name and 404 with {"error":"Undefined column: sheet"} for EVERY request,
+// regardless of whether the row exists. That single bug caused the My Commitment
+// save 404, silent edit/delete no-ops, and PATCH-miss→POST duplicate rows.
+function sheetRowUrl(tab, column, value){
+  return `${SHEETDB_API_URL}/${encodeURIComponent(column)}/${encodeURIComponent(value)}?sheet=${encodeURIComponent(tab)}`;
+}
+// Human-readable message for a SheetDB HTTP status — NEVER assume "monthly limit".
+function sheetErrorMessage(status){
+  if (status === 404) return 'Coaching Log not found — this update record could not be located in the database. Please refresh and try again.';
+  if (status === 429) return 'The database is rate-limiting requests right now (request/rate limit). Please wait a moment and try again.';
+  if (status === 401 || status === 403) return 'Access/authentication issue — this account is not permitted to make this change. Please contact your admin.';
+  if (status >= 500) return 'The database service had a server/API error. Nothing was saved — please try again shortly.';
+  return 'The save did not succeed (HTTP ' + status + '). Nothing was saved — please try again.';
+}
 // ── Lightweight per-user fetch cache (in-memory + localStorage timestamp) ──────
 // Gates the four login GETs so a reload within TTL reuses already-loaded data
 // instead of re-downloading the full sheets. Keyed by user so a different login
@@ -2332,7 +2351,7 @@ function syncToSheets(entry, type, isEdit = false) {
   const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
   const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
   if (isEdit) {
-    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(entry.id)}`, {
+    fetch(sheetRowUrl(tabName, 'Entry ID', entry.id), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ data: data })
@@ -2370,7 +2389,7 @@ async function backfillToSheets() {
     if (!e.id) { unmatched.push('(no Entry ID)'); continue; }
     try {
       const res = await fetch(
-        `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`,
+        sheetRowUrl('Coaching Logs', 'Entry ID', e.id),
         { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({ data: buildCoachingRow(e) }) }
       );
@@ -2873,7 +2892,7 @@ function viewEntry(id) {
 function deleteFromSheets(entryId, type) {
   if (!SHEETDB_API_URL) return;
   const tabName = type === 'nte' ? 'NTE Logs' : 'Coaching Logs';
-  fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent(tabName)}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(entryId)}`, {
+  fetch(sheetRowUrl(tabName, 'Entry ID', entryId), {
     method: 'DELETE',
     headers: { 'Accept': 'application/json' }
   }).catch(err => console.warn('SheetDB delete error:', err));
@@ -3166,7 +3185,9 @@ async function saveCommitment(entryId) {
   // Persist to SheetDB FIRST — only mark complete after a confirmed successful save
   if (SHEETDB_API_URL) {
     try {
-      const res = await fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`, {
+      // UPDATE the existing Coaching Log by its Entry ID. Correct SheetDB grammar:
+      // {api}/{column}/{value}?sheet=Coaching Logs  (tab as query param).
+      const res = await fetch(sheetRowUrl('Coaching Logs', 'Entry ID', e.id), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ data: {
@@ -3178,10 +3199,13 @@ async function saveCommitment(entryId) {
           'Commitment Status'   : 'Completed'
         }})
       });
-      if (!res.ok) { restore(); showErr('Could not save your commitment (server error ' + res.status + '). It was NOT saved — please try again. If this keeps happening, the SheetDB monthly limit may be reached.'); return; }
+      // Status-specific errors. A 404 means the record/endpoint was not found — NOT a
+      // monthly quota. We NEVER POST a replacement Coaching Log on a PATCH failure
+      // (that would fabricate a duplicate); we surface the error and stop.
+      if (!res.ok) { restore(); showErr(sheetErrorMessage(res.status)); return; }
       const j = await res.json().catch(()=>({}));
       if (j && typeof j.updated !== 'undefined' && j.updated === 0) {
-        restore(); showErr('Your coaching log could not be matched in the database, so nothing was saved. Please refresh and try again.'); return;
+        restore(); showErr('Coaching Log not found — no row matched this Entry ID, so nothing was saved. Please refresh and try again.'); return;
       }
     } catch(err) {
       console.warn('SheetDB commitment save failed:', err);
@@ -3646,7 +3670,7 @@ function saveNTEAck(id) {
   renderNTETable();
   // Best-effort cross-device sync (only lands if NTE Logs has an "Entry ID" column)
   if (SHEETDB_API_URL && nteEntries[idx].id) {
-    fetch(`${SHEETDB_API_URL}/sheet/${encodeURIComponent('NTE Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(nteEntries[idx].id)}`, {
+    fetch(sheetRowUrl('NTE Logs', 'Entry ID', nteEntries[idx].id), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ data: { 'Acknowledged': 'Yes', 'Acknowledge at': ackAt, 'Updated at ': ackAt } })
