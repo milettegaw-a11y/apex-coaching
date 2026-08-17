@@ -866,6 +866,21 @@ const OM_EMAILS = {
   'princesssimbahan@homeaglowsalesone.com':{display:'OM Princess',cluster:'Princess'},
 };
 const ADMIN_EMAILS = ['milettegaw@homeaglowsales.com','milettegaw@homeaglowsalestwo.com','milettegaw@homeaglowsalesone.com','clayton@homeaglowsales.com'];
+// ── Department-wide reporting accounts ───────────────────────────────────────
+// These accounts see ALL clusters (Jubee, Kendryck, Princess) — the SAME cross-cluster
+// visibility as Admin — but carry their own displayed role label. Authorization is decided
+// by ROLE via isDeptWide(), never by the displayed label text. Normal OMs stay cluster-scoped.
+const DEPT_WIDE_ACCOUNTS = {
+  'jubee@homeaglowsales.com': { role:'SOM',      display:'Jubee' },          // Senior Operations Manager → label "SOM"
+  'clayton@homeaglow.com':    { role:'Director', display:'Clayton Collins' },// Director → label "Director"
+};
+const DEPARTMENT_WIDE_ROLES = ['Admin','SOM','Director'];
+// Centralized department-wide check — one source of truth for "sees every cluster".
+function isDeptWide(u){ u = u || (typeof currentUser !== 'undefined' ? currentUser : null); return !!u && DEPARTMENT_WIDE_ROLES.includes(u.role); }
+// Who may create/edit/delete coaching + NTE entries: department-wide roles, OMs, and TLs.
+function canManageEntries(u){ u = u || (typeof currentUser !== 'undefined' ? currentUser : null); return !!u && (isDeptWide(u) || u.role === 'OM' || u.role === 'TL'); }
+// Who may run the bulk backfill/sync: department-wide roles and OMs.
+function canRunBackfill(u){ u = u || (typeof currentUser !== 'undefined' ? currentUser : null); return !!u && (isDeptWide(u) || u.role === 'OM'); }
 const AGENTS = [
   {email:'franklinpondang@homeaglowsalesone.com',   name:'Franklin Pondang',                 manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-09-01'},
   {email:'khristypepino@homeaglowsales.com',        name:'Khristy Jones Pepino',             manager:'May Claveron',              cluster:'Kendryck', start:'2024-07-15'},
@@ -1188,12 +1203,13 @@ const ROSTER_OM_EMAILS = [
 ];
 function canManageRoster() {
   if (!currentUser) return false;
+  if (isDeptWide()) return true;                                  // SOM / Director / Admin
   if (ROSTER_OM_EMAILS.includes(currentUser.email)) return true;
   if (currentUser.role === 'TL') return true;
   return false;
 }
 function canManageTLs() {
-  return currentUser && (currentUser.role === 'Admin' || currentUser.role === 'OM');
+  return !!currentUser && (isDeptWide() || currentUser.role === 'OM');
 }
 function openRosterManager() {
   const clusterEl  = document.getElementById('rosterFilterCluster');
@@ -1514,7 +1530,11 @@ async function doLogin() {
   await fetchAgentsFromSheets();   // dynamic login roster from the optional "Agents" sheet tab (no-op if absent)
   if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
   let role, display, tlInfo = null, omInfo = null;
-  if (ADMIN_EMAILS.includes(email)) {
+  if (DEPT_WIDE_ACCOUNTS[email]) {
+    // Department-wide reporting account (checked FIRST so a promoted OM email, e.g. Jubee,
+    // resolves to SOM/Director rather than its legacy OM entry).
+    role = DEPT_WIDE_ACCOUNTS[email].role; display = DEPT_WIDE_ACCOUNTS[email].display;
+  } else if (ADMIN_EMAILS.includes(email)) {
     role = 'Admin'; display = 'Admin (' + email + ')';
   } else if (TL_EMAILS[email]) {
     role = 'TL'; tlInfo = TL_EMAILS[email]; display = tlInfo.display;
@@ -1559,12 +1579,12 @@ function initApp() {
   loadRoster();
   loadNTEEntries();
   document.getElementById('userBadge').textContent = currentUser.display + ' · ' + currentUser.role;
-  const canCreate = ['TL','OM','Admin'].includes(currentUser.role);
+  const canCreate = canManageEntries();
   document.getElementById('btnAddCoaching').style.display = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
-  document.getElementById('btnBackfill').style.display    = ['Admin','OM'].includes(currentUser.role) ? 'inline-block' : 'none';
+  document.getElementById('btnBackfill').style.display    = canRunBackfill() ? 'inline-block' : 'none';
   populateWKOptions();
   populateFilterTLs();
   populateLogFilterTLs();
@@ -1774,6 +1794,29 @@ function agentsForScope(cluster, tlDisplay, agentName){
   if (agentName) list = list.filter(a => a.name === agentName);
   return list;
 }
+// Active TLs in the current visibility + filter scope — ROSTER/TL-mapping driven, NOT derived
+// from which TLs happen to have Coaching Logs. This is the source of truth for the TL Completion
+// rows so a TL never disappears just because they have zero logs for the selected week.
+// Works dynamically for every cluster: adding/moving a TL in TL_EMAILS flows straight through.
+function activeTLsForScope(cluster, tlFilter){
+  let tls = Object.values(TL_EMAILS);
+  // Respect the signed-in user's visibility. Department-wide roles (SOM/Director/Admin) see all
+  // clusters; an OM is limited to their own cluster; a TL sees only themselves.
+  if (currentUser.role === 'TL' && currentUser.tlInfo) {
+    tls = tls.filter(t => t.display === currentUser.tlInfo.display);
+  } else if (currentUser.role === 'OM' && currentUser.omInfo) {
+    tls = tls.filter(t => t.cluster === currentUser.omInfo.cluster);
+  }
+  // Apply the dashboard's Cluster / TL dropdown filters (empty cluster = All Clusters).
+  if (cluster)  tls = tls.filter(t => t.cluster === cluster);
+  if (tlFilter) tls = tls.filter(t => t.display === tlFilter);
+  // Exactly one row per TL — dedupe by display name, keep the first mapping seen.
+  const seen = new Set(); const out = [];
+  tls.forEach(t => { if (!seen.has(t.display)) { seen.add(t.display); out.push(t); } });
+  return out.sort((a,b) => a.display.localeCompare(b.display));
+}
+// Zero-safe display: an active TL with no logs shows 0%, never '—' / 'NaN%' / blank.
+function pctOrZero(v){ return (v === '—' || v === 'NaN%' || v == null || v === '') ? '0%' : v; }
 // Completion stats. `expected` = required coaching logs for the window (1/agent/week).
 // TL% and Fully% are measured against `expected`; Agent% is measured against logs that
 // actually exist (you can only expect an agent to respond to a log the TL created).
@@ -1834,11 +1877,17 @@ function renderOMBreakdown(filtered, weeks4, targetWeek){
   const box = document.getElementById('omBreakdown');
   if (!box) return;
   if (!currentUser || currentUser.role === 'Agent') { box.style.display='none'; box.innerHTML=''; return; }
-  if (!filtered.length || !weeks4.length) { box.style.display='none'; box.innerHTML=''; return; }
-  const last4 = filtered.filter(e => weeks4.includes(wkNum(e)));
   const cl = document.getElementById('filterCluster')?.value || '';
   const tlFilter = document.getElementById('filterTL')?.value || '';
   const ag = document.getElementById('filterAgent')?.value || '';
+  // Roster-driven active TLs in scope. The per-TL table renders from THIS list, so a TL with
+  // zero Coaching Logs still gets a row. Only hide the whole breakdown when there is genuinely
+  // nothing to anchor on: no active TLs in scope AND no target week.
+  const scopeTLs = activeTLsForScope(cl, tlFilter);
+  const wkSel = document.getElementById('filterWK')?.value || '';
+  const anchorWeek = targetWeek || (weeks4 && weeks4[0]) || (wkSel ? wkNum({wkNumber:wkSel}) : 0);
+  if (!scopeTLs.length && !anchorWeek) { box.style.display='none'; box.innerHTML=''; return; }
+  const last4 = filtered.filter(e => weeks4.includes(wkNum(e)));
   const scopeAgents = agentsForScope(cl, tlFilter, ag).length;
   // Weekly rows (newest first): each row is one week, expected = agents in scope for that week
   const weekRows = weeks4.map(w => {
@@ -1852,23 +1901,25 @@ function renderOMBreakdown(filtered, weeks4, targetWeek){
       <td>${c.fullPct}</td>
     </tr>`;
   }).join('');
-  // Per-TL rows for the TARGET week (matches the summary cards): expected = that TL's agents × 1
-  const tw = targetWeek || weeks4[0];
+  // Per-TL rows for the TARGET week. The row set comes from the ACTIVE-TL roster (scopeTLs),
+  // NOT from logs that exist — so every active TL in the selected cluster appears exactly once,
+  // even with zero Coaching Logs or 0% completion. Expected = that TL's active agents × 1.
+  const tw = anchorWeek;
   const twList = filtered.filter(e => wkNum(e) === tw);
-  const tls = [...new Set(twList.map(e => e.teamLead || '—'))].sort();
-  const tlRows = tls.map(tl => {
-    const tlList = twList.filter(e => (e.teamLead||'—') === tl);
-    const tlAgents = agentsForScope(cl, tl, ag).length;
+  const tlRows = scopeTLs.map(t => {
+    const tlDisplay = t.display;
+    const tlList   = twList.filter(e => (e.teamLead || '') === tlDisplay);   // may be empty → 0%
+    const tlAgents = agentsForScope(cl, tlDisplay, ag).length;              // roster-driven expected pop.
     const c = completionStats(tlList, tlAgents);
     return `<tr>
-      <td class="proj-label">${escHtml(tl)}</td>
-      <td>${c.tlPct}</td>
-      <td>${c.agentPct}</td>
-      <td>${c.fullPct}</td>
+      <td class="proj-label">${escHtml(tlDisplay)}</td>
+      <td>${pctOrZero(c.tlPct)}</td>
+      <td>${pctOrZero(c.agentPct)}</td>
+      <td>${pctOrZero(c.fullPct)}</td>
       <td>${c.pending}</td>
     </tr>`;
   }).join('');
-  const wkLabel = 'WK' + Math.min(...weeks4) + '–WK' + Math.max(...weeks4);
+  const wkLabel = weeks4.length ? ('WK' + Math.min(...weeks4) + '–WK' + Math.max(...weeks4)) : (tw ? ('WK'+tw) : '—');
   box.style.display = 'block';
   box.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px" class="omBreakGrid">
@@ -1907,8 +1958,8 @@ function renderTable(tbodyId, list, showType=false) {
     tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No coaching entries found.</td></tr>`;
     return;
   }
-  const canDelete = ['TL','OM','Admin'].includes(currentUser.role);
-  const canEdit   = ['TL','OM','Admin'].includes(currentUser.role);
+  const canDelete = canManageEntries();
+  const canEdit   = canManageEntries();
   tbody.innerHTML = list.map((e, idx) => {
     // Coaching Status = the TL's performance status ONLY (never the agent's commitment status)
     const statusBadge = getStatusBadge(e.coachingStatus || 'Pending');
@@ -2301,7 +2352,7 @@ function syncToSheets(entry, type, isEdit = false) {
 let __backfillRunning = false;
 async function backfillToSheets() {
   if (!SHEETDB_API_URL) return;
-  if (!currentUser || !['Admin','OM'].includes(currentUser.role)) { alert('Only Admin/OM can run a bulk sync.'); return; }
+  if (!canRunBackfill()) { alert('Only Admin / SOM / Director / OM can run a bulk sync.'); return; }
   if (__backfillRunning) return;                                  // guard against double-click
   if (!entries.length) { alert('No local coaching logs to sync.'); return; }
   const proceed = confirm(
@@ -2472,7 +2523,7 @@ async function fetchFromSheets(force) {
     if (currentUser.role === 'TL' && currentUser.tlInfo) {
       const tlDisplay = encodeURIComponent(currentUser.tlInfo.display);
       url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Team%20Lead=${tlDisplay}`;
-    } else if (currentUser.role === 'Admin' || currentUser.role === 'OM') {
+    } else if (isDeptWide(currentUser) || currentUser.role === 'OM') {
       url = `${SHEETDB_API_URL}?sheet=Coaching%20Logs`;
     } else if (currentUser.role === 'Agent') {
       const agentName = ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display;
@@ -3253,7 +3304,7 @@ function renderNTETable() {
     body.innerHTML = '<tr><td colspan="8" class="empty-state">No NTE entries found.</td></tr>';
     return;
   }
-  const canEdit = ['TL','OM','Admin'].includes(currentUser.role);
+  const canEdit = canManageEntries();
   const rows = filtered.map(n => {
     const status   = getNTEStatus(n);
     const badgeCls = status === 'Completed' ? 'badge-green' : 'badge-yellow';
