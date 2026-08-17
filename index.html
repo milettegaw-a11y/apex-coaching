@@ -844,7 +844,10 @@ const TL_EMAILS = {
   'kennethhistoriador@homeaglowsales.com': {display:'TL Kenneth', fullName:'Kenneth Historiador Jr.',cluster:'Jubee'},
   'angelomararac@homeaglowsalestwo.com':   {display:'TL Angelo',  fullName:'Angelo Mararac',         cluster:'Jubee'},
   'euniceolaguer@homeaglowsalestwo.com':   {display:'TL Eunice',  fullName:'Eunice Olaguer',         cluster:'Jubee'},
-  'annapascual@homeaglowsalestwo.com':     {display:'TL Anna',    fullName:'Anna Pascual',           cluster:'Jubee'},
+  // TL Anna — mapping is live (agents map to her), but her LOGIN email is NOT yet confirmed.
+  // The key below is a flagged placeholder, NOT a real credential: it can never match a typed
+  // Homeaglow login. Replace it with her confirmed email to enable her TL sign-in.
+  'PENDING_LOGIN_EMAIL::anna-pascual':     {display:'TL Anna',    fullName:'Anna Pascual',           cluster:'Jubee'},
   'jovanjalandoni@homeaglowsales.com':     {display:'TL Jovan',   fullName:'Jovan Philip Jalandoni', cluster:'Princess'},
   'jaydimiranda@homeaglowsalestwo.com':    {display:'TL Jaydi',   fullName:'Jaydi Miranda',          cluster:'Princess'},
   'mariaglaizasy@homeaglowsales.com':      {display:'TL Glai',    fullName:'Maria Glaiza Sy',        cluster:'Princess'},
@@ -1080,13 +1083,15 @@ function loadCustomTLs() {
 function saveCustomTLs() {
   localStorage.setItem('apexCustomTLs', JSON.stringify(CUSTOM_TLS));
 }
-async function fetchCustomTLsFromSheets() {
+async function fetchCustomTLsFromSheets(force) {
   if (!SHEETDB_API_URL) return;
+  if (!force && cacheFresh('customtls')) return;   // reuse cached Custom TLs within TTL
   try {
     const res = await fetch(`${SHEETDB_API_URL}?sheet=Custom+TLs`, {
       headers: { 'Accept': 'application/json' }
     });
     if (!res.ok) return;
+    cacheStamp('customtls');
     const rows = await res.json();
     if (!Array.isArray(rows)) return;
     rows.forEach(r => {
@@ -1702,6 +1707,28 @@ function applyLogFilters(list) {
   });
 }
 function wkNum(e){ return parseInt(String(e && e.wkNumber || '').replace(/\D/g,'')) || 0; }
+// Display a saved coaching date as YYYY-MM-DD WITHOUT any timezone conversion.
+// Accepts "2026-08-16" (ISO, optionally with time) or "8/16/2026" (US). Never invents a date.
+function fmtCoachingDate(v){
+  if (!v) return '';
+  v = String(v).trim();
+  let m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);            // already ISO date (or datetime)
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);          // US M/D/YYYY
+  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+  // Google Sheets date serial (a date-formatted cell returned as a number via the API).
+  // Coaching dates fall in the 2020s -> serial ~43800-47500; guard the range so we never
+  // misread some other numeric value. UTC math keeps it timezone-safe (epoch 1899-12-30).
+  if (/^\d+(\.\d+)?$/.test(v)) {
+    const serial = parseFloat(v);
+    if (serial >= 20000 && serial <= 90000) {
+      const d = new Date(Date.UTC(1899, 11, 30) + Math.round(serial) * 86400000);
+      const yy = d.getUTCFullYear(), mm = String(d.getUTCMonth()+1).padStart(2,'0'), dd = String(d.getUTCDate()).padStart(2,'0');
+      return `${yy}-${mm}-${dd}`;
+    }
+  }
+  return v;                                               // unknown format — show as-is, don't fabricate
+}
 // Dynamically find the latest N valid week numbers present in a list (no hardcoding).
 function latestWeeks(list, n){
   const nums = [...new Set(list.map(wkNum).filter(x => x > 0))].sort((a,b)=>b-a);
@@ -1861,7 +1888,7 @@ function renderTable(tbodyId, list, showType=false) {
     // Coaching Status = the TL's performance status ONLY (never the agent's commitment status)
     const statusBadge = getStatusBadge(e.coachingStatus || 'Pending');
     const agentBadge  = agentStatusBadge(agentStatusCoaching(e));
-    const dateStr = e.dateOfCoaching ? e.dateOfCoaching : '—';
+    const dateStr = fmtCoachingDate(e.dateOfCoaching) || '—';
     const col5    = showType ? (e.coachingType||'—') : truncate(e.highlights||'—', 30);
     const col6    = showType ? truncate(e.highlights||'—',28) : truncate(e.opportunities||'—',28);
     const limiter = e.limiter ? (e.limiter.length>22 ? e.limiter.substring(0,22)+'…' : e.limiter) : '—';
@@ -2206,6 +2233,24 @@ function calcProjection() {
   }
 }
 const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/r0nbg42fofu0f';
+// ── Lightweight per-user fetch cache (in-memory + localStorage timestamp) ──────
+// Gates the four login GETs so a reload within TTL reuses already-loaded data
+// instead of re-downloading the full sheets. Keyed by user so a different login
+// never reuses another user's scoped data. The persisted datasets themselves
+// (apexCoachingLogs / apexNTELogs / apexRoster / apexCustomTLs) survive reloads;
+// this only records "how fresh" they are.
+const CACHE_TTL_MS = 60000; // 60s
+const __memCacheTs = {};
+function __ckey(key){ return 'apexCacheTs:' + key + ':' + ((currentUser && currentUser.email) || 'anon'); }
+function cacheFresh(key){
+  const now = Date.now(), k = __ckey(key);
+  if (__memCacheTs[k] && (now - __memCacheTs[k]) < CACHE_TTL_MS) return true;
+  const ls = parseInt(localStorage.getItem(k) || '0', 10);
+  if (ls && (now - ls) < CACHE_TTL_MS) { __memCacheTs[k] = ls; return true; }
+  return false;
+}
+function cacheStamp(key){ const now = Date.now(), k = __ckey(key); __memCacheTs[k] = now; try { localStorage.setItem(k, String(now)); } catch(e){} }
+function cacheInvalidate(key){ const k = __ckey(key); delete __memCacheTs[k]; try { localStorage.removeItem(k); } catch(e){} }
 function syncToSheets(entry, type, isEdit = false) {
   if (!SHEETDB_API_URL) return;
   const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
@@ -2224,34 +2269,48 @@ function syncToSheets(entry, type, isEdit = false) {
     }).catch(err => console.warn('SheetDB sync error:', err));
   }
 }
+// Manual bulk sync — Admin/OM only, explicit confirm, single-flight.
+// IMPORTANT: this UPDATES existing rows by Entry ID only. It NEVER POSTs a new
+// row on a PATCH miss (that behaviour is what multiplied the sheet). Unmatched
+// IDs are reported so a human can decide why they were not found.
+let __backfillRunning = false;
 async function backfillToSheets() {
-  if (!SHEETDB_API_URL || !entries.length) {
-    alert('No local entries to backfill.'); return;
-  }
+  if (!SHEETDB_API_URL) return;
+  if (!currentUser || !['Admin','OM'].includes(currentUser.role)) { alert('Only Admin/OM can run a bulk sync.'); return; }
+  if (__backfillRunning) return;                                  // guard against double-click
+  if (!entries.length) { alert('No local coaching logs to sync.'); return; }
+  const proceed = confirm(
+    'Bulk-update ' + entries.length + ' coaching logs in the cloud?\n\n' +
+    '• Sends one UPDATE per record (this can be slow and uses many API requests).\n' +
+    '• It will NOT create any new rows, so it cannot create duplicates.\n\n' +
+    'Only run this if you know local data needs pushing. Continue?'
+  );
+  if (!proceed) return;
+  __backfillRunning = true;
   const btn = document.getElementById('btnBackfill');
-  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
-  let ok = 0, fail = 0;
+  if (btn) { btn.disabled = true; btn.dataset.saving = '1'; btn.textContent = 'Syncing…'; }
+  let ok = 0, fail = 0; const unmatched = [];
   for (const e of entries) {
+    if (!e.id) { unmatched.push('(no Entry ID)'); continue; }
     try {
-      const row  = buildCoachingRow(e);
-      const patchRes = await fetch(
+      const res = await fetch(
         `${SHEETDB_API_URL}/sheet/${encodeURIComponent('Coaching Logs')}/${encodeURIComponent('Entry ID')}/${encodeURIComponent(e.id)}`,
         { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: row }) }
+          body: JSON.stringify({ data: buildCoachingRow(e) }) }
       );
-      const patchJson = await patchRes.json().catch(() => ({}));
-      if (!patchJson.updated || patchJson.updated === 0) {
-        await fetch(SHEETDB_API_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ data: [row], sheet: 'Coaching Logs' })
-        });
-      }
-      ok++;
-    } catch(err) { fail++; console.warn('Backfill error for', e.id, err); }
+      const j = await res.json().catch(() => ({}));
+      if (res.ok && (j.updated === undefined || j.updated > 0)) ok++;
+      else unmatched.push(e.id);                                  // do NOT POST — never fabricate a duplicate
+    } catch(err) { fail++; console.warn('Bulk sync error for', e.id, err); }
   }
-  if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync Local → SheetDB'; }
-  alert(`Backfill complete: ${ok} synced${fail ? ', ' + fail + ' failed (check console)' : ''}.`);
-  fetchFromSheets();
+  if (btn) { btn.disabled = false; btn.dataset.saving = ''; btn.textContent = '☁️ Sync Local → SheetDB'; }
+  __backfillRunning = false;
+  cacheStamp('coaching');                                         // local data is now the freshest we have
+  let msg = 'Bulk sync complete.\nUpdated: ' + ok + '.';
+  if (unmatched.length) msg += '\nNot found in the sheet (NOT created, to avoid duplicates): ' + unmatched.length + '.';
+  if (fail) msg += '\nErrors: ' + fail + ' (see console).';
+  alert(msg);
+  // No automatic full re-download here.
 }
 // FIX: keys below match the ACTUAL sheet headers (R, Wk# TCR%, AVG *, Follow up, Action plan, Remartks, trailing spaces)
 function buildCoachingRow(e) {
@@ -2269,7 +2328,7 @@ function buildCoachingRow(e) {
   const cluster = (Object.values(TL_EMAILS).find(t=>t.display===e.teamLead)||{}).cluster||'';
   return {
     'Entry ID': e.id||'',
-    'R': e.dateOfCoaching,
+    'Date': e.dateOfCoaching,   // the live coaching-date column is "Date" (legacy sheets used "R")
     'WK#': e.wkNumber,
     'Cluster': cluster,
     'Team Lead': e.teamLead,
@@ -2337,7 +2396,7 @@ function parseSheetRow(row) {
   }));
   return {
     id:             row['Entry ID']||'',
-    dateOfCoaching: row['R']||row['Date']||'',
+    dateOfCoaching: row['Date']||row['Date of Coaching']||row['R']||'',   // current, then legacy field names
     wkNumber:       row['WK#']||'',
     cluster:        row['Cluster']||'',
     teamLead:       row['Team Lead']||'',
@@ -2377,8 +2436,12 @@ function parseSheetRow(row) {
     }
   };
 }
-async function fetchFromSheets() {
+async function fetchFromSheets(force) {
   if (!SHEETDB_API_URL || !currentUser) return;
+  // Cache hit: reuse already-loaded coaching logs instead of re-downloading the sheet
+  if (!force && cacheFresh('coaching') && entries.length) {
+    reconcileRosterFromEntries(); renderLogTable(); renderDashboard(); return;
+  }
   try {
     let url;
     if (currentUser.role === 'TL' && currentUser.tlInfo) {
@@ -2408,6 +2471,7 @@ async function fetchFromSheets() {
       return db.localeCompare(da);
     });
     saveEntries();
+    cacheStamp('coaching');         // record freshness for the 60s cache
     reconcileRosterFromEntries();   // auto-register any TL/agent found only in the sheet (e.g. Team Anna)
     renderLogTable();
     renderDashboard();
@@ -2436,11 +2500,13 @@ function parseNTERow(row){
     }
   };
 }
-async function fetchNTEFromSheets(){
+async function fetchNTEFromSheets(force){
   if (!SHEETDB_API_URL || !currentUser) return;
+  if (!force && cacheFresh('nte')) { renderNTETable(); return; }   // reuse cached NTEs within TTL
   try {
     const resp = await fetch(`${SHEETDB_API_URL}?sheet=NTE%20Logs`, { headers: { 'Accept': 'application/json' } });
     if (!resp.ok) return;
+    cacheStamp('nte');
     const rows = await resp.json();
     if (!Array.isArray(rows) || !rows.length) return;
     const merged = {};
@@ -2489,11 +2555,13 @@ function reconcileRosterFromEntries(){
 // columns Email, Name, Team Lead, Cluster (and optional Start Date), it becomes
 // the dynamic source of truth for agent logins — new endorsements need only a row,
 // never a code change. Guarded: a no-op until that tab exists.
-async function fetchAgentsFromSheets(){
+async function fetchAgentsFromSheets(force){
   if (!SHEETDB_API_URL) return;
+  if (!force && cacheFresh('agents')) return;   // reuse cached Agents tab within TTL
   try {
     const res = await fetch(`${SHEETDB_API_URL}?sheet=Agents`, { headers: { 'Accept': 'application/json' } });
     if (!res.ok) return;
+    cacheStamp('agents');
     const rows = await res.json();
     if (!Array.isArray(rows) || !rows.length) return;
     let changed = false;
@@ -2502,10 +2570,17 @@ async function fetchAgentsFromSheets(){
       const name  = String(r['Name'] || r['Agent'] || '').trim();
       if (!email || !name || !isHomeaglowEmail(email)) return;
       const tlDisp  = String(r['Team Lead'] || r['TL'] || '').trim();
-      const t       = Object.values(TL_EMAILS).find(x => x.display === tlDisp);
+      const cluster = String(r['Cluster'] || '').trim();
+      let t = tlDisp ? Object.values(TL_EMAILS).find(x => x.display === tlDisp) : null;
+      // If the Agents tab names a TL we don't know yet, register it dynamically (display-keyed, non-login).
+      if (tlDisp && !t) {
+        const key = 'sheet-tl:' + tlDisp.toLowerCase();
+        if (!TL_EMAILS[key]) TL_EMAILS[key] = { display: tlDisp, fullName: tlDisp, cluster: cluster };
+        t = TL_EMAILS[key];
+      }
       const manager = t ? t.fullName : tlDisp;
-      const cluster = String(r['Cluster'] || '').trim() || (t ? t.cluster : '');
-      const obj = { name, email, manager, cluster, startDate: String(r['Start Date'] || r['Start'] || '') };
+      const obj = { name, email, manager, cluster: cluster || (t ? t.cluster : ''),
+                    startDate: String(r['Start Date'] || r['Start'] || '') };
       const idx = ROSTER.findIndex(a => a.email && a.email.toLowerCase() === email);
       if (idx >= 0) ROSTER[idx] = { ...ROSTER[idx], ...obj }; else ROSTER.push(obj);
       changed = true;
@@ -2642,6 +2717,7 @@ function saveEntry() {
     entries.unshift(entry);
   }
   saveEntries();
+  cacheStamp('coaching');   // local cache now current — a reload within TTL shows this save
   syncToSheets(entry, 'coaching', isEdit);
   clearDraft();
   closeModal('formModal');
@@ -2661,7 +2737,7 @@ function viewEntry(id) {
     </tr>`).join('');
   document.getElementById('viewModalBody').innerHTML = `
     <div class="info-row" style="margin-bottom:16px">
-      <span class="info-chip">📅 ${e.dateOfCoaching||'—'}</span>
+      <span class="info-chip">📅 ${fmtCoachingDate(e.dateOfCoaching)||'—'}</span>
       <span class="info-chip">📋 ${e.wkNumber||'—'}</span>
       <span class="info-chip">👤 ${e.agentName||'—'}</span>
       <span class="info-chip">🏷️ ${e.teamLead||'—'}</span>
@@ -2732,6 +2808,7 @@ function deleteEntry(id) {
   deleteFromSheets(id, 'coaching');
   entries = entries.filter(x=>x.id!==id);
   saveEntries();
+  cacheStamp('coaching');
   renderDashboard();
   renderLogTable();
 }
@@ -2855,7 +2932,7 @@ function openCommitmentView(entryId) {
   const tab1 = `
     <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid #eee">
       <div style="font-size:1.05rem;font-weight:800;margin-bottom:4px">${esc(e.agentName||'—')}</div>
-      <div style="font-size:.82rem;color:#666">${esc(e.teamLead||'—')} &nbsp;·&nbsp; ${e.dateOfCoaching||'—'} &nbsp;·&nbsp; ${e.wkNumber||'—'}</div>
+      <div style="font-size:.82rem;color:#666">${esc(e.teamLead||'—')} &nbsp;·&nbsp; ${fmtCoachingDate(e.dateOfCoaching)||'—'} &nbsp;·&nbsp; ${e.wkNumber||'—'}</div>
       ${e.coachingType ? `<div style="margin-top:6px"><span style="background:#fff3cd;border-radius:12px;padding:3px 10px;font-size:.78rem;font-weight:700">${esc(e.coachingType)}</span></div>` : ''}
     </div>
     <div class="coaching-detail-grid">
@@ -3040,6 +3117,7 @@ async function saveCommitment(entryId) {
   // Save succeeded (or no backend configured) → commit locally and mark complete
   e.star = { ...commit, status: 'Completed' };
   saveEntries();
+  cacheStamp('coaching');   // keep cache current so a reload shows the new commitment
   renderDashboard();
   renderLogTable();
   const badge = document.getElementById('commitStatusBadge');
@@ -3280,6 +3358,7 @@ function saveNTE() {
     });
   }
   saveNTEEntries();
+  cacheStamp('nte');
   const savedNTE = nteEntries.find(x => x.dateLogged===dateLogged && x.teamLead===teamLead && x.agentName===agentName && x.nteLink===nteLink);
   if (savedNTE) syncToSheets(savedNTE, 'nte');
   closeNTEForm();
@@ -3323,6 +3402,7 @@ function deleteNTE(id) {
   deleteFromSheets(id, 'nte');
   nteEntries = nteEntries.filter(x => x.id !== id);
   saveNTEEntries();
+  cacheStamp('nte');
   renderNTETable();
 }
 let _nteAckCanvas = null;
@@ -3486,6 +3566,7 @@ function saveNTEAck(id) {
   };
   nteEntries[idx].updatedAt = ackAt;
   saveNTEEntries();
+  cacheStamp('nte');
   renderNTETable();
   // Best-effort cross-device sync (only lands if NTE Logs has an "Entry ID" column)
   if (SHEETDB_API_URL && nteEntries[idx].id) {
