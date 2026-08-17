@@ -1154,11 +1154,29 @@ async function pushAllCustomTLsToSheets() {
   if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync TLs to Cloud'; }
   alert(`Done! ${ok} TL(s) synced to cloud${fail ? ', ' + fail + ' failed (check console)' : ''}.\nNew TLs can now log in from any device.`);
 }
+// Canonical email normalization — used everywhere roster emails are compared/stored.
+function normEmail(e){ return String(e || '').trim().toLowerCase(); }
 function loadRoster() {
+  // The static AGENTS array is the SOURCE OF TRUTH and must ALWAYS be present, even for
+  // returning users whose cached apexRoster predates a newly-added agent (e.g. Team Anna).
+  // Previously a saved cache REPLACED the static array wholesale, silently hiding any agent
+  // added to the code afterwards. Now we start from static and let the cache only ADD
+  // sheet-derived agents it doesn't already contain — never drop or override a static one.
+  const byEmail = new Map();
+  AGENTS.forEach(a => {
+    const k = normEmail(a.email);
+    if (k) byEmail.set(k, { ...a, email: k, startDate: a.startDate || a.start || '' });
+  });
   try {
     const saved = localStorage.getItem('apexRoster');
-    ROSTER = saved ? JSON.parse(saved) : AGENTS.map(a => ({...a, startDate: a.startDate || a.start || ''}));
-  } catch(e) { ROSTER = AGENTS.map(a => ({...a, startDate: a.startDate || a.start || ''})); }
+    if (saved) {
+      (JSON.parse(saved) || []).forEach(a => {
+        const k = normEmail(a.email);
+        if (k && !byEmail.has(k)) byEmail.set(k, { ...a, email: k });  // keep sheet-only agents across reloads
+      });
+    }
+  } catch(e) { /* corrupt cache -> static roster still stands */ }
+  ROSTER = [...byEmail.values()];
 }
 function saveRoster() {
   localStorage.setItem('apexRoster', JSON.stringify(ROSTER));
@@ -1503,7 +1521,14 @@ async function doLogin() {
   } else if (OM_EMAILS[email]) {
     role = 'OM'; omInfo = OM_EMAILS[email]; display = omInfo.display;
   } else {
-    const rosterAgent = ROSTER.find(a => a.email && a.email.toLowerCase() === email);
+    let rosterAgent = ROSTER.find(a => normEmail(a.email) === email);
+    if (!rosterAgent) {
+      // Not found in the current (possibly stale 60s-cached) roster. Do ONE controlled fresh
+      // Agents-tab lookup before rejecting — covers an agent who exists live but is missing
+      // from a stale cache. Single forced fetch, no retry loop.
+      await fetchAgentsFromSheets(true);
+      rosterAgent = ROSTER.find(a => normEmail(a.email) === email);
+    }
     if (rosterAgent) {
       role = 'Agent'; display = rosterAgent.name;
     } else {
