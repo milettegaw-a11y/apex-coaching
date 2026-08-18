@@ -1335,20 +1335,19 @@ function loadRoster() {
   // Previously a saved cache REPLACED the static array wholesale, silently hiding any agent
   // added to the code afterwards. Now we start from static and let the cache only ADD
   // sheet-derived agents it doesn't already contain — never drop or override a static one.
+  // ROSTER is built from the AUTHORITATIVE sources ONLY:
+  //   (1) the deployed static AGENTS array, and
+  //   (2) agents corroborated by LIVE Coaching Logs (added later by reconcileRosterFromEntries).
+  // The localStorage apexRoster cache is intentionally NOT merged here: a stale cache used to
+  // inject agents under the wrong TL (e.g. wrong names showing under TL Nikka) and could not be
+  // self-corrected for agents that have no live logs. Ignoring it makes the deployed static roster
+  // win with no need for users to clear their browser cache, while reconcile still surfaces every
+  // agent who actually has coaching logs under their correct TL.
   const byEmail = new Map();
   AGENTS.forEach(a => {
     const k = normEmail(a.email);
     if (k) byEmail.set(k, { ...a, email: k, startDate: a.startDate || a.start || '' });
   });
-  try {
-    const saved = localStorage.getItem('apexRoster');
-    if (saved) {
-      (JSON.parse(saved) || []).forEach(a => {
-        const k = normEmail(a.email);
-        if (k && !byEmail.has(k)) byEmail.set(k, { ...a, email: k });  // keep sheet-only agents across reloads
-      });
-    }
-  } catch(e) { /* corrupt cache -> static roster still stands */ }
   ROSTER = [...byEmail.values()];
 }
 function saveRoster() {
