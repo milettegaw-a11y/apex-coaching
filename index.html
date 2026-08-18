@@ -246,6 +246,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <label>Agent</label>
           <select id="filterAgent" onchange="renderDashboard()"><option value="">All Agents</option></select>
         </div>
+        <div>
+          <label>Coaching Type</label>
+          <select id="filterCoachingType" onchange="renderDashboard()"><option value="">All Coaching Types</option></select>
+        </div>
         <button class="filter-btn" onclick="clearFilters()">Clear</button>
         <button class="btn-export" onclick="exportCoachingCSV()">⬇ Export CSV</button>
       </div>
@@ -1714,6 +1718,7 @@ function initApp() {
   populateFilterTLs();
   populateLogFilterTLs();
   populateNTEFilterTLs();
+  populateCoachingTypeFilter();
   renderDashboard();
   renderLogTable();
   showView('dashboard');
@@ -1829,6 +1834,7 @@ function clearFilters() {
   document.getElementById('filterWK').value = '';
   document.getElementById('filterCluster').value = '';
   document.getElementById('filterAgent').innerHTML = '<option value="">All Agents</option>';
+  const ct = document.getElementById('filterCoachingType'); if (ct) ct.value = '';   // reset to All Coaching Types
   populateFilterTLs();
   renderDashboard();
 }
@@ -1859,16 +1865,28 @@ function applyDashFilters(list) {
   const tl = document.getElementById('filterTL')?.value || '';
   const ag = document.getElementById('filterAgent')?.value || '';
   const cl = document.getElementById('filterCluster')?.value || '';
+  const ct = document.getElementById('filterCoachingType')?.value || '';
   return list.filter(e => {
     if (wk && e.wkNumber !== wk) return false;
     if (tl && e.teamLead !== tl) return false;
     if (ag && e.agentName !== ag) return false;
+    if (ct && (e.coachingType||'') !== ct) return false;
     if (cl) {
       const tlEntry = Object.values(TL_EMAILS).find(t=>t.display===e.teamLead);
       if (!tlEntry || tlEntry.cluster !== cl) return false;
     }
     return true;
   });
+}
+// Populate the Coaching Type filter from the actual Coaching Type values already stored in the
+// loaded Coaching Logs (distinct, sorted). Preserves the current selection. 0 SheetDB requests.
+function populateCoachingTypeFilter() {
+  const sel = document.getElementById('filterCoachingType');
+  if (!sel) return;
+  const prev = sel.value;
+  const types = [...new Set((entries||[]).map(e => (e.coachingType||'').trim()).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">All Coaching Types</option>' + types.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  if (prev && types.includes(prev)) sel.value = prev;   // keep selection if still valid
 }
 function applyLogFilters(list) {
   const wk = document.getElementById('logFilterWK')?.value || '';
@@ -2824,7 +2842,7 @@ async function fetchFromSheets(force) {
   if (!SHEETDB_API_URL || !currentUser) return;
   // Cache hit: reuse already-loaded coaching logs instead of re-downloading the sheet
   if (!force && cacheFresh('coaching') && entries.length) {
-    reconcileRosterFromEntries(); renderLogTable(); renderDashboard(); return;
+    reconcileRosterFromEntries(); populateCoachingTypeFilter(); renderLogTable(); renderDashboard(); return;
   }
   try {
     let url;
@@ -2857,6 +2875,7 @@ async function fetchFromSheets(force) {
     saveEntries();
     cacheStamp('coaching');         // record freshness for the 60s cache
     reconcileRosterFromEntries();   // auto-register any TL/agent found only in the sheet (e.g. Team Anna)
+    populateCoachingTypeFilter();    // refresh Coaching Type options from freshly-loaded logs (0 requests)
     renderLogTable();
     renderDashboard();
   } catch (err) {
@@ -2985,15 +3004,9 @@ function downloadCSV(rows, filename) {
   URL.revokeObjectURL(url);
 }
 function exportCoachingCSV() {
-  const visible = getVisibleEntries();
-  const cl = document.getElementById('filterCluster').value;
-  const tl = document.getElementById('filterTL').value;
-  const ag = document.getElementById('filterAgent').value;
-  const wk = document.getElementById('filterWK').value;
-  const filtered = visible.filter(e => {
-    const cluster = (Object.values(TL_EMAILS).find(t=>t.display===e.teamLead)||{}).cluster||'';
-    return (!cl||cluster===cl) && (!tl||e.teamLead===tl) && (!ag||e.agentName===ag) && (!wk||e.wkNumber===wk);
-  });
+  // Reuse the dashboard filter choke point so export respects EVERY active filter,
+  // including the new Coaching Type filter, with identical role scoping.
+  const filtered = applyDashFilters(getVisibleEntries());
   const headers = ['Date','WK#','Cluster','Team Lead','Agent','Coaching Type','Tenure',
     'WK1 LT','WK1 CC','WK1 Sales','WK1 TCR%','WK1 CSR%','WK1 CVR%',
     'WK2 LT','WK2 CC','WK2 Sales','WK2 TCR%','WK2 CSR%','WK2 CVR%',
