@@ -965,6 +965,16 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
   </div>
 </div>
 <script>
+// ============================================================================
+// STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
+// No SheetDB dependency. To add/update a TL: add one line here keyed by their login email
+// (lowercase) → {display:'TL <Name>', fullName:'<Full Name>', cluster:'<Jubee|Kendryck|Princess>'}.
+// If a TL's login email is not yet confirmed, use a 'PENDING_LOGIN_EMAIL::<slug>' key (like
+// TL Anna / TL Nikka below) — it maps agents + shows the TL in filters but can never match a
+// typed login until you replace the key with the real email. Agents map to a TL by fullName.
+// Copy/paste example:
+//   'janedoe@homeaglowsales.com': {display:'TL Jane', fullName:'Jane Doe', cluster:'Kendryck'},
+// ============================================================================
 const TL_EMAILS = {
   'errollim@homeaglowsales.com':           {display:'TL Arielle', fullName:'Mark Errol Lim',         cluster:'Jubee'},
   'kailelaquindanum@homeaglowsalestwo.com':{display:'TL Kaii',    fullName:'Kaile Laquindanum',      cluster:'Jubee'},
@@ -987,6 +997,8 @@ const TL_EMAILS = {
   'basilllamedo@homeaglowsales.com':       {display:'TL Barbie',   fullName:'Basil Llamedo',          cluster:'Kendryck'},
   'henrielyn@homeaglowsales.com':          {display:'TL Henrielyn',fullName:'Henrielyn Makiling',          cluster:'Kendryck'},
   'asherbalway@homeaglowsalestwo.com':     {display:'TL Asher',   fullName:'Asher Jessica Faith Balway',   cluster:'Kendryck'},
+  // TL Nikka — consolidated identity (formerly also shown as "Nikka Tejana"). Confirmed login email.
+  'nikkatejana@homeaglowsales.com':        {display:'TL Nikka',   fullName:'Nikka Tejana',                 cluster:'Kendryck'},
 };
 const OM_EMAILS = {
   'jubee@homeaglowsales.com':          {display:'OM Jubee',    cluster:'Jubee'},
@@ -1009,7 +1021,25 @@ function isDeptWide(u){ u = u || (typeof currentUser !== 'undefined' ? currentUs
 function canManageEntries(u){ u = u || (typeof currentUser !== 'undefined' ? currentUser : null); return !!u && (isDeptWide(u) || u.role === 'OM' || u.role === 'TL'); }
 // Who may run the bulk backfill/sync: department-wide roles and OMs.
 function canRunBackfill(u){ u = u || (typeof currentUser !== 'undefined' ? currentUser : null); return !!u && (isDeptWide(u) || u.role === 'OM'); }
+// ============================================================================
+// STATIC AGENT ROSTER — authoritative source of truth for Agent authentication + team mapping.
+// No SheetDB dependency. To add/update an agent: add one line here. `manager` MUST be the TL's
+// FULL NAME exactly as it appears in TL_EMAILS (not the "TL <Name>" display). `start` is optional.
+// Role is Agent for every entry. loadRoster() always keeps these even over a stale localStorage cache.
+// Copy/paste example:
+//   {email:'janedoe@homeaglowsalesone.com', name:'Jane Doe', manager:'Kenneth Historiador Jr.', cluster:'Jubee', start:'2026-08-18'},
+// ============================================================================
 const AGENTS = [
+  // ---- Added 2026-08-18 (login-fix roster additions) ----
+  {email:'arronegallego@homeaglowsalesone.com',     name:'Arrone Gallego',                   manager:'Mark Errol Lim',            cluster:'Jubee'},
+  {email:'angelaarnaiz@homeaglowsales.com',         name:'Angela Arnaiz',                    manager:'Kenneth Historiador Jr.',   cluster:'Jubee'},
+  {email:'christinefortuna@homeaglowsales.com',     name:'Christine Mae Cor Fortuna',        manager:'Kenneth Historiador Jr.',   cluster:'Jubee'},
+  // ---- TL Nikka's team (Cluster Kendryck), confirmed 2026-08-18 ----
+  {email:'andreaamante@homeaglowsalesone.com',      name:'Andrea Amante',                    manager:'Nikka Tejana',              cluster:'Kendryck'},
+  {email:'arnelalforque@homeaglowsalestwo.com',     name:'Arnel Alforque',                   manager:'Nikka Tejana',              cluster:'Kendryck'},
+  {email:'erroldelrosario@homeaglowsales.com',      name:'Errol Del Rosario',                manager:'Nikka Tejana',              cluster:'Kendryck'},
+  {email:'hannahcuebillas@homeaglowsales.com',      name:'Hannah Cuebillas',                 manager:'Nikka Tejana',              cluster:'Kendryck'},
+  {email:'rosemariedario@homeaglowsales.com',       name:'Rosemarie Dario',                  manager:'Nikka Tejana',              cluster:'Kendryck'},
   {email:'franklinpondang@homeaglowsalesone.com',   name:'Franklin Pondang',                 manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-09-01'},
   {email:'khristypepino@homeaglowsales.com',        name:'Khristy Jones Pepino',             manager:'May Claveron',              cluster:'Kendryck', start:'2024-07-15'},
   {email:'alvindoroy@homeaglowsales.com',           name:'Alvin Doroy',                      manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2024-08-12'},
@@ -1655,7 +1685,7 @@ async function doLogin() {
   loadCustomTLs();
   await fetchCustomTLsFromSheets();
   loadRoster();
-  await fetchAgentsFromSheets();   // dynamic login roster from the optional "Agents" sheet tab (no-op if absent)
+  // Authentication uses the STATIC roster only — no Agents SheetDB tab, no Agents GET on login.
   if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
   let role, display, tlInfo = null, omInfo = null;
   if (DEPT_WIDE_ACCOUNTS[email]) {
@@ -1669,14 +1699,9 @@ async function doLogin() {
   } else if (OM_EMAILS[email]) {
     role = 'OM'; omInfo = OM_EMAILS[email]; display = omInfo.display;
   } else {
-    let rosterAgent = ROSTER.find(a => normEmail(a.email) === email);
-    if (!rosterAgent) {
-      // Not found in the current (possibly stale 60s-cached) roster. Do ONE controlled fresh
-      // Agents-tab lookup before rejecting — covers an agent who exists live but is missing
-      // from a stale cache. Single forced fetch, no retry loop.
-      await fetchAgentsFromSheets(true);
-      rosterAgent = ROSTER.find(a => normEmail(a.email) === email);
-    }
+    // Static roster is authoritative (loadRoster() already merged static AGENTS over any stale
+    // cache and normalized emails). No Agents-tab fetch — unknown emails are simply rejected.
+    const rosterAgent = ROSTER.find(a => normEmail(a.email) === email);
     if (rosterAgent) {
       role = 'Agent'; display = rosterAgent.name;
     } else {
