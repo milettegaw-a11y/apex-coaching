@@ -965,6 +965,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
   </div>
 </div>
 <script>
+// Deployment/version marker — lets us confirm which build a browser actually loaded.
+// Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
+// user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
+const APEX_BUILD = "2026-08-18-nikka-roster-fix-v2";
+try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
 // No SheetDB dependency. To add/update a TL: add one line here keyed by their login email
@@ -1731,7 +1736,8 @@ function doLogout() {
 function initApp() {
   loadRoster();
   loadNTEEntries();
-  document.getElementById('userBadge').textContent = currentUser.display + ' · ' + currentUser.role;
+  document.getElementById('userBadge').textContent = currentUser.display + ' · ' + currentUser.role
+    + (isDeptWide() ? ('  · build ' + APEX_BUILD) : '');   // build marker visible to SOM/Director/Admin only
   const canCreate = canManageEntries();
   document.getElementById('btnAddCoaching').style.display = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
