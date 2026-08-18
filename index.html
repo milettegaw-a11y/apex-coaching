@@ -968,7 +968,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-18-nikka-roster-fix-v2";
+const APEX_BUILD = "2026-08-18-customtl-fullname-clobber-fix-v3";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -1252,10 +1252,24 @@ function loadDeletedIds() {
 function saveDeletedIds() {
   localStorage.setItem('apexDeletedIds', JSON.stringify([...deletedIds]));
 }
+// Merge a Custom-TL record into TL_EMAILS WITHOUT letting an empty/weaker value
+// clobber a known-good mapping. The static TL_EMAILS definitions above are the
+// source of truth: on any field they already provide (esp. fullName), the static
+// value WINS — a custom row can only fill blanks or register a brand-new TL. This
+// prevents a Custom TLs sheet row (e.g. one with an empty Fullname column) from
+// overwriting a real fullName with '' and breaking getAgentsForTL / scope filters.
+function mergeCustomTL(email, incoming) {
+  if (!email) return;
+  const cur = TL_EMAILS[email] || {};
+  const keep = (a, b) => (a != null && String(a).trim()) ? a : (b || '');
+  const display  = keep(cur.display,  incoming.display);
+  const fullName = keep(cur.fullName, incoming.fullName) || display; // never empty
+  TL_EMAILS[email] = { display, fullName, cluster: keep(cur.cluster, incoming.cluster) };
+}
 function loadCustomTLs() {
   try { CUSTOM_TLS = JSON.parse(localStorage.getItem('apexCustomTLs') || '[]'); } catch(e){ CUSTOM_TLS=[]; }
   CUSTOM_TLS.forEach(t => {
-    TL_EMAILS[t.email] = { display: t.display, fullName: t.fullName, cluster: t.cluster };
+    mergeCustomTL(t.email, { display: t.display, fullName: t.fullName, cluster: t.cluster });
   });
 }
 function saveCustomTLs() {
@@ -1274,11 +1288,16 @@ async function fetchCustomTLsFromSheets(force) {
     if (!Array.isArray(rows)) return;
     rows.forEach(r => {
       if (!r.email) return;
-      const entry = { email: r.email.trim().toLowerCase(), display: r.display || '', fullName: r.fullName || '', cluster: r.cluster || '' };
+      // Column names in the sheet vary (fullName / Fullname / FullName / "Full Name") —
+      // read them all so a header-casing mismatch never yields an empty fullName.
+      const fullName = String(r.fullName || r.Fullname || r.FullName || r['Full Name'] || r.fullname || '').trim();
+      const display  = String(r.display || r.Display || '').trim();
+      const cluster  = String(r.cluster || r.Cluster || '').trim();
+      const entry = { email: r.email.trim().toLowerCase(), display, fullName, cluster };
       const idx = CUSTOM_TLS.findIndex(c => c.email === entry.email);
       if (idx >= 0) CUSTOM_TLS[idx] = entry;
       else CUSTOM_TLS.push(entry);
-      TL_EMAILS[entry.email] = { display: entry.display, fullName: entry.fullName, cluster: entry.cluster };
+      mergeCustomTL(entry.email, entry);   // static mapping wins; blanks only fill gaps
     });
     saveCustomTLs();
   } catch(err) {
@@ -1810,7 +1829,7 @@ function populateLogFilterTLs() {
 function getAgentsForTL(tlDisplay) {
   if (!tlDisplay) return ROSTER;
   const tlEntry = Object.values(TL_EMAILS).find(t => t.display === tlDisplay);
-  if (!tlEntry) return [];
+  if (!tlEntry || !tlEntry.fullName) return [];   // never fall through to manager==='' (mass-match)
   return ROSTER.filter(a => a.manager === tlEntry.fullName);
 }
 function showView(view) {
