@@ -184,6 +184,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .agent-form-body{padding:20px}
 .agent-form-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
 </style>
+<!-- ===== FIREBASE SDK (compat) — TEST BUILD ONLY. Loaded before the app script so the
+     global `firebase` namespace is available to the auth/Firestore layer below. ===== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div id="loginPage">
@@ -196,11 +201,15 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       </div>
     </div>
     <h1>Sign In</h1>
-    <p class="sub">Use your Homeaglow email address to access the system.</p>
+    <p class="sub">Sign in with your Homeaglow Google account to access the system.</p>
     <div class="error-msg" id="loginError"></div>
-    <label for="emailInput">Email Address</label>
-    <input type="email" id="emailInput" placeholder="yourname@homeaglowsales.com" autocomplete="email"/>
-    <button class="btn-primary" onclick="doLogin()">Sign In</button>
+    <button class="btn-primary" id="btnGoogleSignIn" onclick="signInWithGoogle()">Sign in with Google</button>
+    <!-- LEGACY email login (email-only, no Firebase). Retained ONLY for rollback reference.
+         Hidden and NOT wired to app entry: legacyDoLogin() is neutered so it cannot bypass Firebase. -->
+    <div id="legacyLoginBox" style="display:none">
+      <label for="emailInput">Email Address (legacy — disabled)</label>
+      <input type="email" id="emailInput" placeholder="yourname@homeaglowsales.com" autocomplete="email"/>
+    </div>
   </div>
 </div>
 <div id="app" style="display:none;flex-direction:column;min-height:100vh">
@@ -210,6 +219,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="user-badge" id="userBadge"></div>
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
+      <button id="btnMigrate" class="btn-burger" onclick="migrateUsersToFirestore()" style="display:none" title="One-time (SOM only): migrate the SEED roster into users/{email} documents">⬆️ Migrate roster</button>
       <!-- "Sync Local → SheetDB" (backfillToSheets) button removed: no normal UI path may trigger the old bulk sync.
            backfillToSheets() is retained as a dormant emergency/recovery utility only (not wired to any control). -->
       <button class="btn-logout" onclick="doLogout()">Logout</button>
@@ -968,7 +978,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-18-customtl-fullname-clobber-fix-v3";
+const APEX_BUILD = "2026-08-19-firebase-users-PROD-v9";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -980,7 +990,7 @@ try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // Copy/paste example:
 //   'janedoe@homeaglowsales.com': {display:'TL Jane', fullName:'Jane Doe', cluster:'Kendryck'},
 // ============================================================================
-const TL_EMAILS = {
+const SEED_TL_EMAILS = {
   'errollim@homeaglowsales.com':           {display:'TL Arielle', fullName:'Mark Errol Lim',         cluster:'Jubee'},
   'kailelaquindanum@homeaglowsalestwo.com':{display:'TL Kaii',    fullName:'Kaile Laquindanum',      cluster:'Jubee'},
   'leoniedeonaga@homeaglowsalesone.com':   {display:'TL Lei',     fullName:'Leonie Deonaga',         cluster:'Jubee'},
@@ -1005,17 +1015,17 @@ const TL_EMAILS = {
   // TL Nikka — consolidated identity (formerly also shown as "Nikka Tejana"). Confirmed login email.
   'nikkatejana@homeaglowsales.com':        {display:'TL Nikka',   fullName:'Nikka Tejana',                 cluster:'Kendryck'},
 };
-const OM_EMAILS = {
+const SEED_OM_EMAILS = {
   'jubee@homeaglowsales.com':          {display:'OM Jubee',    cluster:'Jubee'},
   'kendryck@homeaglowsales.com':       {display:'OM Kendryck', cluster:'Kendryck'},
   'princesssimbahan@homeaglowsalesone.com':{display:'OM Princess',cluster:'Princess'},
 };
-const ADMIN_EMAILS = ['milettegaw@homeaglowsales.com','milettegaw@homeaglowsalestwo.com','milettegaw@homeaglowsalesone.com','clayton@homeaglowsales.com'];
+const SEED_ADMIN_EMAILS = ['milettegaw@homeaglowsales.com','milettegaw@homeaglowsalestwo.com','milettegaw@homeaglowsalesone.com','clayton@homeaglowsales.com'];
 // ── Department-wide reporting accounts ───────────────────────────────────────
 // These accounts see ALL clusters (Jubee, Kendryck, Princess) — the SAME cross-cluster
 // visibility as Admin — but carry their own displayed role label. Authorization is decided
 // by ROLE via isDeptWide(), never by the displayed label text. Normal OMs stay cluster-scoped.
-const DEPT_WIDE_ACCOUNTS = {
+const SEED_DEPT_WIDE_ACCOUNTS = {
   'jubee@homeaglowsales.com': { role:'SOM',      display:'Jubee' },          // Senior Operations Manager → label "SOM"
   'clayton@homeaglow.com':    { role:'Director', display:'Clayton Collins' },// Director → label "Director"
 };
@@ -1034,7 +1044,7 @@ function canRunBackfill(u){ u = u || (typeof currentUser !== 'undefined' ? curre
 // Copy/paste example:
 //   {email:'janedoe@homeaglowsalesone.com', name:'Jane Doe', manager:'Kenneth Historiador Jr.', cluster:'Jubee', start:'2026-08-18'},
 // ============================================================================
-const AGENTS = [
+const SEED_AGENTS = [
   // ---- Added 2026-08-18 (login-fix roster additions) ----
   {email:'arronegallego@homeaglowsalesone.com',     name:'Arrone Gallego',                   manager:'Mark Errol Lim',            cluster:'Jubee'},
   {email:'angelaarnaiz@homeaglowsales.com',         name:'Angela Arnaiz',                    manager:'Kenneth Historiador Jr.',   cluster:'Jubee'},
@@ -1231,8 +1241,216 @@ const AGENTS = [
   {email:'jesterdeocampo@homeaglowsalestwo.com',    name:'Jester Deocampo',                  manager:'Anna Pascual',              cluster:'Jubee',    start:'2026-05-25'},
   {email:'krystalnovelozo@homeaglowsalesone.com',   name:'Krystal Novelozo',                 manager:'Anna Pascual',              cluster:'Jubee',    start:'2026-06-01'},
 ];
+// ============================================================================
+// RUNTIME ROSTER HOLDERS — populated FROM FIRESTORE at login; empty until then.
+// The SEED_* constants above are MIGRATION / ROLLBACK data ONLY. They are never
+// consulted for authentication or authorization (see the FIREBASE LAYER below),
+// so the static roster cannot be used to bypass Firebase.
+// ============================================================================
+let TL_EMAILS = {};
+let OM_EMAILS = {};
+let DEPT_WIDE_ACCOUNTS = {};
+let ADMIN_EMAILS = [];
+let RUNTIME_AGENTS = [];   // agent roster loaded from Firestore; source for loadRoster()
 const MANAGER_TO_TL_DISPLAY = {};
-Object.values(TL_EMAILS).forEach(t => { MANAGER_TO_TL_DISPLAY[t.fullName] = t.display; });
+Object.values(SEED_TL_EMAILS).forEach(t => { MANAGER_TO_TL_DISPLAY[t.fullName] = t.display; }); // placeholder; rebuilt in applyUsersDocs()
+
+// ============================================================================
+// FIREBASE LAYER — Firebase Authentication (Google) + Cloud Firestore shared
+// roster/authorization. TEST BUILD — DO NOT DEPLOY. The authoritative "who can
+// write" enforcement is the Firestore Security Rules set in the Firebase console
+// (see audit report); the client checks below are UX/consistency only.
+// ============================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCAxN1RQ1q6XcTKGmGFUmSaBgcRV-v0Nd4",
+  authDomain: "apex-coaching-dashboard-8888.firebaseapp.com",
+  projectId: "apex-coaching-dashboard-8888",
+  storageBucket: "apex-coaching-dashboard-8888.firebasestorage.app",
+  messagingSenderId: "777899318900",
+  appId: "1:777899318900:web:c1fda578f316934ed4bb21"
+};
+let FB_APP = null, FB_AUTH = null, FB_DB = null, FB_READY = false;
+// Shared roster = one document per user at users/{normalizedEmail}. This matches the
+// already-published Firestore schema and Security Rules. No single shared roster document is used.
+const USERS_COL = 'users';
+// Normalize an incoming Firestore role string to the app's canonical casing.
+function normRole(r){
+  const s = String(r||'').trim().toLowerCase();
+  if(s==='som') return 'SOM';
+  if(s==='director') return 'Director';
+  if(s==='admin') return 'Admin';
+  if(s==='om') return 'OM';
+  if(s==='tl' || s==='team lead' || s==='teamlead') return 'TL';
+  if(s==='agent') return 'Agent';
+  return r ? String(r) : '';
+}
+// active must be strictly truthy — fail-closed: missing/false/0 = no access.
+function isActive(d){ return !!d && (d.active===true || d.active==='true' || d.active===1); }
+
+function initFirebase(){
+  if (FB_READY) return true;
+  if (typeof firebase === 'undefined' || !firebase.initializeApp){ console.error('[APEX] Firebase SDK not loaded'); return false; }
+  FB_APP = firebase.initializeApp(firebaseConfig);
+  FB_AUTH = firebase.auth();
+  FB_DB = firebase.firestore();
+  FB_READY = true;
+  FB_AUTH.onAuthStateChanged(handleFirebaseUser);
+  return true;
+}
+function showLoginError(msg){ const e=document.getElementById('loginError'); if(e){ e.textContent=msg; e.style.display='block'; } }
+function signInWithGoogle(){
+  const e=document.getElementById('loginError'); if(e) e.style.display='none';
+  if(!initFirebase()){ showLoginError('Firebase failed to load. Check your connection and try again.'); return; }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt:'select_account' });
+  const btn=document.getElementById('btnGoogleSignIn'); if(btn){ btn.disabled=true; btn.textContent='Opening Google…'; }
+  FB_AUTH.signInWithPopup(provider).catch(err=>{
+    showLoginError('Sign-in failed: '+((err&&err.message)||err));
+    const b=document.getElementById('btnGoogleSignIn'); if(b){ b.disabled=false; b.textContent='Sign in with Google'; }
+  });
+}
+function firebaseLogout(){ if(FB_AUTH) FB_AUTH.signOut(); }
+
+// Build runtime TL/OM/dept-wide/agent structures from an array of users docs.
+// ONLY active users are loaded, so a deactivated user cannot be authorized OR appear
+// anywhere in the roster/dropdowns/scoping.
+function applyUsersDocs(docs){
+  TL_EMAILS = {}; OM_EMAILS = {}; DEPT_WIDE_ACCOUNTS = {}; ADMIN_EMAILS = []; RUNTIME_AGENTS = [];
+  (docs||[]).forEach(d=>{
+    if(!d) return;
+    const email = normEmail(d.email);
+    if(!email || !isActive(d)) return;
+    const role = normRole(d.role);
+    const display = d.display || d.name || email;
+    if(role==='SOM' || role==='Director'){
+      DEPT_WIDE_ACCOUNTS[email] = { role, display };
+    } else if(role==='Admin'){
+      ADMIN_EMAILS.push(email);
+    } else if(role==='TL'){
+      TL_EMAILS[email] = { display, fullName: d.fullName || d.name || display, cluster: d.cluster || '' };
+    } else if(role==='OM'){
+      OM_EMAILS[email] = { display, cluster: d.cluster || '' };
+    } else {   // Agent (default)
+      RUNTIME_AGENTS.push({ name: d.name || display, email, manager: d.teamLeadFullName || d.manager || '', cluster: d.cluster || '', startDate: d.startDate || '' });
+    }
+  });
+  Object.keys(MANAGER_TO_TL_DISPLAY).forEach(k=>delete MANAGER_TO_TL_DISPLAY[k]);
+  Object.values(TL_EMAILS).forEach(t=>{ if(t&&t.fullName) MANAGER_TO_TL_DISPLAY[t.fullName]=t.display; });
+}
+// Query the users collection ONCE per authenticated session (no realtime listener, no polling).
+async function loadUsersFromFirestore(){
+  const snap = await FB_DB.collection(USERS_COL).get();
+  const docs=[]; snap.forEach(doc=>{ const d=doc.data()||{}; if(!d.email) d.email=doc.id; docs.push(d); });
+  applyUsersDocs(docs);
+  return docs.length;
+}
+// Read ONE user doc for the authorization gate (fail-closed).
+async function readUserDoc(email){
+  const snap = await FB_DB.collection(USERS_COL).doc(normEmail(email)).get();
+  return (snap && snap.exists) ? (snap.data()||{}) : null;
+}
+// Build currentUser (role + tlInfo/omInfo) from that user's own Firestore doc.
+function currentUserFromDoc(email, d){
+  const role = normRole(d.role);
+  const display = d.display || d.name || email;
+  if(role==='SOM' || role==='Director' || role==='Admin') return { email, role, display, tlInfo:null, omInfo:null };
+  if(role==='TL') return { email, role, display, tlInfo:{ display, fullName: d.fullName || d.name || display, cluster: d.cluster||'' }, omInfo:null };
+  if(role==='OM') return { email, role, display, tlInfo:null, omInfo:{ display, cluster: d.cluster||'' } };
+  return { email, role:'Agent', display: d.name || display, tlInfo:null, omInfo:null };
+}
+async function handleFirebaseUser(user){
+  if (!user){
+    currentUser = null;
+    const app=document.getElementById('app'), lp=document.getElementById('loginPage');
+    if(app) app.style.display='none'; if(lp) lp.style.display='flex';
+    const g=document.getElementById('btnGoogleSignIn'); if(g){ g.disabled=false; g.textContent='Sign in with Google'; }
+    return;
+  }
+  const email = normEmail(user.email);
+  if (!isHomeaglowEmail(email)){ showLoginError('Only Homeaglow accounts are allowed.'); FB_AUTH.signOut(); return; }
+  let selfDoc=null;
+  try { selfDoc = await readUserDoc(email); }          // 1) authorization gate: read users/{email}
+  catch(err){ showLoginError('Could not verify your account: '+((err&&err.message)||err)); FB_AUTH.signOut(); return; }
+  if(!selfDoc){ showLoginError('Your account is not provisioned in APEX (no users/'+email+' document). Ask a SOM to add you.'); FB_AUTH.signOut(); return; }
+  if(!isActive(selfDoc)){ showLoginError('Your APEX access is inactive. Ask a SOM to reactivate your account.'); FB_AUTH.signOut(); return; }
+  try { await loadUsersFromFirestore(); }               // 2) ONE collection query -> runtime roster
+  catch(err){ showLoginError('Could not load the roster: '+((err&&err.message)||err)); FB_AUTH.signOut(); return; }
+  currentUser = currentUserFromDoc(email, selfDoc);
+  loadRoster();
+  loadEntries();
+  initApp();
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='flex';
+  fetchFromSheets();
+}
+
+// ---- ONE-TIME, MANUAL, SOM-ONLY migration into users/{email} docs. NEVER on load. ----
+// Builds one user document per SEED entry; audits duplicates + blank/missing emails
+// FIRST; never invents an email; preserves the already-published users/jubee doc;
+// idempotent (set with merge:true); 0 SheetDB requests.
+const PRESERVE_USER_IDS = ['jubee@homeaglowsales.com'];
+function buildSeedUserDocs(){
+  const byEmail = {};   // normalizedEmail -> doc
+  const blanks = [];    // entries skipped for missing email (never invented)
+  const rank = { 'Agent':0, 'OM':1, 'TL':1, 'Admin':2, 'SOM':3, 'Director':3 };   // higher wins on duplicate email
+  const dupes = [];     // [{email, kept, dropped}]
+  const seedMgrToDisp = {}; Object.values(SEED_TL_EMAILS).forEach(t=>{ if(t&&t.fullName) seedMgrToDisp[t.fullName]=t.display; });
+  function put(email, doc){
+    const k = normEmail(email);
+    if(!k){ blanks.push(doc); return; }                 // never invent an email
+    const prev = byEmail[k];
+    if(!prev){ byEmail[k] = { ...doc, email:k }; return; }
+    if((rank[doc.role]||0) >= (rank[prev.role]||0)){ dupes.push({email:k, kept:doc.role, dropped:prev.role}); byEmail[k] = { ...doc, email:k }; }
+    else { dupes.push({email:k, kept:prev.role, dropped:doc.role}); }
+  }
+  Object.keys(SEED_DEPT_WIDE_ACCOUNTS).forEach(e=>{ const s=SEED_DEPT_WIDE_ACCOUNTS[e]; put(e,{ email:e, name:s.display, display:s.display, role:normRole(s.role), active:true }); });
+  SEED_ADMIN_EMAILS.forEach(e=>{ put(e,{ email:e, name:'Admin', display:'Admin', role:'Admin', active:true }); });
+  Object.keys(SEED_TL_EMAILS).forEach(e=>{ if(e.indexOf('PENDING')===0||e.indexOf('sheet-tl:')===0) return; const t=SEED_TL_EMAILS[e]; put(e,{ email:e, name:t.fullName, display:t.display, fullName:t.fullName, role:'TL', cluster:t.cluster||'', active:true }); });
+  Object.keys(SEED_OM_EMAILS).forEach(e=>{ const o=SEED_OM_EMAILS[e]; put(e,{ email:e, name:o.display, display:o.display, role:'OM', cluster:o.cluster||'', active:true }); });
+  SEED_AGENTS.forEach(a=>{
+    if(!a.email || !String(a.email).trim()){ blanks.push({ name:a.name, role:'Agent' }); return; }
+    put(a.email, { email:a.email, name:a.name, display:a.name, role:'Agent', cluster:a.cluster||'', teamLead:(seedMgrToDisp[a.manager]||''), teamLeadFullName:a.manager||'', startDate:a.start||a.startDate||'', active:true });
+  });
+  return { docs: byEmail, blanks, dupes };
+}
+async function migrateUsersToFirestore(){
+  if(!initFirebase()){ alert('Firebase not loaded.'); return; }
+  if(!FB_AUTH.currentUser){ alert('Sign in with Google first.'); return; }
+  if(!currentUser || currentUser.role!=='SOM'){ alert('Migration is SOM-only.'); return; }
+  const { docs, blanks, dupes } = buildSeedUserDocs();
+  const emails = Object.keys(docs);
+  const audit = 'MIGRATION AUDIT (users/{email})\n\n'
+    + '• user documents to write: ' + emails.length + '\n'
+    + '• duplicate emails resolved (higher role kept): ' + dupes.length + (dupes.length ? ('\n    ' + dupes.slice(0,6).map(d=>d.email+' ['+d.kept+' over '+d.dropped+']').join('\n    ')) : '') + '\n'
+    + '• blank/missing-email entries SKIPPED (never invented): ' + blanks.length + (blanks.length ? (' — ' + blanks.slice(0,8).map(b=>b.name||'?').join(', ')) : '') + '\n'
+    + '• preserved (never overwritten): ' + PRESERVE_USER_IDS.join(', ') + '\n\n'
+    + 'Proceed with the one-time migration?';
+  if(!confirm(audit)) return;
+  let written=0, preserved=0, failed=0;
+  for(const k of emails){
+    if(PRESERVE_USER_IDS.includes(k)){ preserved++; continue; }        // preserve the published record
+    try { await FB_DB.collection(USERS_COL).doc(k).set(docs[k], { merge:true }); written++; }
+    catch(err){ failed++; console.warn('[APEX] migrate write failed for', k, err); }
+  }
+  alert('Migration complete.\n• written/updated: '+written+'\n• preserved: '+preserved+'\n• skipped (blank email): '+blanks.length+'\n• failed: '+failed);
+  await loadUsersFromFirestore();
+  if(currentUser){ loadRoster(); initApp(); }
+}
+// Roster Manager write-through to users/{email} (merge). Add/Edit -> set fields; Remove -> active:false.
+async function persistUserDoc(doc){
+  if(!FB_READY||!FB_AUTH||!FB_AUTH.currentUser) return;
+  const k=normEmail(doc.email); if(!k) return;
+  try { await FB_DB.collection(USERS_COL).doc(k).set(doc, { merge:true }); }
+  catch(err){ console.warn('[APEX] persistUserDoc failed:', err); alert('Could not save to Firestore: '+((err&&err.message)||err)); }
+}
+async function deactivateUser(email){
+  if(!FB_READY||!FB_AUTH||!FB_AUTH.currentUser) return;
+  const k=normEmail(email); if(!k) return;   // reconcile-only (no-email) rows have no doc to deactivate
+  try { await FB_DB.collection(USERS_COL).doc(k).set({ email:k, active:false }, { merge:true }); }
+  catch(err){ console.warn('[APEX] deactivateUser failed:', err); alert('Could not deactivate in Firestore: '+((err&&err.message)||err)); }
+}
+try { initFirebase(); } catch(e){ console.error('[APEX] initFirebase error', e); }
+
 let currentUser = null;
 let entries = [];
 let ROSTER = [];
@@ -1267,15 +1485,16 @@ function mergeCustomTL(email, incoming) {
   TL_EMAILS[email] = { display, fullName, cluster: keep(cur.cluster, incoming.cluster) };
 }
 function loadCustomTLs() {
-  try { CUSTOM_TLS = JSON.parse(localStorage.getItem('apexCustomTLs') || '[]'); } catch(e){ CUSTOM_TLS=[]; }
-  CUSTOM_TLS.forEach(t => {
-    mergeCustomTL(t.email, { display: t.display, fullName: t.fullName, cluster: t.cluster });
-  });
+  // FIREBASE BUILD: TL data comes from the Firestore shared roster, not the SheetDB
+  // "Custom TLs" tab or localStorage. Disabled (no-op) to avoid mixing sources.
+  return;
 }
 function saveCustomTLs() {
   localStorage.setItem('apexCustomTLs', JSON.stringify(CUSTOM_TLS));
 }
 async function fetchCustomTLsFromSheets(force) {
+  return;   // FIREBASE BUILD: TL/roster data is sourced from Firestore — SheetDB "Custom TLs" GET disabled.
+  /* eslint-disable no-unreachable */
   if (!SHEETDB_API_URL) return;
   if (!force && cacheFresh('customtls')) return;   // reuse cached Custom TLs within TTL
   try {
@@ -1305,6 +1524,8 @@ async function fetchCustomTLsFromSheets(force) {
   }
 }
 function syncCustomTLToSheets(tlData) {
+  return;   // FIREBASE BUILD: TL writes go to Firestore (persistUserDoc) — SheetDB PATCH/POST disabled.
+  /* eslint-disable no-unreachable */
   if (!SHEETDB_API_URL) return;
   fetch(
     sheetRowUrl('Custom TLs', 'email', tlData.email),
@@ -1320,6 +1541,8 @@ function syncCustomTLToSheets(tlData) {
   }).catch(err => console.warn('syncCustomTLToSheets error:', err));
 }
 function deleteCustomTLFromSheets(email) {
+  return;   // FIREBASE BUILD: TL deactivation goes to Firestore (deactivateUser) — SheetDB DELETE disabled.
+  /* eslint-disable no-unreachable */
   if (!SHEETDB_API_URL) return;
   fetch(
     sheetRowUrl('Custom TLs', 'email', email),
@@ -1367,8 +1590,12 @@ function loadRoster() {
   // self-corrected for agents that have no live logs. Ignoring it makes the deployed static roster
   // win with no need for users to clear their browser cache, while reconcile still surfaces every
   // agent who actually has coaching logs under their correct TL.
+  // FIREBASE BUILD: ROSTER is built from RUNTIME_AGENTS (loaded from the Firestore
+  // shared roster), NOT from the static SEED_AGENTS array. SEED_AGENTS is migration/
+  // rollback data only. The localStorage override/tombstone layer is intentionally
+  // NOT applied here — the shared source of truth is now Firestore.
   const byEmail = new Map();
-  AGENTS.forEach(a => {
+  RUNTIME_AGENTS.forEach(a => {
     const k = normEmail(a.email);
     if (k) byEmail.set(k, { ...a, email: k, startDate: a.startDate || a.start || '' });
   });
@@ -1376,6 +1603,50 @@ function loadRoster() {
 }
 function saveRoster() {
   localStorage.setItem('apexRoster', JSON.stringify(ROSTER));
+}
+// ── LOCAL ROSTER OVERRIDES (same-device persistence, NO SheetDB) ─────────────
+// In-app roster edits/adds/removes persist ONLY in this browser via two keys
+// layered on top of the static AGENTS roster:
+//   apexRosterOverrides : { <origKey>: {name,email,startDate,cluster,manager,manager2,_origKey} }
+//   apexRosterDeleted   : { <key>: true }   (tombstones; key = 'email:<e>' and/or 'name:<n>')
+// Merge order on every load: static AGENTS -> reconcile (live logs) -> apply
+// overrides -> apply tombstones. Static stays the default source of truth, so a
+// NEWLY-DEPLOYED static agent still appears, while local edits win on the fields
+// they set and local deletes stay deleted. This does NOT sync across devices/users.
+let ROSTER_OVERRIDES = {};
+let ROSTER_DELETED = {};
+function agentKeyEmail(a){ const e = normEmail(a && a.email); return e ? ('email:'+e) : ''; }
+function agentKeyName(a){ const n = String((a && a.name) || '').trim().toLowerCase(); return n ? ('name:'+n) : ''; }
+function agentPrimaryKey(a){ return agentKeyEmail(a) || agentKeyName(a); }
+function isTombstoned(a){
+  const ek = agentKeyEmail(a); if (ek && ROSTER_DELETED[ek]) return true;
+  const nk = agentKeyName(a);  if (nk && ROSTER_DELETED[nk]) return true;
+  return false;
+}
+function loadRosterMods(){
+  try { ROSTER_OVERRIDES = JSON.parse(localStorage.getItem('apexRosterOverrides') || '{}') || {}; } catch(e){ ROSTER_OVERRIDES = {}; }
+  try { ROSTER_DELETED   = JSON.parse(localStorage.getItem('apexRosterDeleted')   || '{}') || {}; } catch(e){ ROSTER_DELETED = {}; }
+}
+function saveRosterMods(){
+  try {
+    localStorage.setItem('apexRosterOverrides', JSON.stringify(ROSTER_OVERRIDES));
+    localStorage.setItem('apexRosterDeleted', JSON.stringify(ROSTER_DELETED));
+  } catch(e){}
+}
+// Apply local overrides then tombstones onto the current ROSTER. Idempotent, so
+// it is safe to call after loadRoster() AND again after reconcileRosterFromEntries().
+function applyRosterLocalMods(){
+  Object.keys(ROSTER_OVERRIDES).forEach(k => {
+    const ov = ROSTER_OVERRIDES[k]; if (!ov) return;
+    const origKey = ov._origKey || k;
+    const rec = { ...ov }; delete rec._origKey;
+    let idx = ROSTER.findIndex(a => agentPrimaryKey(a) === origKey);        // match original identity
+    if (idx < 0) idx = ROSTER.findIndex(a => agentPrimaryKey(a) === agentPrimaryKey(rec)); // or new identity
+    if (idx < 0 && agentKeyName(rec)) idx = ROSTER.findIndex(a => agentKeyName(a) === agentKeyName(rec)); // or same name (blank-email row)
+    if (idx >= 0) ROSTER[idx] = { ...ROSTER[idx], ...rec };
+    else ROSTER.push(rec);
+  });
+  ROSTER = ROSTER.filter(a => !isTombstoned(a));
 }
 const ROSTER_OM_EMAILS = [
   'jubee@homeaglowsales.com',
@@ -1551,12 +1822,27 @@ function saveAgent() {
     ? (Object.entries(OM_EMAILS).find(([,o]) => o.cluster === tlEntry.cluster)?.[1]?.display || '')
     : '';
   const agentObj = { name, email, startDate, cluster, manager, manager2 };
+  let origKey;
   if (_editingAgentIdx >= 0) {
+    const orig = ROSTER[_editingAgentIdx] || {};
+    origKey = agentPrimaryKey(orig) || agentPrimaryKey(agentObj);
     ROSTER[_editingAgentIdx] = agentObj;
   } else {
+    origKey = agentPrimaryKey(agentObj);
     ROSTER.push(agentObj);
   }
+  // Persist as a same-device local override keyed by the ORIGINAL identity, so the
+  // edit survives reload (loadRoster rebuilds from static and re-applies overrides).
+  ROSTER_OVERRIDES[origKey] = { ...agentObj, _origKey: origKey };
+  // Editing/adding un-deletes this identity (clear tombstones on old + new keys).
+  const nk = agentKeyName(agentObj), ek = agentKeyEmail(agentObj);
+  delete ROSTER_DELETED[origKey];
+  if (nk) delete ROSTER_DELETED[nk];
+  if (ek) delete ROSTER_DELETED[ek];
   saveRoster();
+  saveRosterMods();
+  // FIREBASE BUILD: create/update this agent's users/{email} document (merge).
+  persistUserDoc({ email, name, display:name, role:'Agent', cluster, teamLead:tlDisp, teamLeadFullName:manager, startDate, active:true });
   closeAgentForm();
   renderRosterTable();
 }
@@ -1568,7 +1854,22 @@ function deleteAgent(idx) {
   }
   if (!confirm('Remove "' + a.name + '" from the roster? This cannot be undone.')) return;
   ROSTER.splice(idx, 1);
+  // Tombstone by BOTH identity forms so a reconcile re-add (blank-email, name-keyed)
+  // or a static-agent re-add cannot resurrect it after reload on this device.
+  const ek = agentKeyEmail(a), nk = agentKeyName(a);
+  if (ek) ROSTER_DELETED[ek] = true;
+  if (nk) ROSTER_DELETED[nk] = true;
+  // Drop any local override for this identity so it isn't re-added by applyRosterLocalMods.
+  const pk = agentPrimaryKey(a);
+  Object.keys(ROSTER_OVERRIDES).forEach(k => {
+    const ov = ROSTER_OVERRIDES[k];
+    if (!ov) return;
+    if (k === pk || ov._origKey === pk || agentKeyEmail(ov) === ek || agentKeyName(ov) === nk) delete ROSTER_OVERRIDES[k];
+  });
   saveRoster();
+  saveRosterMods();
+  // FIREBASE BUILD: DEACTIVATE (never delete) this agent's users/{email} document.
+  deactivateUser(a.email);
   renderRosterTable();
 }
 function openTLManager() {
@@ -1680,7 +1981,9 @@ function saveTL() {
   else CUSTOM_TLS.push(tlData);
   TL_EMAILS[email] = { display, fullName, cluster };
   saveCustomTLs();
-  syncCustomTLToSheets(tlData);
+  syncCustomTLToSheets(tlData);       // no-op in Firebase build
+  // FIREBASE BUILD: create/update this TL's users/{email} document (merge).
+  persistUserDoc({ email, name:fullName, display, fullName, role:'TL', cluster, active:true });
   closeTLForm();
   renderTLTable();
 }
@@ -1691,13 +1994,21 @@ function deleteTL(email) {
   CUSTOM_TLS = CUSTOM_TLS.filter(c => c.email !== email);
   delete TL_EMAILS[email];
   saveCustomTLs();
-  deleteCustomTLFromSheets(email);
+  deleteCustomTLFromSheets(email);    // no-op in Firebase build
+  // FIREBASE BUILD: DEACTIVATE (never delete) this TL's users/{email} document.
+  deactivateUser(email);
   renderTLTable();
 }
 function isHomeaglowEmail(email) {
   return /homeaglow/i.test(email);
 }
-async function doLogin() {
+// LEGACY email-only login. DISABLED in the Firebase build — kept for rollback
+// reference only. It can no longer be reached from the UI, and this guard ensures
+// that even if called it CANNOT enter the app or bypass Firebase auth/authorization.
+async function legacyDoLogin_DISABLED() {
+  console.warn('[APEX] legacy email login is disabled in the Firebase build.');
+  return;
+  /* eslint-disable no-unreachable */
   const email = document.getElementById('emailInput').value.trim().toLowerCase();
   const errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
@@ -1745,12 +2056,13 @@ async function doLogin() {
     errEl.textContent = msg; errEl.style.display = 'block';
   }
 }
-document.getElementById('emailInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+// (Legacy Enter-to-login on the hidden email box removed — sign-in is Firebase/Google only.)
 function doLogout() {
+  // Firebase build: sign out of Firebase; onAuthStateChanged returns us to the login page.
+  firebaseLogout();
   currentUser = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginPage').style.display = 'flex';
-  document.getElementById('emailInput').value = '';
 }
 function initApp() {
   loadRoster();
@@ -1762,6 +2074,9 @@ function initApp() {
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
+  // Migration button: SOM-only (production permission).
+  const bm=document.getElementById('btnMigrate');
+  if(bm) bm.style.display = (currentUser && currentUser.role==='SOM') ? 'inline-block' : 'none';
   // (Sync Local → SheetDB button removed — no visibility toggle needed.)
   populateWKOptions();
   populateFilterTLs();
@@ -1983,6 +2298,11 @@ function agentsForScope(cluster, tlDisplay, agentName){
   let list = ROSTER.slice();
   if (currentUser.role === 'OM')  list = list.filter(a => a.cluster === currentUser.omInfo.cluster);
   else if (currentUser.role === 'TL') list = list.filter(a => a.manager === currentUser.tlInfo.fullName);
+  // Agent scope: completion denominators must count ONLY the logged-in/simulated agent.
+  // Prefer normalized email (reliable in the Firestore-backed runtime roster); fall back to
+  // the canonical display name the app already uses for agent identity.
+  else if (currentUser.role === 'Agent') list = list.filter(a =>
+    (currentUser.email && normEmail(a.email) === normEmail(currentUser.email)) || a.name === currentUser.display);
   if (cluster) list = list.filter(a => a.cluster === cluster);
   if (tlDisplay) {
     const t = Object.values(TL_EMAILS).find(x => x.display === tlDisplay);
@@ -2996,11 +3316,15 @@ function reconcileRosterFromEntries(){
       tl.cluster = e.cluster;
     }
     const an = (e.agentName || '').trim();
-    if (an && !ROSTER.some(a => a.name === an)) {
+    // Skip agents the user has locally deleted on this device (tombstoned by name).
+    if (an && !ROSTER.some(a => a.name === an) && !isTombstoned({ name: an, email: '' })) {
       ROSTER.push({ name: an, email: '', manager: tl.fullName, cluster: tl.cluster || e.cluster || '', startDate: '' });
       rosterChanged = true;
     }
   });
+  // Re-layer local overrides/tombstones so name-keyed edits land on reconcile rows
+  // and any locally-deleted agent stays removed. Idempotent.
+  applyRosterLocalMods();
   if (rosterChanged) saveRoster();
 }
 // Optional cloud roster for LOGIN: if an "Agents" tab exists in the sheet with
@@ -3008,6 +3332,8 @@ function reconcileRosterFromEntries(){
 // the dynamic source of truth for agent logins — new endorsements need only a row,
 // never a code change. Guarded: a no-op until that tab exists.
 async function fetchAgentsFromSheets(force){
+  return;   // FIREBASE BUILD: agent roster/auth is sourced from Firestore — SheetDB "Agents" GET disabled.
+  /* eslint-disable no-unreachable */
   if (!SHEETDB_API_URL) return;
   if (!force && cacheFresh('agents')) return;   // reuse cached Agents tab within TTL
   try {
