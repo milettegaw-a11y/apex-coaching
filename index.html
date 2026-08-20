@@ -525,67 +525,44 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="form-section">
         <h4>📊 4-Week Trailing Performance</h4>
         <p style="font-size:.83rem;color:#555;margin-bottom:12px;line-height:1.5;">
-          Enter the week number and metric value for each of the 4 trailing weeks per metric below
+          Enter the metric value for each of the 4 trailing weeks
           <em>(example: if this week is WK552, enter performance from WK548 to WK551)</em>.
         </p>
-        <table class="perf-table">
-          <colgroup>
-            <col class="col-week">
-            <col class="col-num"><col class="col-num"><col class="col-num">
-            <col class="col-wk1cvr">
-            <col class="col-pct"><col class="col-pct"><col class="col-pct">
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Week</th>
-              <th>Leads Touched</th>
-              <th>Connected Calls</th>
-              <th>Sales</th>
-              <th style="background:#1a3353;color:#fff;line-height:1.3;">WK1 CVR%<br><span style="font-size:.68rem;font-weight:400;opacity:.85;">(Manual)</span></th>
-              <th>TCR%</th><th>CSR%</th><th>CVR%</th>
-            </tr>
-          </thead>
-          <tbody id="perfBody">
-            <tr>
-              <td style="text-align:left;padding-left:8px;">Week 1 (Most Recent)</td>
-              <td><input type="number" id="lt1" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="cc1" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="s1" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="wk1CvrManual" oninput="calcPerf()" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
-              <td class="calc" id="tcr1">—</td><td class="calc" id="csr1">—</td><td class="calc" id="cvr1">—</td>
-            </tr>
-            <tr>
-              <td style="text-align:left;padding-left:8px;">Week 2</td>
-              <td><input type="number" id="lt2" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="cc2" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="s2" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="wk2CvrManual" oninput="calcPerf()" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
-              <td class="calc" id="tcr2">—</td><td class="calc" id="csr2">—</td><td class="calc" id="cvr2">—</td>
-            </tr>
-            <tr>
-              <td style="text-align:left;padding-left:8px;">Week 3</td>
-              <td><input type="number" id="lt3" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="cc3" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="s3" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="wk3CvrManual" oninput="calcPerf()" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
-              <td class="calc" id="tcr3">—</td><td class="calc" id="csr3">—</td><td class="calc" id="cvr3">—</td>
-            </tr>
-            <tr>
-              <td style="text-align:left;padding-left:8px;">Week 4</td>
-              <td><input type="number" id="lt4" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="cc4" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="s4" oninput="calcPerf()" min="0"/></td>
-              <td><input type="number" id="wk4CvrManual" oninput="calcPerf()" step="0.01" min="0" max="100" placeholder="e.g. 4.5" style="border:2px solid #1a3353;font-weight:700;color:#1a3353;width:100%;max-width:68px;"/></td>
-              <td class="calc" id="tcr4">—</td><td class="calc" id="csr4">—</td><td class="calc" id="cvr4">—</td>
-            </tr>
-            <tr style="background:#fffbef;font-weight:700">
-              <td style="text-align:left;padding-left:8px;">4-Week Avg</td>
-              <td id="avgLT">—</td><td id="avgCC">—</td><td id="avgS">—</td>
-              <td id="avgCvrManual" style="font-weight:700;color:#1a3353;">—</td>
-              <td id="avgTCR">—</td><td id="avgCSR">—</td><td id="avgCVR">—</td>
-            </tr>
-          </tbody>
-        </table>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+          <table class="perf-table">
+            <colgroup><col style="width:46%"><col style="width:30%"><col style="width:24%"></colgroup>
+            <thead><tr><th>Week</th><th>Leads Touched</th><th>TCR%</th></tr></thead>
+            <tbody>
+              <tr><td style="text-align:left;padding-left:8px;">Week 1 (Most Recent)</td><td><input type="number" id="lt1" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr1">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 2</td><td><input type="number" id="lt2" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr2">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="lt3" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr3">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="lt4" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr4">—</td></tr>
+              <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg</td><td id="avgLT">—</td><td id="avgTCR">—</td></tr>
+            </tbody>
+          </table>
+          <table class="perf-table">
+            <colgroup><col style="width:46%"><col style="width:30%"><col style="width:24%"></colgroup>
+            <thead><tr><th>Week</th><th>Connected Calls</th><th>CSR%</th></tr></thead>
+            <tbody>
+              <tr><td style="text-align:left;padding-left:8px;">Week 1 (Most Recent)</td><td><input type="number" id="cc1" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr1">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 2</td><td><input type="number" id="cc2" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr2">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="cc3" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr3">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="cc4" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr4">—</td></tr>
+              <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg</td><td id="avgCC">—</td><td id="avgCSR">—</td></tr>
+            </tbody>
+          </table>
+          <table class="perf-table">
+            <colgroup><col style="width:46%"><col style="width:30%"><col style="width:24%"></colgroup>
+            <thead><tr><th>Week</th><th>Sales</th><th>CVR%</th></tr></thead>
+            <tbody>
+              <tr><td style="text-align:left;padding-left:8px;">Week 1 (Most Recent)</td><td><input type="number" id="s1" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr1">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 2</td><td><input type="number" id="s2" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr2">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="s3" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr3">—</td></tr>
+              <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="s4" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr4">—</td></tr>
+              <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg</td><td id="avgS">—</td><td id="avgCVR">—</td></tr>
+            </tbody>
+          </table>
+        </div>
         <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <div style="background:#1a3353;color:#fff;border-radius:8px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:.95rem;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.18);">
             <span>⭐ WK1 CVR% <span style="font-size:.78rem;font-weight:400;opacity:.8;">(Most Recent Week)</span></span>
@@ -596,6 +573,24 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
             Most recent week's CVR% — Sales ÷ Leads Touched × 100. <em>Curing metric — tracked against its own 10% benchmark, separate from overall CVR.</em>
           </div>
         </div>
+      </div>
+      <div class="form-section">
+        <h4>🎯 WK1 CVR — 5-Week Curing View</h4>
+        <p style="font-size:.83rem;color:#555;margin-bottom:10px;line-height:1.5;">
+          Enter <b>Leads Received</b> and <b>Sales</b> per week. <b>WK1 CVR</b> (Sales ÷ Leads Received) and <b>Sales Deficit</b>
+          (extra sales needed to reach the fixed <b>10%</b> WK1 CVR benchmark) are auto-calculated and read-only.
+        </p>
+        <table class="perf-table">
+          <colgroup><col style="width:30%"><col style="width:18%"><col style="width:14%"><col style="width:19%"><col style="width:19%"></colgroup>
+          <thead><tr><th>Week</th><th>Leads Received</th><th>Sales</th><th>WK1 CVR</th><th>Sales Deficit</th></tr></thead>
+          <tbody>
+            <tr><td style="text-align:left;padding-left:8px;">Week 1 (Curing Week)</td><td><input type="number" id="wcLR1" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS1" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR1">—</td><td class="calc" id="wcDEF1">—</td></tr>
+            <tr><td style="text-align:left;padding-left:8px;">Week 2 (Most Recent Cured Week)</td><td><input type="number" id="wcLR2" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS2" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR2">—</td><td class="calc" id="wcDEF2">—</td></tr>
+            <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="wcLR3" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS3" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR3">—</td><td class="calc" id="wcDEF3">—</td></tr>
+            <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="wcLR4" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS4" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR4">—</td><td class="calc" id="wcDEF4">—</td></tr>
+            <tr><td style="text-align:left;padding-left:8px;">Week 5</td><td><input type="number" id="wcLR5" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS5" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR5">—</td><td class="calc" id="wcDEF5">—</td></tr>
+          </tbody>
+        </table>
       </div>
       <div class="form-section" id="projectionSection">
         <h4>🎯 Performance Projection</h4>
@@ -685,21 +680,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               Flow: Performance Metrics → <b>Primary Opportunity</b> → <b>Projected Impact</b> → Areas of Improvement → Action Plan → Agent My Commitment
             </div>
           </div>
-        </div>
-      </div>
-      <div class="form-section">
-        <h4>🎯 Rainmaker Practice Focus</h4>
-        <div style="font-size:.8rem;color:#666;margin-bottom:8px">Which part(s) of the Rainmaker process should this agent practice? (Guides the coaching → does not overwrite Areas of Improvement or Action Plan.) Select all that apply.</div>
-        <div class="checkbox-group" id="rmFocusAreas">
-          <label><input type="checkbox" value="Warm Open / Assumptive Open"> Warm Open / Assumptive Open</label>
-          <label><input type="checkbox" value="Discovery"> Discovery</label>
-          <label><input type="checkbox" value="Recommend the Hours"> Recommend the Hours</label>
-          <label><input type="checkbox" value="Pricing & Membership"> Pricing &amp; Membership</label>
-          <label><input type="checkbox" value="Objection Handling / ECOC"> Objection Handling / ECOC</label>
-          <label><input type="checkbox" value="Logistics"> Logistics</label>
-          <label><input type="checkbox" value="Confirmation Readback"> Confirmation Readback</label>
-          <label><input type="checkbox" value="Secure Payment"> Secure Payment</label>
-          <label><input type="checkbox" value="Closing"> Closing</label>
         </div>
       </div>
       <div class="form-section">
@@ -989,7 +969,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-20-coachnotes-limiter-PROD-v10";
+const APEX_BUILD = "2026-08-20-perf-tables-wk1cvr5-PROD-v11";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2632,11 +2612,10 @@ function editEntry(id) {
     const n = i+1;
     setVal('lt'+n, row.lt); setVal('cc'+n, row.cc); setVal('s'+n, row.s);
   });
-  setVal('wk1CvrManual', e.wk1CvrManual||'');
-  setVal('wk2CvrManual', e.wk2CvrManual||'');
-  setVal('wk3CvrManual', e.wk3CvrManual||'');
-  setVal('wk4CvrManual', e.wk4CvrManual||'');
   calcPerf();
+  // 5-week WK1 CVR curing table (blank rows for historical logs that predate it)
+  (e.wk1cvr5||[]).forEach((r,i)=>{ setVal('wcLR'+(i+1), r.lr||''); setVal('wcS'+(i+1), r.s||''); });
+  calcWk1Cvr5();
   const proj = e.projection || {};
   if (proj.focusOn) {
     const radio = document.querySelector(`input[name="focusOn"][value="${proj.focusOn}"]`);
@@ -2661,16 +2640,18 @@ function clearForm() {
   });
   if (typeof onLimiterChange === 'function') onLimiterChange();   // hide sub-limiter on a fresh form
   document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb=>cb.checked=false);
-  document.querySelectorAll('#rmFocusAreas input[type=checkbox]').forEach(cb=>cb.checked=false);
   for(let i=1;i<=4;i++){
     ['lt','cc','s'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.value=''; });
     ['tcr','csr','cvr'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.textContent='—'; });
-    const cvrM=document.getElementById('wk'+i+'CvrManual'); if(cvrM) cvrM.value='';
+  }
+  // 5-week WK1 CVR curing table
+  for(let i=1;i<=5;i++){
+    ['wcLR','wcS'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.value=''; });
+    ['wcCVR','wcDEF'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.textContent='—'; });
   }
   ['avgLT','avgCC','avgS','avgTCR','avgCSR','avgCVR'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.textContent='—';
   });
-  const avgCvrM=document.getElementById('avgCvrManual'); if(avgCvrM) avgCvrM.textContent='—';
   const wk1Hl=document.getElementById('wk1CvrHighlight'); if(wk1Hl) wk1Hl.textContent='—';
   document.querySelectorAll('input[name="focusOn"]').forEach(r=>r.checked=false);
   ['projTargetTCR','projTargetCSR','projTargetLeads'].forEach(id=>{
@@ -2783,19 +2764,32 @@ function calcPerf() {
   document.getElementById('avgTCR').textContent = tcrVals.length ? (tcrVals.reduce((a,b)=>a+b,0)/tcrVals.length).toFixed(1)+'%' : '—';
   document.getElementById('avgCSR').textContent = csrVals.length ? (csrVals.reduce((a,b)=>a+b,0)/csrVals.length).toFixed(1)+'%' : '—';
   document.getElementById('avgCVR').textContent = cvrVals.length ? (cvrVals.reduce((a,b)=>a+b,0)/cvrVals.length).toFixed(1)+'%' : '—';
-  const wk1ManualVal = parseFloat(document.getElementById('wk1CvrManual').value);
+  // WK1 CVR highlight (most recent week) — auto only now that the manual WK1 CVR% column was removed.
   const wk1lt = parseFloat(document.getElementById('lt1').value)||0;
   const wk1s  = parseFloat(document.getElementById('s1').value)||0;
-  const wk1cvr = !isNaN(wk1ManualVal) ? wk1ManualVal.toFixed(2)+'%'
-               : wk1lt>0 ? (wk1s/wk1lt*100).toFixed(1)+'%' : '—';
   const wk1El = document.getElementById('wk1CvrHighlight');
-  if (wk1El) wk1El.textContent = wk1cvr;
-  const manualVals = [1,2,3,4]
-    .map(n => parseFloat(document.getElementById('wk'+n+'CvrManual')?.value))
-    .filter(v => !isNaN(v));
-  const avgCvrEl = document.getElementById('avgCvrManual');
-  if (avgCvrEl) avgCvrEl.textContent = manualVals.length ? (manualVals.reduce((a,b)=>a+b,0)/manualVals.length).toFixed(2)+'%' : '—';
+  if (wk1El) wk1El.textContent = wk1lt>0 ? (wk1s/wk1lt*100).toFixed(1)+'%' : '—';
   updateProjectionCurrent();
+}
+// ── 5-week WK1 CVR curing table — all local, ZERO SheetDB requests ──
+// WK1 CVR = Sales / Leads Received (2 dp). Sales Deficit = MAX(0, CEILING(Leads×10%) − Sales).
+// Blank/zero Leads Received renders "—" (never NaN/Infinity). Read-only cells.
+function calcWk1Cvr5() {
+  for (let i=1;i<=5;i++){
+    const lrEl=document.getElementById('wcLR'+i), sEl=document.getElementById('wcS'+i);
+    const cvrEl=document.getElementById('wcCVR'+i), defEl=document.getElementById('wcDEF'+i);
+    if(!lrEl||!sEl||!cvrEl||!defEl) continue;
+    const lr=parseFloat(lrEl.value), sRaw=parseFloat(sEl.value);
+    const hasLR = !isNaN(lr) && lr>0;
+    const sales = isNaN(sRaw) ? 0 : sRaw;
+    if(hasLR){
+      cvrEl.textContent = (sales/lr*100).toFixed(2)+'%';
+      defEl.textContent = String(Math.max(0, Math.ceil(lr*0.10) - sales));   // fixed 10% benchmark
+    } else {
+      cvrEl.textContent = '—';
+      defEl.textContent = '—';
+    }
+  }
 }
 function updateProjectionCurrent() {
   const lt  = parseFloat(document.getElementById('lt1').value)  || 0;
@@ -2949,16 +2943,16 @@ function renderLeverGuidance(){
           const addC = (impv / 100) * tgtLeads;
           const totC = (wt   / 100) * tgtLeads;
           const addS = csrRate * addC;
-          cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${f1(addS)}</td>`;
+          cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`;
         } else if (focusKey === 'Volume') {
           const addC = (tcrCurr / 100) * impv;
           const totC = (tcrCurr / 100) * wt;
           const addS = csrRate * addC;
-          cells = `<td>${Math.round(wt)}</td><td>+${Math.round(impv)}</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${f1(addS)}</td>`;
+          cells = `<td>${Math.round(wt)}</td><td>+${Math.round(impv)}</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`;
         } else { // CSR
           const addS = (impv / 100) * cc;
           const totS = (wt   / 100) * cc;
-          cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${f1(addS)}</td><td>${f1(totS)}</td>`;
+          cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addS)}</td><td>${Math.round(totS)}</td>`;
         }
         rowsHtml += `<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`;
       }
@@ -2982,7 +2976,8 @@ function renderLeverGuidance(){
   // else Sales ÷ Leads Touched for the most recent week (same basis as the WK1 CVR highlight).
   const wk1El = document.getElementById('leverWk1Cvr');
   if (wk1El) {
-    const wk1Manual = parseFloat(document.getElementById('wk1CvrManual').value);
+    const wk1ManualEl = document.getElementById('wk1CvrManual');   // removed from the form in v11 — guard
+    const wk1Manual = wk1ManualEl ? parseFloat(wk1ManualEl.value) : NaN;
     const wk1cvr = !isNaN(wk1Manual) ? wk1Manual : (lt > 0 ? (s / lt * 100) : null);
     if (wk1cvr == null) {
       wk1El.style.display = 'none'; wk1El.innerHTML = '';
@@ -3127,6 +3122,8 @@ function buildCoachingRow(e) {
     'WK3 CVR% (Manual)': e.wk3CvrManual||'',
     'WK4 CVR% (Manual)': e.wk4CvrManual||'',
     'AVG CVR% (Manual)': e.avgCvrManual||'',
+    // 5-week WK1 CVR curing table — RAW values only (WK1 CVR & Sales Deficit derived locally, never stored).
+    ...(function(a){ const o={}; for(let n=1;n<=5;n++){ const r=(a&&a[n-1])||{}; o['WK1CVR W'+n+' Leads Received']=r.lr||''; o['WK1CVR W'+n+' Sales']=r.s||''; } return o; })(e.wk1cvr5),
     'Key Discussion': e.keyDiscussion||'',
     'Strength': e.strength||'',
     'Areas': e.areas||'',
@@ -3195,6 +3192,8 @@ function parseSheetRow(row) {
     wk3CvrManual:   row['WK3 CVR% (Manual)']||'',
     wk4CvrManual:   row['WK4 CVR% (Manual)']||'',
     avgCvrManual:   row['AVG CVR% (Manual)']||row['Avg CVR% (Manual)']||'',
+    // 5-week WK1 CVR curing table (blank for historical logs → renders empty, no migration).
+    wk1cvr5:        [1,2,3,4,5].map(n => ({ lr: row['WK1CVR W'+n+' Leads Received']||'', s: row['WK1CVR W'+n+' Sales']||'' })),
     keyDiscussion:  row['Key Discussion']||'',
     strength:       row['Strength']||'',
     areas:          row['Areas']||'',
@@ -3491,7 +3490,6 @@ function saveEntry() {
     agentName: document.getElementById('fAgent').value,
     tenure: document.getElementById('tenureBadge').textContent,
     focusAreas: [...document.querySelectorAll('#focusAreas input:checked')].map(c=>c.value),
-    rainmakerFocus: [...document.querySelectorAll('#rmFocusAreas input:checked')].map(c=>c.value),
     keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength: document.getElementById('fStrength').value,
     areas: document.getElementById('fAreas').value,
@@ -3506,11 +3504,11 @@ function saveEntry() {
     coachingStatus: document.getElementById('fStatus').value,
     remarks: document.getElementById('fRemarks').value,
     perfData,
-    wk1CvrManual: document.getElementById('wk1CvrManual').value || '',
-    wk2CvrManual: document.getElementById('wk2CvrManual').value || '',
-    wk3CvrManual: document.getElementById('wk3CvrManual').value || '',
-    wk4CvrManual: document.getElementById('wk4CvrManual').value || '',
-    avgCvrManual: document.getElementById('avgCvrManual').textContent.replace('%','').trim() || '',
+    // 5-week WK1 CVR curing table: persist RAW Leads Received + Sales only; WK1 CVR & Sales Deficit derive locally.
+    wk1cvr5: [1,2,3,4,5].map(n => ({
+      lr: (document.getElementById('wcLR'+n).value || ''),
+      s:  (document.getElementById('wcS'+n).value  || '')
+    })),
     avgTCR: document.getElementById('avgTCR').textContent.replace('%','').trim() || null,
     avgCSR: document.getElementById('avgCSR').textContent.replace('%','').trim() || null,
     avgCVR: document.getElementById('avgCVR').textContent.replace('%','').trim() || null,
@@ -3526,10 +3524,21 @@ function saveEntry() {
   const idx = entries.findIndex(x=>x.id===entry.id);
   const isEdit = idx >= 0;
   if(isEdit){
-    const existingStar = entries[idx].star;
+    const ex = entries[idx];
+    if(ex.star) entry.star = ex.star;
+    // Carry forward fields no longer editable in the form so historical SheetDB data is never wiped:
+    // Rainmaker Practice Focus (input removed; top-level Rainmaker tab still uses it) and the legacy
+    // manual WK1 CVR% columns (replaced by the 5-week curing table).
+    entry.rainmakerFocus = ex.rainmakerFocus || [];
+    entry.wk1CvrManual = ex.wk1CvrManual || '';
+    entry.wk2CvrManual = ex.wk2CvrManual || '';
+    entry.wk3CvrManual = ex.wk3CvrManual || '';
+    entry.wk4CvrManual = ex.wk4CvrManual || '';
+    entry.avgCvrManual = ex.avgCvrManual || '';
     entries[idx] = entry;
-    if(existingStar) entries[idx].star = existingStar;
   } else {
+    entry.rainmakerFocus = [];
+    entry.wk1CvrManual = ''; entry.wk2CvrManual = ''; entry.wk3CvrManual = ''; entry.wk4CvrManual = ''; entry.avgCvrManual = '';
     entries.unshift(entry);
   }
   saveEntries();
@@ -3664,12 +3673,14 @@ function saveDraft() {
     status       : document.getElementById('fStatus').value,
     remarks      : document.getElementById('fRemarks').value,
     focusAreas   : Array.from(document.querySelectorAll('#focusAreas input[type=checkbox]:checked')).map(c=>c.value),
-    rainmakerFocus : Array.from(document.querySelectorAll('#rmFocusAreas input[type=checkbox]:checked')).map(c=>c.value),
     perf         : [1,2,3,4].map(i=>({
       lt        : document.getElementById('lt'+i)?.value || '',
       cc        : document.getElementById('cc'+i)?.value || '',
-      s         : document.getElementById('s'+i)?.value  || '',
-      cvrManual : document.getElementById('wk'+i+'CvrManual')?.value || ''
+      s         : document.getElementById('s'+i)?.value  || ''
+    })),
+    wk1cvr5      : [1,2,3,4,5].map(i=>({
+      lr : document.getElementById('wcLR'+i)?.value || '',
+      s  : document.getElementById('wcS'+i)?.value  || ''
     }))
   };
   if (draft.agent || draft.date || draft.keyDiscussion || draft.strength || draft.areas) {
@@ -3712,16 +3723,13 @@ function resumeDraft() {
     const cb = document.querySelector(`#focusAreas input[value="${v}"]`);
     if (cb) cb.checked = true;
   });
-  (draft.rainmakerFocus||[]).forEach(v => {
-    const cb = document.querySelector(`#rmFocusAreas input[value="${v}"]`);
-    if (cb) cb.checked = true;
-  });
   (draft.perf||[]).forEach((row,i)=>{
     const n=i+1;
     setVal('lt'+n, row.lt); setVal('cc'+n, row.cc); setVal('s'+n, row.s);
-    setVal('wk'+n+'CvrManual', row.cvrManual||'');
   });
   calcPerf();
+  (draft.wk1cvr5||[]).forEach((row,i)=>{ setVal('wcLR'+(i+1), row.lr||''); setVal('wcS'+(i+1), row.s||''); });
+  if (typeof calcWk1Cvr5 === 'function') calcWk1Cvr5();
   calcTenure();
 }
 function setVal(id, val) {
