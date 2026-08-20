@@ -294,7 +294,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <thead>
             <tr>
               <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
-              <th>Highlights</th><th>Opportunities</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
+              <th>Strength</th><th>Areas of Improvement</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="dashTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
@@ -326,7 +326,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <thead>
             <tr>
               <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
-              <th>Coaching Type</th><th>Opportunities</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
+              <th>Coaching Type</th><th>Areas of Improvement</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="logTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
@@ -706,14 +706,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <h4>Coaching Notes</h4>
         <div class="form-grid" style="grid-template-columns:1fr">
           <div class="form-group">
-            <label>Highlights</label>
-            <input type="text" id="fHighlights" placeholder="Brief highlights for the table view"/>
-          </div>
-          <div class="form-group">
-            <label>Opportunities</label>
-            <input type="text" id="fOpportunities" placeholder="Brief opportunities for the table view"/>
-          </div>
-          <div class="form-group">
             <label>Key Discussion</label>
             <textarea id="fKeyDiscussion" placeholder="Key topics discussed during coaching..."></textarea>
           </div>
@@ -732,7 +724,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <div class="form-grid">
           <div class="form-group">
             <label>Agent's Primary Limiter</label>
-            <select id="fLimiter">
+            <select id="fLimiter" onchange="onLimiterChange()">
               <option value="">— Select —</option>
               <option>Attendance</option>
               <option>Speed-to-Lead</option>
@@ -742,7 +734,26 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <option>Call Tagging</option>
               <option>Dial and Drop</option>
               <option>Aircall Phone # Localization</option>
+              <option>Call/Objection Handling</option>
             </select>
+          </div>
+          <!-- Dependent sub-limiter — shown ONLY when Primary Limiter = "Call/Objection Handling".
+               Options are defined locally (0 SheetDB requests); saved value is the clean category name. -->
+          <div class="form-group" id="callObjLimiterGroup" style="display:none;grid-column:1/-1">
+            <label>Call/Objection Handling Limiter</label>
+            <select id="fCallObjLimiter" onchange="onCallObjLimiterChange()">
+              <option value="">— Select —</option>
+              <option>Discovery</option>
+              <option>Value-Before-Price Sequencing</option>
+              <option>Information Overload</option>
+              <option>Objection Handling</option>
+              <option>Pain-Point Rebuttal</option>
+              <option>Urgency Usage</option>
+              <option>Call Persistence</option>
+              <option>Membership Positioning</option>
+              <option>Rapport/Discovery Timing</option>
+            </select>
+            <div id="callObjLimiterHelp" style="font-size:.78rem;color:#666;margin-top:4px"></div>
           </div>
           <div class="form-group">
             <label>Follow-up Date</label>
@@ -978,7 +989,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-19-firebase-users-PROD-v9";
+const APEX_BUILD = "2026-08-20-coachnotes-limiter-PROD-v10";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2482,8 +2493,8 @@ function renderTable(tbodyId, list, showType=false) {
     const statusBadge = getStatusBadge(e.coachingStatus || 'Pending');
     const agentBadge  = agentStatusBadge(agentStatusCoaching(e));
     const dateStr = fmtCoachingDate(e.dateOfCoaching) || '—';
-    const col5    = showType ? (e.coachingType||'—') : truncate(e.highlights||'—', 30);
-    const col6    = showType ? truncate(e.highlights||'—',28) : truncate(e.opportunities||'—',28);
+    const col5    = showType ? (e.coachingType||'—') : truncate(e.strength||'—', 30);
+    const col6    = truncate(e.areas||'—', 28);
     const limiter = e.limiter ? (e.limiter.length>22 ? e.limiter.substring(0,22)+'…' : e.limiter) : '—';
     return `<tr>
       <td>${dateStr}</td>
@@ -2542,7 +2553,7 @@ function agentStatusNTE(n){
 // (No "expected coaching count" field exists in the data — see writeup note.)
 function tlComplete(e){
   if (!e) return false;
-  const hasContent = isFilled(e.keyDiscussion) || isFilled(e.highlights) || isFilled(e.areas) || isFilled(e.actionPlan);
+  const hasContent = isFilled(e.keyDiscussion) || isFilled(e.strength) || isFilled(e.areas) || isFilled(e.actionPlan);
   return isFilled(e.coachingType) && isFilled(e.coachingStatus) && hasContent;
 }
 function agentStatusBadge(label){
@@ -2600,12 +2611,12 @@ function editEntry(id) {
   setVal('fWK', e.wkNumber);
   setVal('fTL', e.teamLead);
   setVal('fAgent', e.agentName);
-  setVal('fHighlights', e.highlights);
-  setVal('fOpportunities', e.opportunities);
   setVal('fKeyDiscussion', e.keyDiscussion);
   setVal('fStrength', e.strength);
   setVal('fAreas', e.areas);
   setVal('fLimiter', e.limiter);
+  setVal('fCallObjLimiter', e.callObjLimiter || '');
+  onLimiterChange();   // show/hide the sub-limiter to match the loaded record
   setVal('fFollowUp', e.followUpDate);
   setVal('fActionPlan', e.actionPlan);
   setVal('fReceptiveness', e.receptiveness);
@@ -2643,11 +2654,12 @@ function editEntry(id) {
   openModal('formModal');
 }
 function clearForm() {
-  ['fCoachingType','fDate','fWK','fCluster','fTL','fAgent','fHighlights','fOpportunities',
-   'fKeyDiscussion','fStrength','fAreas','fLimiter','fFollowUp','fActionPlan',
+  ['fCoachingType','fDate','fWK','fCluster','fTL','fAgent',
+   'fKeyDiscussion','fStrength','fAreas','fLimiter','fCallObjLimiter','fFollowUp','fActionPlan',
    'fReceptiveness','fStatus','fRemarks'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value='';
   });
+  if (typeof onLimiterChange === 'function') onLimiterChange();   // hide sub-limiter on a fresh form
   document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb=>cb.checked=false);
   document.querySelectorAll('#rmFocusAreas input[type=checkbox]').forEach(cb=>cb.checked=false);
   for(let i=1;i<=4;i++){
@@ -3115,12 +3127,11 @@ function buildCoachingRow(e) {
     'WK3 CVR% (Manual)': e.wk3CvrManual||'',
     'WK4 CVR% (Manual)': e.wk4CvrManual||'',
     'AVG CVR% (Manual)': e.avgCvrManual||'',
-    'Highlights': e.highlights||'',
-    'Opportunities': e.opportunities||'',
     'Key Discussion': e.keyDiscussion||'',
     'Strength': e.strength||'',
     'Areas': e.areas||'',
     'Limiter': e.limiter||'',
+    'Call/Objection Handling Limiter': e.callObjLimiter||'',
     'Follow up': e.followUpDate||'',
     'Action plan': e.actionPlan||'',
     'Receptiveness': e.receptiveness||'',
@@ -3184,12 +3195,11 @@ function parseSheetRow(row) {
     wk3CvrManual:   row['WK3 CVR% (Manual)']||'',
     wk4CvrManual:   row['WK4 CVR% (Manual)']||'',
     avgCvrManual:   row['AVG CVR% (Manual)']||row['Avg CVR% (Manual)']||'',
-    highlights:     row['Highlights']||'',
-    opportunities:  row['Opportunities']||'',
     keyDiscussion:  row['Key Discussion']||'',
     strength:       row['Strength']||'',
     areas:          row['Areas']||'',
     limiter:        row['Limiter']||'',
+    callObjLimiter: row['Call/Objection Handling Limiter']||'',
     followUpDate:   row['Follow up']||row['Follow Up']||'',
     actionPlan:     row['Action plan']||row['Action Plan']||'',
     receptiveness:  row['Receptiveness']||'',
@@ -3388,7 +3398,7 @@ function exportCoachingCSV() {
     'WK3 LT','WK3 CC','WK3 Sales','WK3 TCR%','WK3 CSR%','WK3 CVR%',
     'WK4 LT','WK4 CC','WK4 Sales','WK4 TCR%','WK4 CSR%','WK4 CVR%',
     'Avg TCR%','Avg CSR%','Avg CVR%',
-    'Highlights','Opportunities','Status','Focus Areas'];
+    'Strength','Areas','Limiter','Call/Objection Handling Limiter','Status','Focus Areas'];
   const rows = filtered.map(e => {
     const p = e.perfData || [];
     const wkCols = (n) => {
@@ -3400,7 +3410,7 @@ function exportCoachingCSV() {
       e.dateOfCoaching, e.wkNumber, cluster, e.teamLead, e.agentName, e.coachingType, e.tenure||'',
       ...wkCols(1), ...wkCols(2), ...wkCols(3), ...wkCols(4),
       e.avgTCR||'', e.avgCSR||'', e.avgCVR||'',
-      e.highlights||'', e.opportunities||'', e.coachingStatus||'',
+      e.strength||'', e.areas||'', e.limiter||'', e.callObjLimiter||'', e.coachingStatus||'',
       (e.focusAreas||[]).join('; ')
     ];
   });
@@ -3425,6 +3435,37 @@ function exportNTECSV() {
     n.acknowledgement?.acknowledgedAt||''
   ]);
   downloadCSV([headers, ...rows], 'nte-log-' + new Date().toISOString().slice(0,10) + '.csv');
+}
+// Helper text per Call/Objection Handling sub-limiter category (local only, 0 SheetDB requests).
+const COH_LIMITER_DESC = {
+  'Discovery': 'Pain point not identified, or identified but not used later in the call.',
+  'Value-Before-Price Sequencing': 'Price introduced before real value/credibility is built.',
+  'Information Overload': 'Pricing/membership explained in one dense block instead of confirmed steps.',
+  'Objection Handling': 'No isolation question used, or no rebuttal attempted before accepting a decline.',
+  'Pain-Point Rebuttal': "Customer's own stated reason not reflected back as the reason to act now.",
+  'Urgency Usage': '',
+  'Call Persistence': 'Either folds after the first soft "no" with no probe, or pushes past an explicit, repeated refusal.',
+  'Membership Positioning': 'Customer confusion about what membership actually includes. Clarity of explanation, not pacing/length.',
+  'Rapport/Discovery Timing': 'Full pitch built before confirming the customer is even a viable prospect.'
+};
+// Show/hide the dependent sub-limiter based on the Primary Limiter selection. Local UI only.
+function onLimiterChange() {
+  const grp = document.getElementById('callObjLimiterGroup');
+  if (!grp) return;
+  const show = document.getElementById('fLimiter').value === 'Call/Objection Handling';
+  grp.style.display = show ? 'block' : 'none';
+  if (!show) {
+    const sub = document.getElementById('fCallObjLimiter'); if (sub) sub.value = '';   // clear stale sub-value locally
+    const help = document.getElementById('callObjLimiterHelp'); if (help) help.textContent = '';
+  } else {
+    onCallObjLimiterChange();
+  }
+}
+function onCallObjLimiterChange() {
+  const help = document.getElementById('callObjLimiterHelp');
+  if (!help) return;
+  const v = document.getElementById('fCallObjLimiter').value;
+  help.textContent = COH_LIMITER_DESC[v] || '';
 }
 function saveEntry() {
   const req = ['fDate','fAgent','fTL'];
@@ -3451,12 +3492,14 @@ function saveEntry() {
     tenure: document.getElementById('tenureBadge').textContent,
     focusAreas: [...document.querySelectorAll('#focusAreas input:checked')].map(c=>c.value),
     rainmakerFocus: [...document.querySelectorAll('#rmFocusAreas input:checked')].map(c=>c.value),
-    highlights: document.getElementById('fHighlights').value,
-    opportunities: document.getElementById('fOpportunities').value,
     keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength: document.getElementById('fStrength').value,
     areas: document.getElementById('fAreas').value,
     limiter: document.getElementById('fLimiter').value,
+    // Sub-limiter persists ONLY when the primary limiter is Call/Objection Handling;
+    // otherwise it is blanked so reporting never shows a stale sub-limiter.
+    callObjLimiter: (document.getElementById('fLimiter').value === 'Call/Objection Handling')
+      ? (document.getElementById('fCallObjLimiter').value || '') : '',
     followUpDate: document.getElementById('fFollowUp').value,
     actionPlan: document.getElementById('fActionPlan').value,
     receptiveness: document.getElementById('fReceptiveness').value,
@@ -3524,8 +3567,6 @@ function viewEntry(id) {
         <div class="view-field">${(e.focusAreas||[]).join(', ')||'—'}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>🎯 Rainmaker Practice Focus</label>
         <div class="view-field">${(e.rainmakerFocus||[]).join(', ')||'—'}</div></div>
-      <div class="form-group"><label>Highlights</label><div class="view-field">${e.highlights||'—'}</div></div>
-      <div class="form-group"><label>Opportunities</label><div class="view-field">${e.opportunities||'—'}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Key Discussion</label><div class="view-field big">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Strength Identified</label><div class="view-field big">${(e.strength||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Areas of Improvement</label><div class="view-field big">${(e.areas||'—').replace(/\n/g,'<br>')}</div></div>
@@ -3548,6 +3589,7 @@ function viewEntry(id) {
     <div class="form-section">
       <div class="form-grid">
         <div class="form-group"><label>Primary Limiter</label><div class="view-field">${e.limiter||'—'}</div></div>
+        ${e.callObjLimiter ? `<div class="form-group"><label>Call/Objection Handling Limiter</label><div class="view-field">${e.callObjLimiter}</div></div>` : ''}
         <div class="form-group"><label>Follow-up Date</label><div class="view-field">${e.followUpDate||'—'}</div></div>
         <div class="form-group" style="grid-column:1/-1"><label>Action Plan / Next Steps</label><div class="view-field big">${(e.actionPlan||'—').replace(/\n/g,'<br>')}</div></div>
         <div class="form-group" style="grid-column:1/-1"><label>Additional Remarks</label><div class="view-field big">${(e.remarks||'—').replace(/\n/g,'<br>')}</div></div>
@@ -3611,12 +3653,11 @@ function saveDraft() {
     cluster      : document.getElementById('fCluster').value,
     tl           : document.getElementById('fTL').value,
     agent        : document.getElementById('fAgent').value,
-    highlights   : document.getElementById('fHighlights').value,
-    opportunities: document.getElementById('fOpportunities').value,
     keyDiscussion: document.getElementById('fKeyDiscussion').value,
     strength     : document.getElementById('fStrength').value,
     areas        : document.getElementById('fAreas').value,
     limiter      : document.getElementById('fLimiter').value,
+    callObjLimiter: (document.getElementById('fCallObjLimiter')||{}).value || '',
     followUp     : document.getElementById('fFollowUp').value,
     actionPlan   : document.getElementById('fActionPlan').value,
     receptiveness: document.getElementById('fReceptiveness').value,
@@ -3631,7 +3672,7 @@ function saveDraft() {
       cvrManual : document.getElementById('wk'+i+'CvrManual')?.value || ''
     }))
   };
-  if (draft.agent || draft.date || draft.highlights || draft.opportunities || draft.keyDiscussion) {
+  if (draft.agent || draft.date || draft.keyDiscussion || draft.strength || draft.areas) {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   }
 }
@@ -3656,12 +3697,12 @@ function resumeDraft() {
   setVal('fDate', draft.date||'');
   setVal('fWK', draft.wk||'');
   setVal('fAgent', draft.agent||'');
-  setVal('fHighlights', draft.highlights||'');
-  setVal('fOpportunities', draft.opportunities||'');
   setVal('fKeyDiscussion', draft.keyDiscussion||'');
   setVal('fStrength', draft.strength||'');
   setVal('fAreas', draft.areas||'');
   setVal('fLimiter', draft.limiter||'');
+  setVal('fCallObjLimiter', draft.callObjLimiter||'');
+  if (typeof onLimiterChange === 'function') onLimiterChange();   // restore sub-limiter visibility
   setVal('fFollowUp', draft.followUp||'');
   setVal('fActionPlan', draft.actionPlan||'');
   setVal('fReceptiveness', draft.receptiveness||'');
@@ -3716,14 +3757,6 @@ function openCommitmentView(entryId) {
       ${e.coachingType ? `<div style="margin-top:6px"><span style="background:#fff3cd;border-radius:12px;padding:3px 10px;font-size:.78rem;font-weight:700">${esc(e.coachingType)}</span></div>` : ''}
     </div>
     <div class="coaching-detail-grid">
-      <div class="coaching-detail-item">
-        <div class="cd-label">⭐ Highlights</div>
-        <div class="cd-val">${(e.highlights||'—').replace(/\n/g,'<br>')}</div>
-      </div>
-      <div class="coaching-detail-item">
-        <div class="cd-label">🔧 Opportunities</div>
-        <div class="cd-val">${(e.opportunities||'—').replace(/\n/g,'<br>')}</div>
-      </div>
       <div class="coaching-detail-item full">
         <div class="cd-label">💬 Key Discussion Points</div>
         <div class="cd-val">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div>
@@ -3743,6 +3776,10 @@ function openCommitmentView(entryId) {
       ${e.limiter ? `<div class="coaching-detail-item" style="background:#fff8e1">
         <div class="cd-label">⚠️ Primary Limiter</div>
         <div class="cd-val">${esc(e.limiter)}</div>
+      </div>` : ''}
+      ${e.callObjLimiter ? `<div class="coaching-detail-item" style="background:#fff8e1">
+        <div class="cd-label">⚠️ Call/Objection Handling Limiter</div>
+        <div class="cd-val">${esc(e.callObjLimiter)}</div>
       </div>` : ''}
       ${e.followUpDate ? `<div class="coaching-detail-item" style="background:#e3f2fd">
         <div class="cd-label">📅 Follow-up Date</div>
