@@ -599,8 +599,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
             <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="wcLR3" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS3" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR3">—</td><td class="calc" id="wcDEF3">—</td></tr>
             <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="wcLR4" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS4" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR4">—</td><td class="calc" id="wcDEF4">—</td></tr>
             <tr><td style="text-align:left;padding-left:8px;">Week 5</td><td><input type="number" id="wcLR5" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS5" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR5">—</td><td class="calc" id="wcDEF5">—</td></tr>
+            <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg (Cured Weeks 2–5)</td><td>—</td><td>—</td><td class="calc" id="wcCVRavg">—</td><td>—</td></tr>
           </tbody>
         </table>
+        <div id="wk1CvrBenchSummary" style="font-size:.8rem;color:#333;margin-top:10px;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px;display:none"></div>
       </div>
       <div class="form-section" id="projectionSection">
         <h4>🎯 Performance Projection</h4>
@@ -685,7 +687,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <div style="font-size:.76rem;color:#888;margin-top:4px;font-style:italic">Guidance only — confirm the actual behavioral root cause with the agent and the reports; this does not replace your judgment.</div>
             </div>
             <div id="leverRamp" style="margin-top:12px;display:none"></div>
-            <div id="leverWk1Cvr" style="font-size:.8rem;color:#333;margin-top:10px;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px;display:none"></div>
             <div style="font-size:.74rem;color:#7a8aa0;margin-top:12px;border-top:1px dashed #d7e3f4;padding-top:8px">
               Flow: Performance Metrics → <b>Primary Opportunity</b> → <b>Projected Impact</b> → Areas of Improvement → Action Plan → Agent My Commitment
             </div>
@@ -979,7 +980,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-20-perf-labels-PROD-v13";
+const APEX_BUILD = "2026-08-20-ramp-4wkavg-PROD-v14";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2659,6 +2660,8 @@ function clearForm() {
     ['wcLR','wcS'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.value=''; });
     ['wcCVR','wcDEF'].forEach(f=>{ const el=document.getElementById(f+i); if(el) el.textContent='—'; });
   }
+  const wcAvg=document.getElementById('wcCVRavg'); if(wcAvg) wcAvg.textContent='—';
+  const wcSum=document.getElementById('wk1CvrBenchSummary'); if(wcSum){ wcSum.style.display='none'; wcSum.innerHTML=''; }
   ['avgLT','avgCC','avgS','avgTCR','avgCSR','avgCVR'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.textContent='—';
   });
@@ -2794,11 +2797,37 @@ function calcWk1Cvr5() {
     const sales = isNaN(sRaw) ? 0 : sRaw;
     if(hasLR){
       cvrEl.textContent = (sales/lr*100).toFixed(2)+'%';
-      defEl.textContent = String(Math.max(0, Math.ceil(lr*0.10) - sales));   // fixed 10% benchmark
+      defEl.textContent = String(Math.max(0, Math.ceil(lr*0.10) - sales));   // fixed 10% benchmark (week-by-week, unchanged)
     } else {
       cvrEl.textContent = '—';
       defEl.textContent = '—';
     }
+  }
+  // ── Cured 4-week WK1 CVR average (Weeks 2–5 only; Week 1 = curing week, excluded) ──
+  // Avg-of-ratios: mean of the weekly WK1 CVR percentages, skipping any week with blank/
+  // zero Leads Received. Blank ("—") when no cured week qualifies. Sales Deficit stays
+  // week-by-week and is NOT aggregated here. Purely local — ZERO SheetDB requests.
+  const cured = [];
+  for (let i=2;i<=5;i++){
+    const lr = parseFloat(document.getElementById('wcLR'+i).value);
+    const sRaw = parseFloat(document.getElementById('wcS'+i).value);
+    if (!isNaN(lr) && lr>0){ const sales = isNaN(sRaw) ? 0 : sRaw; cured.push(sales/lr*100); }
+  }
+  const avgEl = document.getElementById('wcCVRavg');
+  const sumEl = document.getElementById('wk1CvrBenchSummary');
+  if (cured.length){
+    const curedAvg = cured.reduce((a,b)=>a+b,0)/cured.length;
+    if (avgEl) avgEl.textContent = curedAvg.toFixed(2)+'%';
+    if (sumEl){
+      const meets = curedAvg >= BENCH_WK1CVR - 0.005;
+      sumEl.style.display = 'block';
+      sumEl.innerHTML = `<b>WK1 CVR (curing metric):</b> 4-week average (cured Weeks 2–5) <b>${curedAvg.toFixed(2)}%</b> vs ${BENCH_WK1CVR}% benchmark — `
+        + (meets ? '<b style="color:#2e7d32">at/above benchmark</b>' : '<b style="color:#c62828">below benchmark</b>')
+        + `. <span style="color:#888">Tracked separately from overall CVR and from the Volume→TCR→CSR opportunity order.</span>`;
+    }
+  } else {
+    if (avgEl) avgEl.textContent = '—';
+    if (sumEl){ sumEl.style.display = 'none'; sumEl.innerHTML = ''; }
   }
 }
 function updateProjectionCurrent() {
@@ -2852,6 +2881,27 @@ function calcProjection() {
 // metric, shown against its own 10% benchmark — never mixed into the Volume→TCR→CSR order
 // and never substituted for the overall CVR calculation.
 const BENCH_TCR = 25, BENCH_CSR = 12, BENCH_WK1CVR = 10;
+// 4-week trailing averages, computed from the SAME inputs the trailing tables use (lt/cc/s 1–4).
+// avgLT/avgCC/avgS are rounded means over valid rows (matching the displayed trailing averages);
+// avgTCR/avgCSR/avgCVR are avg-of-ratios (mean of the weekly percentages), returned unrounded for
+// downstream math. Purely local — reads DOM inputs, ZERO SheetDB requests.
+function perf4wkAverages(){
+  let tLT=0,tCC=0,tS=0,n=0; const tcr=[],csr=[],cvr=[];
+  for(let i=1;i<=4;i++){
+    const lt=parseFloat(document.getElementById('lt'+i).value)||0;
+    const cc=parseFloat(document.getElementById('cc'+i).value)||0;
+    const s =parseFloat(document.getElementById('s'+i).value)||0;
+    if(lt||cc||s){ tLT+=lt; tCC+=cc; tS+=s; n++;
+      if(lt>0) tcr.push(cc/lt*100);
+      if(cc>0) csr.push(s/cc*100);
+      if(lt>0) cvr.push(s/lt*100);
+    }
+  }
+  const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  return { n,
+    avgLT: n?Math.round(tLT/n):0, avgCC: n?Math.round(tCC/n):0, avgS: n?Math.round(tS/n):0,
+    avgTCR: mean(tcr), avgCSR: mean(csr), avgCVR: mean(cvr) };
+}
 // Core Metrics Lever guidance — pure presentation over the values computed above.
 // Order of operations: Volume/Leads → TCR → CSR. TCR/CSR are evaluated against the OFFICIAL
 // benchmarks above (no TL entry required); Volume uses the optional TL-entered Target Leads
@@ -2932,12 +2982,24 @@ function renderLeverGuidance(){
   // Progressive milestones from CURRENT to the FINAL TARGET of the primary lever.
   // Week 4 lands exactly on the final target. Pure client-side; it is a coaching
   // guide only — NOT four Coaching Log records and NOT four separate saves.
+  // The ramp is anchored on the 4-WEEK TRAILING AVERAGES (stable baseline), not this week's
+  // single (Week-1) reading. The primary lever (focusKey) and its final target (fin) are still
+  // selected above from this week's data — the Primary Opportunity / Projected Impact panels are
+  // unchanged. Only the ramp's Current baseline and its connect/sales projection rates are
+  // re-based here onto the trailing averages, matching the values shown in the trailing tables.
   const rampEl = document.getElementById('leverRamp');
   if (rampEl) {
+    const A = perf4wkAverages();
+    const avgTCRv  = (A.avgTCR != null) ? A.avgTCR : 0;   // avg-of-ratios %
+    const avgCSRv  = (A.avgCSR != null) ? A.avgCSR : 0;   // avg-of-ratios %
+    const avgCSRrate = avgCSRv / 100;                     // connects → sales, average basis
+    const avgLTv   = A.avgLT;                             // rounded mean Leads Touched
+    const avgCCv   = A.avgCC;                             // rounded mean Connected Calls
+    const tgtLeadsAvg = (!isNaN(leadsRaw) && leadsRaw > 0) ? leadsRaw : avgLTv;
     let cur, fin, valType; // valType: 'pct' (TCR/CSR) or 'leads' (Volume)
-    if      (focusKey === 'Volume') { cur = lt;      fin = leadsRaw; valType = 'leads'; }
-    else if (focusKey === 'TCR')    { cur = tcrCurr; fin = BENCH_TCR; valType = 'pct';   }
-    else if (focusKey === 'CSR')    { cur = csrCurr; fin = BENCH_CSR; valType = 'pct';   }
+    if      (focusKey === 'Volume') { cur = avgLTv;  fin = leadsRaw; valType = 'leads'; }
+    else if (focusKey === 'TCR')    { cur = avgTCRv; fin = BENCH_TCR; valType = 'pct';   }
+    else if (focusKey === 'CSR')    { cur = avgCSRv; fin = BENCH_CSR; valType = 'pct';   }
     const gap = (fin != null && !isNaN(fin)) ? (fin - cur) : 0;
     if (focusKey && gap > 0.05) {
       const curStr = valType === 'pct' ? f1(cur) + '%' : Math.round(cur);
@@ -2950,18 +3012,18 @@ function renderLeverGuidance(){
         const rel  = cur > 0 ? (impv / cur * 100) : 0;
         let cells;
         if (focusKey === 'TCR') {
-          const addC = (impv / 100) * tgtLeads;
-          const totC = (wt   / 100) * tgtLeads;
-          const addS = csrRate * addC;
+          const addC = (impv / 100) * tgtLeadsAvg;
+          const totC = (wt   / 100) * tgtLeadsAvg;
+          const addS = avgCSRrate * addC;
           cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`;
         } else if (focusKey === 'Volume') {
-          const addC = (tcrCurr / 100) * impv;
-          const totC = (tcrCurr / 100) * wt;
-          const addS = csrRate * addC;
+          const addC = (avgTCRv / 100) * impv;
+          const totC = (avgTCRv / 100) * wt;
+          const addS = avgCSRrate * addC;
           cells = `<td>${Math.round(wt)}</td><td>+${Math.round(impv)}</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`;
         } else { // CSR
-          const addS = (impv / 100) * cc;
-          const totS = (wt   / 100) * cc;
+          const addS = (impv / 100) * avgCCv;
+          const totS = (wt   / 100) * avgCCv;
           cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addS)}</td><td>${Math.round(totS)}</td>`;
         }
         rowsHtml += `<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`;
@@ -2973,7 +3035,7 @@ function renderLeverGuidance(){
       rampEl.style.display = 'block';
       rampEl.innerHTML =
         `<div style="font-weight:800;font-size:.85rem;color:#1a3353;margin-bottom:4px">📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp</div>`
-        + `<div style="font-size:.8rem;color:#555;margin-bottom:8px">Current <b>${curStr}</b> → Final Target <b>${finStr}</b> → Gap <b>${gapStr}</b>. Milestones to review at each weekly 1:1 — Week 4 equals the final target.</div>`
+        + `<div style="font-size:.8rem;color:#555;margin-bottom:8px">Baselined on the <b>4-week average</b>: Current <b>${curStr}</b> → Final Target <b>${finStr}</b> → Gap <b>${gapStr}</b>. Milestones to review at each weekly 1:1 — Week 4 equals the final target.</div>`
         + `<div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${headHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`
         + `<div style="font-size:.74rem;color:#888;margin-top:6px;font-style:italic">Coaching guide only — these are weekly milestones, not four Coaching Log records and not separate saves.</div>`;
     } else {
@@ -2981,24 +3043,9 @@ function renderLeverGuidance(){
       rampEl.innerHTML = '';
     }
   }
-  // WK1 CVR — a SEPARATE curing metric shown against its own 10% benchmark. Not part of the
-  // Volume→TCR→CSR opportunity order, and NOT the overall CVR. Uses the manual override if set,
-  // else Sales ÷ Leads Touched for the most recent week (same basis as the WK1 CVR highlight).
-  const wk1El = document.getElementById('leverWk1Cvr');
-  if (wk1El) {
-    const wk1ManualEl = document.getElementById('wk1CvrManual');   // removed from the form in v11 — guard
-    const wk1Manual = wk1ManualEl ? parseFloat(wk1ManualEl.value) : NaN;
-    const wk1cvr = !isNaN(wk1Manual) ? wk1Manual : (lt > 0 ? (s / lt * 100) : null);
-    if (wk1cvr == null) {
-      wk1El.style.display = 'none'; wk1El.innerHTML = '';
-    } else {
-      const meets = wk1cvr >= BENCH_WK1CVR - 0.005;
-      wk1El.style.display = 'block';
-      wk1El.innerHTML = `<b>WK1 CVR (curing metric):</b> ${f1(wk1cvr)}% vs ${BENCH_WK1CVR}% benchmark — `
-        + (meets ? '<b style="color:#2e7d32">at/above benchmark</b>' : '<b style="color:#c62828">below benchmark</b>')
-        + `. <span style="color:#888">Tracked separately from overall CVR and from the Volume→TCR→CSR opportunity order.</span>`;
-    }
-  }
+  // NOTE: the WK1 CVR curing-metric summary has MOVED — it now renders in calcWk1Cvr5() directly
+  // under the 🎯 WK1 CVR — 5-Week View table, based on the cured 4-week average (Weeks 2–5) vs the
+  // 10% benchmark. It is intentionally no longer rendered here in the Weekly 1:1 guide.
 }
 const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/r0nbg42fofu0f';
 // ── SheetDB single-row endpoint (UPDATE / DELETE by column value) ──────────────
