@@ -97,6 +97,17 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .perf-table col.col-num{width:10%}
 .perf-table col.col-pct{width:7%}
 .perf-table col.col-wk1cvr{width:9%}
+/* v11 UI fix — three grouped 4-Week Trailing tables: readable, non-overlapping, responsive. */
+.perf-triple{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start}
+.perf-group{min-width:0}
+.perf-group-title{font-size:.82rem;font-weight:800;color:#1a3353;margin:2px 0 5px;letter-spacing:.01em}
+.perf-group .perf-table{margin-top:0}
+.perf-group .perf-table th{white-space:normal;word-break:normal;overflow-wrap:break-word;padding:7px 6px;font-size:.73rem}
+.perf-group .perf-table td{padding:6px 6px}
+.perf-group .perf-table th:first-child,.perf-group .perf-table td:first-child{text-align:left;padding-left:8px}
+.perf-group .perf-table col.pt-week{width:46%}
+.perf-group .perf-table col.pt-val{width:29%}
+.perf-group .perf-table col.pt-pct{width:25%}
 .focus-on-bar{display:flex;align-items:center;gap:10px;background:#fffbef;border:1.5px solid #ffe082;border-radius:8px;padding:10px 14px;margin-bottom:14px;flex-wrap:wrap}
 .focus-on-bar .focus-label{font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#555;white-space:nowrap}
 .focus-on-bar label{display:inline-flex;align-items:center;gap:5px;font-size:.84rem;font-weight:700;cursor:pointer;padding:4px 12px;border-radius:20px;border:1.5px solid #e0e0e0;background:#fff;transition:all .15s;user-select:none}
@@ -455,7 +466,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
   </main>
 </div>
 <div class="modal-overlay" id="formModal">
-  <div class="modal">
+  <div class="modal" style="max-width:960px">
     <div class="modal-header">
       <h3 id="formModalTitle">New Coaching Log</h3>
       <button class="modal-close" onclick="closeFormModal()">✕</button>
@@ -523,59 +534,58 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         </div>
       </div>
       <div class="form-section">
-        <h4>📊 4-Week Trailing Performance</h4>
+        <h4>4-Week Trailing Performance (TCR%, CSR%, and CVR%)</h4>
         <p style="font-size:.83rem;color:#555;margin-bottom:12px;line-height:1.5;">
           Enter the metric value for each of the 4 trailing weeks
           <em>(example: if this week is WK552, enter performance from WK548 to WK551)</em>.
         </p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
-          <table class="perf-table">
-            <colgroup><col style="width:46%"><col style="width:30%"><col style="width:24%"></colgroup>
-            <thead><tr><th>Week</th><th>Leads Touched</th><th>TCR%</th></tr></thead>
-            <tbody>
-              <tr><td style="text-align:left;padding-left:8px;">Week 1 (Most Recent)</td><td><input type="number" id="lt1" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr1">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 2</td><td><input type="number" id="lt2" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr2">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="lt3" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr3">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="lt4" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr4">—</td></tr>
-              <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg</td><td id="avgLT">—</td><td id="avgTCR">—</td></tr>
-            </tbody>
-          </table>
-          <table class="perf-table">
-            <colgroup><col style="width:46%"><col style="width:30%"><col style="width:24%"></colgroup>
-            <thead><tr><th>Week</th><th>Connected Calls</th><th>CSR%</th></tr></thead>
-            <tbody>
-              <tr><td style="text-align:left;padding-left:8px;">Week 1 (Most Recent)</td><td><input type="number" id="cc1" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr1">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 2</td><td><input type="number" id="cc2" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr2">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="cc3" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr3">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="cc4" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr4">—</td></tr>
-              <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg</td><td id="avgCC">—</td><td id="avgCSR">—</td></tr>
-            </tbody>
-          </table>
-          <table class="perf-table">
-            <colgroup><col style="width:46%"><col style="width:30%"><col style="width:24%"></colgroup>
-            <thead><tr><th>Week</th><th>Sales</th><th>CVR%</th></tr></thead>
-            <tbody>
-              <tr><td style="text-align:left;padding-left:8px;">Week 1 (Most Recent)</td><td><input type="number" id="s1" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr1">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 2</td><td><input type="number" id="s2" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr2">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="s3" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr3">—</td></tr>
-              <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="s4" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr4">—</td></tr>
-              <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg</td><td id="avgS">—</td><td id="avgCVR">—</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <div style="background:#1a3353;color:#fff;border-radius:8px;padding:10px 20px;display:flex;align-items:center;gap:10px;font-size:.95rem;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.18);">
-            <span>⭐ WK1 CVR% <span style="font-size:.78rem;font-weight:400;opacity:.8;">(Most Recent Week)</span></span>
-            <span id="wk1CvrHighlight" style="font-size:1.35rem;font-weight:800;color:#f9d423;letter-spacing:.5px;">—</span>
-            <span style="font-size:.75rem;font-weight:700;background:#f9d423;color:#1a3353;border-radius:6px;padding:2px 8px;">🎯 Benchmark 10%</span>
+        <div class="perf-triple">
+          <div class="perf-group">
+            <div class="perf-group-title">Leads Touched & TCR</div>
+            <table class="perf-table">
+              <colgroup><col class="pt-week"><col class="pt-val"><col class="pt-pct"></colgroup>
+              <thead><tr><th>Week</th><th>Leads Touched</th><th>TCR%</th></tr></thead>
+              <tbody>
+              <tr><td>Week 1 (Most Recent)</td><td><input type="number" id="lt1" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr1">—</td></tr>
+              <tr><td>Week 2</td><td><input type="number" id="lt2" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr2">—</td></tr>
+              <tr><td>Week 3</td><td><input type="number" id="lt3" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr3">—</td></tr>
+              <tr><td>Week 4</td><td><input type="number" id="lt4" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr4">—</td></tr>
+              <tr style="background:#fffbef;font-weight:700"><td>4-Week Avg</td><td id="avgLT">—</td><td id="avgTCR">—</td></tr>
+              </tbody>
+            </table>
           </div>
-          <div style="font-size:.82rem;color:#666;line-height:1.4;">
-            Most recent week's CVR% — Sales ÷ Leads Touched × 100. <em>Curing metric — tracked against its own 10% benchmark, separate from overall CVR.</em>
+          <div class="perf-group">
+            <div class="perf-group-title">Connected Calls & CSR</div>
+            <table class="perf-table">
+              <colgroup><col class="pt-week"><col class="pt-val"><col class="pt-pct"></colgroup>
+              <thead><tr><th>Week</th><th>Connected Calls</th><th>CSR%</th></tr></thead>
+              <tbody>
+              <tr><td>Week 1 (Most Recent)</td><td><input type="number" id="cc1" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr1">—</td></tr>
+              <tr><td>Week 2</td><td><input type="number" id="cc2" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr2">—</td></tr>
+              <tr><td>Week 3</td><td><input type="number" id="cc3" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr3">—</td></tr>
+              <tr><td>Week 4</td><td><input type="number" id="cc4" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr4">—</td></tr>
+              <tr style="background:#fffbef;font-weight:700"><td>4-Week Avg</td><td id="avgCC">—</td><td id="avgCSR">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="perf-group">
+            <div class="perf-group-title">Sales & CVR</div>
+            <table class="perf-table">
+              <colgroup><col class="pt-week"><col class="pt-val"><col class="pt-pct"></colgroup>
+              <thead><tr><th>Week</th><th>Sales</th><th>CVR%</th></tr></thead>
+              <tbody>
+              <tr><td>Week 1 (Most Recent)</td><td><input type="number" id="s1" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr1">—</td></tr>
+              <tr><td>Week 2</td><td><input type="number" id="s2" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr2">—</td></tr>
+              <tr><td>Week 3</td><td><input type="number" id="s3" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr3">—</td></tr>
+              <tr><td>Week 4</td><td><input type="number" id="s4" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr4">—</td></tr>
+              <tr style="background:#fffbef;font-weight:700"><td>4-Week Avg</td><td id="avgS">—</td><td id="avgCVR">—</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
       <div class="form-section">
-        <h4>🎯 WK1 CVR — 5-Week Curing View</h4>
+        <h4>🎯 WK1 CVR — 5-Week View (including Curing Week)</h4>
         <p style="font-size:.83rem;color:#555;margin-bottom:10px;line-height:1.5;">
           Enter <b>Leads Received</b> and <b>Sales</b> per week. <b>WK1 CVR</b> (Sales ÷ Leads Received) and <b>Sales Deficit</b>
           (extra sales needed to reach the fixed <b>10%</b> WK1 CVR benchmark) are auto-calculated and read-only.
@@ -969,7 +979,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-20-perf-tables-wk1cvr5-PROD-v11";
+const APEX_BUILD = "2026-08-20-perf-labels-PROD-v13";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
