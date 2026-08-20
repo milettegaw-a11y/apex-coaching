@@ -482,12 +482,13 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="form-grid">
         <div class="form-group">
           <label>Coaching Type <span class="required">*</span></label>
+          <!-- Dropdown kept intentionally so more Coaching Types can be added later.
+               Only Scheduled Coaching is offered now, and it is the default selection
+               (see clearForm / editEntry / restoreDraft, which coerce legacy or blank
+               values to Scheduled Coaching). NOTHING here hard-codes a single-type
+               assumption into calculations. -->
           <select id="fCoachingType">
-            <option value="">— Select —</option>
             <option>Scheduled Coaching</option>
-            <option>Live Call Monitoring Feedback</option>
-            <option>Ad-Hoc / Spot Coaching</option>
-            <option>Behavioral Coaching</option>
           </select>
         </div>
         <div class="form-group">
@@ -522,17 +523,9 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div><span class="tenure-badge" id="tenureBadge">—</span></div>
         </div>
       </div>
-      <div class="form-section">
-        <h4>Focus Area(s)</h4>
-        <div class="checkbox-group" id="focusAreas">
-          <label><input type="checkbox" value="Quality / Accuracy"> Quality / Accuracy</label>
-          <label><input type="checkbox" value="Productivity / Efficiency"> Productivity / Efficiency</label>
-          <label><input type="checkbox" value="Attendance / Schedule Adherence"> Attendance / Schedule Adherence</label>
-          <label><input type="checkbox" value="Communication / Soft Skills"> Communication / Soft Skills</label>
-          <label><input type="checkbox" value="Compliance / Process Adherence"> Compliance / Process Adherence</label>
-          <label><input type="checkbox" value="Overall Performance Review"> Overall Performance Review</label>
-        </div>
-      </div>
+      <!-- Focus Area(s) input removed from the form (v15). Historical "Focus Area" data is
+           NOT deleted: it is still read by parseSheetRow, carried forward on edit (saveEntry),
+           and shown in the view modal + CSV export. -->
       <div class="form-section">
         <h4>4-Week Trailing Performance (TCR%, CSR%, and CVR%)</h4>
         <p style="font-size:.83rem;color:#555;margin-bottom:12px;line-height:1.5;">
@@ -606,13 +599,9 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       </div>
       <div class="form-section" id="projectionSection">
         <h4>🎯 Performance Projection</h4>
-        <div class="focus-on-bar">
-          <span class="focus-label">Focus On:</span>
-          <label><input type="radio" name="focusOn" value="TCR" onchange="calcProjection()"> TCR%</label>
-          <label><input type="radio" name="focusOn" value="CSR" onchange="calcProjection()"> CSR%</label>
-          <label><input type="radio" name="focusOn" value="CVR" onchange="calcProjection()"> CVR%</label>
-          <label><input type="radio" name="focusOn" value="WK1CVR" onchange="calcProjection()"> WK1 CVR%</label>
-        </div>
+        <!-- "Focus On" radio bar removed (v15). It was a non-functional relic — no calculation
+             read name="focusOn"; the projection/ramp/opportunity are driven by the target inputs
+             and the auto lever logic. All JS refs to focusOn are guarded, so removal is safe. -->
         <table class="proj-table">
           <thead>
             <tr>
@@ -980,7 +969,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-20-ramp-4wkavg-PROD-v14";
+const APEX_BUILD = "2026-08-20-cleanup-PROD-v15";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2545,7 +2534,13 @@ function agentStatusNTE(n){
 function tlComplete(e){
   if (!e) return false;
   const hasContent = isFilled(e.keyDiscussion) || isFilled(e.strength) || isFilled(e.areas) || isFilled(e.actionPlan);
-  return isFilled(e.coachingType) && isFilled(e.coachingStatus) && hasContent;
+  // Coaching Type is NO LONGER a completion gate (v15). It was the only place Coaching Type
+  // could drop an otherwise-valid historical record (blank/legacy type) from the numerator,
+  // and keeping it meant the Google-Sheets consolidation to "Scheduled Coaching" would flip
+  // blank-type rows from incomplete→complete — distorting totals. Completion now depends only
+  // on TL content + Coaching Status, so the metrics are invariant to Coaching Type and to the
+  // migration. Explicit Coaching Type FILTERING (dashboard dropdown) is unchanged.
+  return isFilled(e.coachingStatus) && hasContent;
 }
 function agentStatusBadge(label){
   return label === 'Agent Complete'
@@ -2598,6 +2593,12 @@ function editEntry(id) {
   populateFormTLs(document.getElementById('fCluster').value);
   populateFormAgents(e.teamLead);
   setVal('fCoachingType', e.coachingType);
+  // Legacy/removed/blank Coaching Type (e.g. a pre-migration "Live Call Monitoring Feedback")
+  // is no longer an option → the select would show blank and could save blank. Coerce to the
+  // sole current default so an edit never wipes the type to blank. This matches the intended
+  // consolidation ("all entries treated as Scheduled Coaching") and only affects a row the TL
+  // actively edits+saves (still 1 PATCH). A future added type that IS an option is preserved.
+  { const _ct = document.getElementById('fCoachingType'); if (_ct && !_ct.value) _ct.value = 'Scheduled Coaching'; }
   setVal('fDate', e.dateOfCoaching);
   setVal('fWK', e.wkNumber);
   setVal('fTL', e.teamLead);
@@ -2644,11 +2645,14 @@ function editEntry(id) {
   openModal('formModal');
 }
 function clearForm() {
-  ['fCoachingType','fDate','fWK','fCluster','fTL','fAgent',
+  ['fDate','fWK','fCluster','fTL','fAgent',
    'fKeyDiscussion','fStrength','fAreas','fLimiter','fCallObjLimiter','fFollowUp','fActionPlan',
    'fReceptiveness','fStatus','fRemarks'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value='';
   });
+  // Coaching Type defaults to Scheduled Coaching for every new log (not blanked). The dropdown
+  // stays extensible — add more <option>s later and this default still applies to new forms.
+  const ctNew = document.getElementById('fCoachingType'); if (ctNew) ctNew.value = 'Scheduled Coaching';
   if (typeof onLimiterChange === 'function') onLimiterChange();   // hide sub-limiter on a fresh form
   document.querySelectorAll('#focusAreas input[type=checkbox]').forEach(cb=>cb.checked=false);
   for(let i=1;i<=4;i++){
@@ -3587,6 +3591,9 @@ function saveEntry() {
     // Rainmaker Practice Focus (input removed; top-level Rainmaker tab still uses it) and the legacy
     // manual WK1 CVR% columns (replaced by the 5-week curing table).
     entry.rainmakerFocus = ex.rainmakerFocus || [];
+    // Focus Area(s) input was removed from the form (v15); the form now yields []. Carry forward
+    // the existing stored value so an edit never wipes a historical row's Focus Area data.
+    entry.focusAreas = ex.focusAreas || [];
     entry.wk1CvrManual = ex.wk1CvrManual || '';
     entry.wk2CvrManual = ex.wk2CvrManual || '';
     entry.wk3CvrManual = ex.wk3CvrManual || '';
@@ -3762,6 +3769,7 @@ function resumeDraft() {
   setVal('fTL', draft.tl||'');
   populateFormAgents(draft.tl||'');
   setVal('fCoachingType', draft.coachingType||'');
+  { const _ct = document.getElementById('fCoachingType'); if (_ct && !_ct.value) _ct.value = 'Scheduled Coaching'; }  // legacy/blank draft type → default
   setVal('fDate', draft.date||'');
   setVal('fWK', draft.wk||'');
   setVal('fAgent', draft.agent||'');
