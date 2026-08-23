@@ -733,6 +733,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <option>Call Persistence</option>
               <option>Membership Positioning</option>
               <option>Rapport/Discovery Timing</option>
+              <option>Tone of Voice</option>
             </select>
             <div id="callObjLimiterHelp" style="font-size:.78rem;color:#666;margin-top:4px"></div>
           </div>
@@ -1022,7 +1023,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-23-ct-week-coverage-PROD-v18";
+const APEX_BUILD = "2026-08-23-tone-of-voice-PROD-v20";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -3916,7 +3917,8 @@ const COH_LIMITER_DESC = {
   'Urgency Usage': '',
   'Call Persistence': 'Either folds after the first soft "no" with no probe, or pushes past an explicit, repeated refusal.',
   'Membership Positioning': 'Customer confusion about what membership actually includes. Clarity of explanation, not pacing/length.',
-  'Rapport/Discovery Timing': 'Full pitch built before confirming the customer is even a viable prospect.'
+  'Rapport/Discovery Timing': 'Full pitch built before confirming the customer is even a viable prospect.',
+  'Tone of Voice': 'Delivery/tone undermined the message — e.g. flat, rushed, uncertain, or mismatched to the customer.'
 };
 // Show/hide the dependent sub-limiter based on the Primary Limiter selection. Local UI only.
 function onLimiterChange() {
@@ -4234,6 +4236,171 @@ document.addEventListener('keydown', e => {
     closeCommitmentModal();
   }
 });
+// ══ Agent Coaching-Content view: read-only section builders (100% local, ZERO SheetDB requests) ══
+// All of these render from data ALREADY loaded on the entry (perfData, wk1cvr5, calculator inputs,
+// rainmakerFocus) plus in-memory rmEntries. None triggers a fetch. Missing fields render as
+// '—' / 'No data available' — never an error, never a hidden log.
+function _agentSection(title, inner){
+  return `<div class="form-section" style="margin-top:18px"><h4>${title}</h4>${inner}</div>`;
+}
+function _perfAvgFromEntry(e){
+  let tLT=0,tCC=0,tS=0,n=0; const tcr=[],csr=[],cvr=[];
+  (e.perfData||[]).forEach(r=>{ const lt=parseFloat(r.lt)||0, cc=parseFloat(r.cc)||0, s=parseFloat(r.s)||0;
+    if(lt||cc||s){ tLT+=lt;tCC+=cc;tS+=s;n++; if(lt>0)tcr.push(cc/lt*100); if(cc>0)csr.push(s/cc*100); if(lt>0)cvr.push(s/lt*100); } });
+  const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  return { n, avgLT:n?Math.round(tLT/n):0, avgCC:n?Math.round(tCC/n):0, avgS:n?Math.round(tS/n):0, avgTCR:mean(tcr), avgCSR:mean(csr), avgCVR:mean(cvr) };
+}
+// ── Rainmaker Results — Option B: show the linked result ONLY if rmEntries is already in memory;
+//    otherwise show the persisted Focus + a note. NEVER calls fetchRainmakerFromSheets(). ──
+function agentRainmakerHtml(e){
+  const focusTxt = (e.rainmakerFocus||[]).join(', ');
+  const loaded = (typeof rmEntries !== 'undefined' && Array.isArray(rmEntries) && rmEntries.length);
+  const linked = loaded ? rmEntries.find(r => String(r.coachingEntryId) === String(e.id)) : null;
+  if (linked){
+    const ad = rmAdherence(linked); const areas = rmAreas(linked);
+    const steps = RM_STEPS.map(st=>{ const v = linked.checklist ? linked.checklist[st] : '';
+      const color = v==='Followed' ? '#2e7d32' : v==='Needs Coaching' ? '#c62828' : '#888';
+      return `<tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">${rmEsc(st)}</td><td style="padding:4px 8px;border:1px solid #eee;color:${color};font-weight:700">${rmEsc(v||'—')}</td></tr>`; }).join('');
+    const inner = `
+      <div style="font-size:.85rem;margin-bottom:8px">Adherence: <b>${ad.pct!=null?ad.pct+'%':'—'}</b> <span style="color:#888">(${ad.followed}/${ad.applicable} applicable)</span>${ad.fullyAdherent?' · <b style="color:#2e7d32">Fully adherent</b>':''}</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr style="background:#f5f5f5"><th style="padding:4px 8px;border:1px solid #eee;text-align:left">Rainmaker Step</th><th style="padding:4px 8px;border:1px solid #eee">Result</th></tr></thead><tbody>${steps}</tbody></table></div>
+      ${areas.length?`<div style="font-size:.82rem;margin-top:8px"><b>Areas needing coaching:</b> ${areas.map(rmEsc).join(', ')}</div>`:''}
+      ${linked.notes?`<div style="font-size:.82rem;margin-top:8px"><b>Call Review Notes:</b><br>${rmEsc(linked.notes).replace(/\n/g,'<br>')}</div>`:''}
+      ${linked.aircall?`<div style="font-size:.82rem;margin-top:8px"><b>Aircall:</b> <a href="${rmEsc(linked.aircall)}" target="_blank" rel="noopener">call recording ↗</a></div>`:''}
+      ${focusTxt?`<div style="font-size:.82rem;margin-top:8px;color:#555"><b>Rainmaker Practice Focus:</b> ${rmEsc(focusTxt)}</div>`:''}`;
+    return _agentSection('🎯 Rainmaker Results', inner);
+  }
+  // Fallback (rmEntries not loaded): persisted Focus + note, zero requests.
+  const inner = `
+    ${focusTxt ? `<div style="font-size:.85rem"><b>Rainmaker Practice Focus:</b> ${rmEsc(focusTxt)}</div>` : `<div style="font-size:.85rem;color:#999">No Rainmaker Practice Focus recorded for this log.</div>`}
+    <div style="font-size:.8rem;color:#8a6d00;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px;margin-top:8px">Open the Rainmaker Practice tab to load your Rainmaker results.</div>`;
+  return _agentSection('🎯 Rainmaker Results', inner);
+}
+// ── Potential Earnings & WK1 CVR Bonus Calculators — read-only, derived locally from saved inputs ──
+function agentCalcHtml(e){
+  const hasPE = e.peValidPoints!=null && String(e.peValidPoints).trim()!=='';
+  const hasCV = (e.cvrBonusValidSales!=null && String(e.cvrBonusValidSales).trim()!=='') || (e.cvrBonusPercent!=null && String(e.cvrBonusPercent).trim()!=='');
+  if (!hasPE && !hasCV) return _agentSection('💰 Potential Earnings &amp; WK1 CVR Bonus Calculators', '<div style="font-size:.85rem;color:#999">No calculator values recorded for this coaching session.</div>');
+  const r = peEarnings(e.peValidPoints);
+  const peTbl = `<div style="border:1.5px solid #d7e3f4;border-radius:10px;overflow:hidden"><div style="background:#1a3353;color:#fff;padding:6px 12px;font-weight:800;font-size:.82rem">💵 Pay Per Sale / Potential Earnings</div><div style="padding:10px;background:#f7faff"><table style="width:100%;border-collapse:collapse;font-size:.82rem">
+    <tr><td style="text-align:left;padding:3px 6px">Valid Sale Points</td><td style="text-align:right;padding:3px 6px">${hasPE?rmEsc(String(e.peValidPoints)):'—'}</td></tr>
+    <tr><td style="text-align:left;padding:3px 6px">Base Pay</td><td style="text-align:right;padding:3px 6px">${r.valid?fmtUSD(r.base):'$140'}</td></tr>
+    <tr><td style="text-align:left;padding:3px 6px">Sales / Point Bonus</td><td style="text-align:right;padding:3px 6px">${r.valid?fmtUSD(r.bonus):'—'}</td></tr>
+    <tr style="font-weight:700;background:#fffbef"><td style="text-align:left;padding:3px 6px">Estimated Total Weekly Pay</td><td style="text-align:right;padding:3px 6px">${r.valid?fmtUSD(r.total):'—'}</td></tr>
+  </table></div></div>`;
+  const b = cvrBonusCalc(e.cvrBonusValidSales, e.cvrBonusPercent);
+  const cvTbl = `<div style="border:1.5px solid #d7e3f4;border-radius:10px;overflow:hidden"><div style="background:#1a3353;color:#fff;padding:6px 12px;font-weight:800;font-size:.82rem">🎯 WK1 CVR Bonus</div><div style="padding:10px;background:#f7faff"><table style="width:100%;border-collapse:collapse;font-size:.82rem">
+    <tr><td style="text-align:left;padding:3px 6px">Valid Sales</td><td style="text-align:right;padding:3px 6px">${(e.cvrBonusValidSales!=null&&String(e.cvrBonusValidSales).trim()!=='')?rmEsc(String(e.cvrBonusValidSales)):'—'}</td></tr>
+    <tr><td style="text-align:left;padding:3px 6px">WK1 CVR %</td><td style="text-align:right;padding:3px 6px">${(e.cvrBonusPercent!=null&&String(e.cvrBonusPercent).trim()!=='')?rmEsc(String(e.cvrBonusPercent))+'%':'—'}</td></tr>
+    <tr><td style="text-align:left;padding:3px 6px">Eligible Sales (Sales − 5)</td><td style="text-align:right;padding:3px 6px">${b.valid?String(b.eligible):'—'}</td></tr>
+    <tr><td style="text-align:left;padding:3px 6px">Applicable WK1 CVR Rate</td><td style="text-align:right;padding:3px 6px">${b.valid?fmtPHP(b.rate):'—'}</td></tr>
+    <tr style="font-weight:700;background:#fffbef"><td style="text-align:left;padding:3px 6px">Estimated WK1 CVR Bonus</td><td style="text-align:right;padding:3px 6px">${b.valid?fmtPHP(b.bonus):'—'}</td></tr>
+  </table></div></div>`;
+  const inner = `<div style="font-size:.76rem;color:#888;margin-bottom:8px;font-style:italic">Calculations assume all entered sales are valid; final payout remains subject to sales validation and official compensation rules.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">${peTbl}${cvTbl}</div>`;
+  return _agentSection('💰 Potential Earnings &amp; WK1 CVR Bonus Calculators', inner);
+}
+// ── WK1 CVR — 5-Week View (read-only): derive WK1 CVR% + Sales Deficit + cured 4-wk avg locally ──
+function agentWk1Cvr5Html(e){
+  const rows = e.wk1cvr5 || [];
+  const hasAny = rows.some(r => (r.lr!=null&&String(r.lr).trim()!=='') || (r.s!=null&&String(r.s).trim()!==''));
+  if (!hasAny) return _agentSection('🎯 WK1 CVR — 5-Week View (including Curing Week)', '<div style="font-size:.85rem;color:#999">No data available for this coaching log.</div>');
+  const labels = ['Week 1 (Curing Week)','Week 2 (Most Recent Cured Week)','Week 3','Week 4','Week 5'];
+  const cured = [];
+  const body = rows.map((r,i)=>{
+    const lr = parseFloat(r.lr); const sRaw = parseFloat(r.s); const hasLR = !isNaN(lr) && lr>0; const sales = isNaN(sRaw)?0:sRaw;
+    const cvr = hasLR ? (sales/lr*100).toFixed(2)+'%' : '—';
+    const def = hasLR ? String(Math.max(0, Math.ceil(lr*0.10) - sales)) : '—';
+    if (i>=1 && hasLR) cured.push(sales/lr*100);
+    return `<tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">${labels[i]||('Week '+(i+1))}</td><td style="padding:4px 8px;border:1px solid #eee">${(r.lr!=null&&String(r.lr).trim()!=='')?rmEsc(String(r.lr)):'—'}</td><td style="padding:4px 8px;border:1px solid #eee">${(r.s!=null&&String(r.s).trim()!=='')?rmEsc(String(r.s)):'—'}</td><td style="padding:4px 8px;border:1px solid #eee">${cvr}</td><td style="padding:4px 8px;border:1px solid #eee">${def}</td></tr>`;
+  }).join('');
+  const curedAvg = cured.length ? (cured.reduce((a,b)=>a+b,0)/cured.length) : null;
+  const avgRow = `<tr style="background:#fffbef;font-weight:700"><td style="padding:4px 8px;border:1px solid #eee;text-align:left">4-Week Avg (Cured Weeks 2–5)</td><td style="padding:4px 8px;border:1px solid #eee">—</td><td style="padding:4px 8px;border:1px solid #eee">—</td><td style="padding:4px 8px;border:1px solid #eee">${curedAvg!=null?curedAvg.toFixed(2)+'%':'—'}</td><td style="padding:4px 8px;border:1px solid #eee">—</td></tr>`;
+  let summary='';
+  if (curedAvg!=null){ const meets = curedAvg >= BENCH_WK1CVR - 0.005;
+    summary = `<div style="font-size:.8rem;color:#333;margin-top:10px;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px"><b>WK1 CVR (curing metric):</b> 4-week average (cured Weeks 2–5) <b>${curedAvg.toFixed(2)}%</b> vs ${BENCH_WK1CVR}% benchmark — ${meets?'<b style="color:#2e7d32">at/above benchmark</b>':'<b style="color:#c62828">below benchmark</b>'}.</div>`; }
+  const inner = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr style="background:#f5f5f5"><th style="padding:4px 8px;border:1px solid #eee;text-align:left">Week</th><th style="padding:4px 8px;border:1px solid #eee">Leads Received</th><th style="padding:4px 8px;border:1px solid #eee">Sales</th><th style="padding:4px 8px;border:1px solid #eee">WK1 CVR</th><th style="padding:4px 8px;border:1px solid #eee">Sales Deficit</th></tr></thead><tbody>${body}${avgRow}</tbody></table></div>${summary}`;
+  return _agentSection('🎯 WK1 CVR — 5-Week View (including Curing Week)', inner);
+}
+// ── Performance Projection (read-only): Current from persisted perfData; unstored targets → "Not recorded" ──
+function agentProjectionHtml(e){
+  const p1=(e.perfData&&e.perfData[0])||{};
+  const lt=parseFloat(p1.lt)||0, cc=parseFloat(p1.cc)||0, s=parseFloat(p1.s)||0;
+  const f1=v=>v.toFixed(1);
+  const curTCR = lt>0 ? f1(cc/lt*100)+'%' : '—';
+  const curCSR = cc>0 ? f1(s/cc*100)+'%' : '—';
+  const proj = e.projection || null;   // NOT persisted to SheetDB → undefined for loaded logs
+  const tCell = v => (proj && v!=null && String(v).trim()!=='') ? rmEsc(String(v)) : 'Not recorded';
+  const inner = `
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem">
+      <thead><tr style="background:#f5f5f5"><th style="padding:4px 8px;border:1px solid #eee;text-align:left">Metric</th><th style="padding:4px 8px;border:1px solid #eee">Current</th><th style="padding:4px 8px;border:1px solid #eee">Target (TL)</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">TCR%</td><td style="padding:4px 8px;border:1px solid #eee">${curTCR}</td><td style="padding:4px 8px;border:1px solid #eee">${tCell(proj&&proj.targetTCR)}</td></tr>
+        <tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">Leads Touched</td><td style="padding:4px 8px;border:1px solid #eee">${lt||'—'}</td><td style="padding:4px 8px;border:1px solid #eee">${tCell(proj&&proj.targetLeads)}</td></tr>
+        <tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">Connected Calls</td><td style="padding:4px 8px;border:1px solid #eee">${cc||'—'}</td><td style="padding:4px 8px;border:1px solid #eee">—</td></tr>
+        <tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">CSR%</td><td style="padding:4px 8px;border:1px solid #eee">${curCSR}</td><td style="padding:4px 8px;border:1px solid #eee">${tCell(proj&&proj.targetCSR)}</td></tr>
+        <tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">Sales</td><td style="padding:4px 8px;border:1px solid #eee">${s||'—'}</td><td style="padding:4px 8px;border:1px solid #eee">—</td></tr>
+      </tbody>
+    </table></div>
+    <div style="font-size:.76rem;color:#888;margin-top:6px;font-style:italic">Current values are from this log's 4-week performance data. The TL's projection targets are not stored in the database, so they show as "Not recorded" for saved logs.</div>`;
+  return _agentSection('🎯 Performance Projection', inner);
+}
+// ── Core Metrics Lever — Coaching Guidance (read-only): Primary Opportunity from Week-1 perf +
+//    4-Week Target Ramp from the trailing averages. Mirrors renderLeverGuidance() exactly, but pure.
+//    (Volume branch needs a TL-entered target-leads scenario that isn't persisted, so it is omitted.)
+function agentLeverHtml(e){
+  const p1=(e.perfData&&e.perfData[0])||{};
+  const lt=parseFloat(p1.lt)||0, cc=parseFloat(p1.cc)||0, s=parseFloat(p1.s)||0;
+  const f1=v=>v.toFixed(1);
+  if (lt<=0) return _agentSection('🎯 Core Metrics Lever — Coaching Guidance', '<div style="font-size:.85rem;color:#999">No performance data recorded for this log.</div>');
+  const tcrCurr=cc/lt*100, csrCurr=cc>0?s/cc*100:0, csrRate=cc>0?s/cc:0;
+  const FOCUS = { TCR:'Call cadence, speed-to-lead, callbacks, contact strategy, lead utilization.', CSR:'Discovery, objection handling, membership presentation, closing, call quality.' };
+  let opp, why, impactHtml='', focusKey=null;
+  const tgtLeads = lt;  // no persisted target-leads scenario in the Agent view
+  if (tcrCurr < BENCH_TCR - 0.05){
+    opp='TCR'; focusKey='TCR';
+    const newCC=(BENCH_TCR/100)*tgtLeads, addConnects=newCC-cc, addSales=csrRate*addConnects;
+    why=`Lead volume is sufficient, but TCR is below the ${BENCH_TCR}% benchmark (${f1(tcrCurr)}% vs ${BENCH_TCR}%). Improving TCR should be the primary coaching focus.`;
+    impactHtml=`Current TCR: <b>${f1(tcrCurr)}%</b> → Benchmark TCR: <b>${BENCH_TCR}%</b><br>Current Connected Calls: <b>${cc}</b> → Projected: <b>${Math.round(newCC)}</b><br>Potential Additional Connects: <b>+${Math.round(addConnects)}</b><br>Projected Additional Sales: <b>+${f1(addSales)}</b> (at current CSR ${f1(csrCurr)}%)`;
+  } else if (cc>0 && csrCurr < BENCH_CSR - 0.05){
+    opp='CSR'; focusKey='CSR';
+    const newS=(BENCH_CSR/100)*cc, addSales=newS-s;
+    why=`Lead volume and TCR are sufficient, but CSR is below the ${BENCH_CSR}% benchmark (${f1(csrCurr)}% vs ${BENCH_CSR}%). Focus coaching on converting connected calls into sales.`;
+    impactHtml=`Current CSR: <b>${f1(csrCurr)}%</b> → Benchmark CSR: <b>${BENCH_CSR}%</b><br>Current Sales: <b>${s}</b> → Projected: <b>${f1(newS)}</b><br>Potential Additional Sales: <b>+${f1(addSales)}</b>`;
+  } else {
+    opp='On Track / No major core-metric gap';
+    why=`TCR is at/above the ${BENCH_TCR}% benchmark and CSR at/above ${BENCH_CSR}%. No single core-metric gap stands out — coach to sustain and stretch.`;
+  }
+  // 4-Week Target Ramp — averages basis (same math as renderLeverGuidance)
+  let rampHtml='';
+  const A=_perfAvgFromEntry(e);
+  const avgTCRv=(A.avgTCR!=null)?A.avgTCR:0, avgCSRv=(A.avgCSR!=null)?A.avgCSR:0, avgCSRrate=avgCSRv/100, avgLTv=A.avgLT, avgCCv=A.avgCC, tgtLeadsAvg=avgLTv;
+  let cur,fin,valType;
+  if (focusKey==='TCR'){ cur=avgTCRv; fin=BENCH_TCR; valType='pct'; }
+  else if (focusKey==='CSR'){ cur=avgCSRv; fin=BENCH_CSR; valType='pct'; }
+  const gap=(fin!=null&&!isNaN(fin))?(fin-cur):0;
+  if (focusKey && gap>0.05){
+    const curStr=f1(cur)+'%', finStr=f1(fin)+'%', gapStr='+'+f1(gap)+'pp';
+    let rowsHtml='';
+    for(let i=1;i<=4;i++){ const wt=(i===4)?fin:(cur+gap*(i/4)); const impv=wt-cur; const rel=cur>0?(impv/cur*100):0; let cells;
+      if (focusKey==='TCR'){ const addC=(impv/100)*tgtLeadsAvg, totC=(wt/100)*tgtLeadsAvg, addS=avgCSRrate*addC;
+        cells=`<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`; }
+      else { const addS=(impv/100)*avgCCv, totS=(wt/100)*avgCCv; cells=`<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addS)}</td><td>${Math.round(totS)}</td>`; }
+      rowsHtml+=`<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`; }
+    const cols = focusKey==='CSR' ? ['CSR Target','Δ vs Today','Rel. Gain','+Sales','Total Sales/Wk'] : ['TCR Target','Δ vs Today','Rel. Gain','+Connects','Total Connects/Wk','+Sales'];
+    const headHtml='<th style="text-align:left">Week</th>'+cols.map(c=>`<th>${c}</th>`).join('');
+    rampHtml=`<div style="margin-top:12px"><div style="font-weight:800;font-size:.85rem;color:#1a3353;margin-bottom:4px">📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp</div><div style="font-size:.8rem;color:#555;margin-bottom:8px">Baselined on the <b>4-week average</b>: Current <b>${curStr}</b> → Final Target <b>${finStr}</b> → Gap <b>${gapStr}</b>.</div><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${headHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`;
+  }
+  const focusHtml = focusKey ? `<div style="font-size:.82rem;margin-top:8px"><b>Recommended Coaching Focus:</b> ${FOCUS[focusKey]}</div>` : '';
+  const inner = `<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px"><span style="font-size:.8rem;color:#666;font-weight:700">Primary Opportunity:</span><span style="font-size:1.02rem;font-weight:800;color:#1565c0">${opp}</span></div>
+    <div style="font-size:.85rem;color:#333;line-height:1.5;margin-bottom:8px">${why}</div>
+    ${impactHtml?`<div style="font-size:.85rem;color:#333;line-height:1.6;background:#fff;border:1px solid #e3ecf7;border-radius:8px;padding:10px 12px">${impactHtml}</div>`:''}
+    ${focusHtml}${rampHtml}`;
+  return _agentSection('🎯 Core Metrics Lever — Coaching Guidance', inner);
+}
+// Assemble the read-only Agent coaching-content sections (order per spec; each appears once).
+function agentExtraSectionsHtml(e){
+  return agentRainmakerHtml(e) + agentCalcHtml(e) + agentWk1Cvr5Html(e) + agentProjectionHtml(e) + agentLeverHtml(e);
+}
 let _commitmentEntryId = null;
 function openCommitmentView(entryId) {
   const e = entries.find(x => String(x.id) === String(entryId));
@@ -4308,6 +4475,7 @@ function openCommitmentView(entryId) {
         </table>
       </div>
     </div>` : ''}
+    ${agentExtraSectionsHtml(e)}
   `;
   const agentStat = agentStatusCoaching(e);          // Agent Complete / Agent Pending
   const agentDone = agentStat === 'Agent Complete';
