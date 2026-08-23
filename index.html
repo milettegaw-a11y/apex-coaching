@@ -774,6 +774,51 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
         </div>
       </div>
+      <div class="form-section">
+        <h4>💰 Potential Earnings &amp; WK1 CVR Bonus Calculators</h4>
+        <p style="font-size:.8rem;color:#8a6d00;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px;margin-bottom:12px;line-height:1.5;">
+          <b>Required during coaching.</b> Use these calculators to show the agent their potential earnings. Calculations assume all entered sales are valid. Final payout remains subject to sales validation and official compensation rules.
+        </p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">
+          <div style="border:1.5px solid #d7e3f4;border-radius:10px;overflow:hidden">
+            <div style="background:#1a3353;color:#fff;padding:8px 12px;font-weight:800;font-size:.85rem">💵 Pay Per Sale / Potential Earnings</div>
+            <div style="padding:12px;background:#f7faff">
+              <div class="form-group">
+                <label>Assumed Valid Sale Points <span class="required">*</span></label>
+                <input type="number" id="fPEPoints" min="0" step="0.1" placeholder="0 – 50.9" oninput="calcEarnings()"/>
+              </div>
+              <div id="peMsg" style="display:none;font-size:.78rem;color:#c62828;font-weight:700;margin:4px 0 8px"></div>
+              <table class="perf-table" style="margin-top:8px">
+                <tbody>
+                  <tr><td style="text-align:left">Base Pay</td><td id="peBasePay" style="text-align:right">$140</td></tr>
+                  <tr><td style="text-align:left">Sales / Point Bonus</td><td id="peBonus" style="text-align:right">—</td></tr>
+                  <tr style="background:#fffbef;font-weight:700"><td style="text-align:left">Estimated Total Weekly Pay</td><td id="peTotal" style="text-align:right">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style="border:1.5px solid #d7e3f4;border-radius:10px;overflow:hidden">
+            <div style="background:#1a3353;color:#fff;padding:8px 12px;font-weight:800;font-size:.85rem">🎯 WK1 CVR Bonus</div>
+            <div style="padding:12px;background:#f7faff">
+              <div class="form-group">
+                <label>Assumed Valid Sales <span class="required">*</span></label>
+                <input type="number" id="fCVRSales" min="0" step="1" placeholder="e.g. 13" oninput="calcEarnings()"/>
+              </div>
+              <div class="form-group">
+                <label>WK1 CVR % <span class="required">*</span></label>
+                <input type="number" id="fCVRPercent" min="0" step="0.01" placeholder="e.g. 13" oninput="calcEarnings()"/>
+              </div>
+              <table class="perf-table" style="margin-top:8px">
+                <tbody>
+                  <tr><td style="text-align:left">Eligible Sales (Sales − 5)</td><td id="cvrEligible" style="text-align:right">—</td></tr>
+                  <tr><td style="text-align:left">Applicable WK1 CVR Rate</td><td id="cvrRate" style="text-align:right">—</td></tr>
+                  <tr style="background:#fffbef;font-weight:700"><td style="text-align:left">Estimated WK1 CVR Bonus</td><td id="cvrBonus" style="text-align:right">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeFormModal()">Cancel</button>
@@ -976,7 +1021,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-23-roster-identity-PROD-v16";
+const APEX_BUILD = "2026-08-23-earnings-calculators-PROD-v17";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2705,7 +2750,17 @@ function tlComplete(e){
   // blank-type rows from incomplete→complete — distorting totals. Completion now depends only
   // on TL content + Coaching Status, so the metrics are invariant to Coaching Type and to the
   // migration. Explicit Coaching Type FILTERING (dashboard dropdown) is unchanged.
-  return isFilled(e.coachingStatus) && hasContent;
+  const base = isFilled(e.coachingStatus) && hasContent;
+  if (!base) return false;
+  // v17: the two coaching calculators are MANDATORY — but ONLY for logs created under the
+  // calculator feature (they carry an immutable calcFeatureVersion stamp set at creation).
+  // Historical/pre-feature logs have no stamp → they keep the old rule and are NEVER forced to
+  // backfill calculator inputs, so historical TL-completion % does not drop after deployment.
+  // A legitimate 0 counts as a completed numeric input (isNumericFilled), never treated as blank.
+  if (isFilled(e.calcFeatureVersion)) {
+    return isNumericFilled(e.peValidPoints) && isNumericFilled(e.cvrBonusValidSales) && isNumericFilled(e.cvrBonusPercent);
+  }
+  return true;
 }
 function agentStatusBadge(label){
   return label === 'Agent Complete'
@@ -2805,6 +2860,12 @@ function editEntry(id) {
   document.getElementById('projTargetTCR').value = proj.targetTCR || '';
   document.getElementById('projTargetCSR').value = proj.targetCSR || '';
   calcProjection();
+  // Restore the mandatory-calculator raw inputs (use != null so a legitimate 0 is preserved,
+  // not coerced to blank). Derived values recompute locally via calcEarnings(). ZERO requests.
+  setVal('fPEPoints',   e.peValidPoints      != null ? e.peValidPoints      : '');
+  setVal('fCVRSales',   e.cvrBonusValidSales != null ? e.cvrBonusValidSales : '');
+  setVal('fCVRPercent', e.cvrBonusPercent    != null ? e.cvrBonusPercent    : '');
+  calcEarnings();
   calcTenure();
   document.getElementById('tenureBadge').textContent = e.tenure || '—';
   openModal('formModal');
@@ -2846,6 +2907,11 @@ function clearForm() {
   });
   document.getElementById('tenureBadge').textContent='—';
   document.getElementById('editId').value='';
+  // Reset the mandatory-calculator inputs + derived displays on a fresh form.
+  ['fPEPoints','fCVRSales','fCVRPercent'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  { const m=document.getElementById('peMsg'); if(m){ m.style.display='none'; m.textContent=''; } }
+  const pb=document.getElementById('peBasePay'); if(pb) pb.textContent='$140';
+  ['peBonus','peTotal','cvrEligible','cvrRate','cvrBonus'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='—'; });
   if (typeof renderLeverGuidance === 'function') renderLeverGuidance();  // reset lever guidance panel
 }
 function populateFormTLs(cluster) {
@@ -2998,6 +3064,98 @@ function calcWk1Cvr5() {
     if (avgEl) avgEl.textContent = '—';
     if (sumEl){ sumEl.style.display = 'none'; sumEl.innerHTML = ''; }
   }
+}
+// ══ Earnings & WK1 CVR Bonus calculators — 100% client-side, ZERO SheetDB requests ══
+// Version stamp written ONCE at creation of a post-feature log (grandfathering: historical
+// logs have no stamp and keep the old TL-completion rule; edits never add a stamp).
+const CALC_FEATURE_VERSION = 'v17';
+// ── Pay Per Sale / Potential Earnings — workbook-exact (Cluster Jubee POTENTIAL EARNINGS CALCULATOR) ──
+// DATA table domain: whole Valid Points 0..50 (XLOOKUP on FLOOR(points)). Base $140 at 0 points.
+// Marginal $/whole-point by band: 1–9 $10, 10–12 $30, 13–15 $50, 16–18 $60, 19–21 $70, 22–50 $80.
+// Decimals interpolate at the FLOORed whole point's own band rate (proved by 12.9 → 0.9×$30 = $27):
+//   Total = comp(FLOOR) + (points − FLOOR) × rate(FLOOR);  Bonus = Total − $140.
+// Valid domain: 0 ≤ points < 51. Negatives and points ≥ 51 are INVALID (no calculation).
+const PE_BASE = 140;
+function peRateForWhole(w){            // marginal $ per point of the band containing whole point w (1..50); 0 at base
+  if (w <= 0)  return 0;
+  if (w <= 9)  return 10;
+  if (w <= 12) return 30;
+  if (w <= 15) return 50;
+  if (w <= 18) return 60;
+  if (w <= 21) return 70;
+  return 80;                           // 22..50
+}
+function peCompForWhole(w){            // total pay (incl. $140 base) at whole point w (0..50)
+  let total = PE_BASE;
+  for (let p = 1; p <= w; p++) total += peRateForWhole(p);
+  return total;
+}
+function peEarnings(points){          // pure — no DOM, no network. {valid,total,bonus,base}
+  if (points === null || points === undefined || String(points).trim() === '' || isNaN(points)) return { valid:false };
+  const p = parseFloat(points);
+  if (p < 0 || p >= 51) return { valid:false };          // domain 0 ≤ p < 51
+  const whole = Math.floor(p);
+  const total = peCompForWhole(whole) + (p - whole) * peRateForWhole(whole);
+  return { valid:true, base: PE_BASE, total, bonus: total - PE_BASE };
+}
+// ── WK1 CVR Bonus — highest threshold achieved; applies from the 6th valid sale ──
+function wk1CvrRate(pct){
+  if (pct === null || pct === undefined || String(pct).trim() === '' || isNaN(pct)) return 0;
+  const p = parseFloat(pct);
+  if (p >= 19)   return 3700;
+  if (p >= 16)   return 2700;
+  if (p >= 13)   return 2100;
+  if (p >= 10.5) return 1500;
+  if (p >= 9)    return 1000;
+  if (p >= 8)    return 800;
+  return 0;                                              // below 8.00% → ₱0
+}
+function cvrBonusCalc(validSales, pct){                  // pure. {valid,eligible,rate,bonus}
+  if (validSales === null || validSales === undefined || String(validSales).trim() === '' || isNaN(validSales)) return { valid:false };
+  const vs = parseFloat(validSales);
+  const eligible = Math.max(vs - 5, 0);                  // ≤5 valid sales → 0 eligible → ₱0
+  const rate = wk1CvrRate(pct);
+  return { valid:true, eligible, rate, bonus: eligible * rate };
+}
+function fmtUSD(v){ return '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2}); }
+function fmtPHP(v){ return '₱' + Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2}); }
+// DOM driver — recomputes both calculators locally on every keystroke. ZERO SheetDB requests.
+function calcEarnings(){
+  const setTxt = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  // Potential Earnings
+  const peEl = document.getElementById('fPEPoints');
+  const peMsg = document.getElementById('peMsg');
+  const peVal = peEl ? peEl.value : '';
+  if (String(peVal).trim() !== ''){
+    const r = peEarnings(peVal);
+    if (r.valid){
+      setTxt('peBasePay', fmtUSD(r.base)); setTxt('peBonus', fmtUSD(r.bonus)); setTxt('peTotal', fmtUSD(r.total));
+      if (peMsg){ peMsg.style.display='none'; peMsg.textContent=''; }
+    } else {
+      setTxt('peBasePay','—'); setTxt('peBonus','—'); setTxt('peTotal','—');
+      if (peMsg){ peMsg.style.display='block'; peMsg.textContent='⚠️ Invalid — enter Valid Sale Points ≥ 0 and < 51 (decimals allowed).'; }
+    }
+  } else {
+    setTxt('peBasePay','$140'); setTxt('peBonus','—'); setTxt('peTotal','—');
+    if (peMsg){ peMsg.style.display='none'; peMsg.textContent=''; }
+  }
+  // WK1 CVR Bonus
+  const vsVal = (document.getElementById('fCVRSales')||{}).value || '';
+  const pcVal = (document.getElementById('fCVRPercent')||{}).value || '';
+  if (String(vsVal).trim() !== '' || String(pcVal).trim() !== ''){
+    const b = cvrBonusCalc(vsVal, pcVal);
+    if (b.valid){
+      setTxt('cvrEligible', String(b.eligible));
+      setTxt('cvrRate', fmtPHP(b.rate));
+      setTxt('cvrBonus', fmtPHP(b.bonus));
+    } else { setTxt('cvrEligible','—'); setTxt('cvrRate','—'); setTxt('cvrBonus','—'); }
+  } else { setTxt('cvrEligible','—'); setTxt('cvrRate','—'); setTxt('cvrBonus','—'); }
+}
+// Numeric-aware "filled" check: a legitimate 0 counts as completed; blank/""/non-numeric do not.
+function isNumericFilled(v){
+  if (typeof v === 'number') return !Number.isNaN(v);
+  if (typeof v === 'string') return v.trim() !== '' && !Number.isNaN(parseFloat(v));
+  return false;
 }
 function updateProjectionCurrent() {
   const lt  = parseFloat(document.getElementById('lt1').value)  || 0;
@@ -3350,6 +3508,11 @@ function buildCoachingRow(e) {
     'AVG CVR% (Manual)': e.avgCvrManual||'',
     // 5-week WK1 CVR curing table — RAW values only (WK1 CVR & Sales Deficit derived locally, never stored).
     ...(function(a){ const o={}; for(let n=1;n<=5;n++){ const r=(a&&a[n-1])||{}; o['WK1CVR W'+n+' Leads Received']=r.lr||''; o['WK1CVR W'+n+' Sales']=r.s||''; } return o; })(e.wk1cvr5),
+    // Mandatory-calculator RAW inputs + immutable grandfather stamp (4 new headers; derived values NOT stored).
+    'Potential Earnings Valid Points': e.peValidPoints||'',
+    'WK1 CVR Bonus Valid Sales': e.cvrBonusValidSales||'',
+    'WK1 CVR Bonus Percent': e.cvrBonusPercent||'',
+    'Calc Feature Version': e.calcFeatureVersion||'',
     'Key Discussion': e.keyDiscussion||'',
     'Strength': e.strength||'',
     'Areas': e.areas||'',
@@ -3420,6 +3583,11 @@ function parseSheetRow(row) {
     avgCvrManual:   row['AVG CVR% (Manual)']||row['Avg CVR% (Manual)']||'',
     // 5-week WK1 CVR curing table (blank for historical logs → renders empty, no migration).
     wk1cvr5:        [1,2,3,4,5].map(n => ({ lr: row['WK1CVR W'+n+' Leads Received']||'', s: row['WK1CVR W'+n+' Sales']||'' })),
+    // Mandatory-calculator raw inputs + grandfather stamp (blank for historical rows → old completion rule).
+    peValidPoints:      row['Potential Earnings Valid Points']||'',
+    cvrBonusValidSales: row['WK1 CVR Bonus Valid Sales']||'',
+    cvrBonusPercent:    row['WK1 CVR Bonus Percent']||'',
+    calcFeatureVersion: row['Calc Feature Version']||'',
     keyDiscussion:  row['Key Discussion']||'',
     strength:       row['Strength']||'',
     areas:          row['Areas']||'',
@@ -3735,6 +3903,10 @@ function saveEntry() {
     receptiveness: document.getElementById('fReceptiveness').value,
     coachingStatus: document.getElementById('fStatus').value,
     remarks: document.getElementById('fRemarks').value,
+    // Mandatory-calculator RAW inputs only (derived values recompute locally, never stored).
+    peValidPoints:      document.getElementById('fPEPoints').value,
+    cvrBonusValidSales: document.getElementById('fCVRSales').value,
+    cvrBonusPercent:    document.getElementById('fCVRPercent').value,
     perfData,
     // 5-week WK1 CVR curing table: persist RAW Leads Received + Sales only; WK1 CVR & Sales Deficit derive locally.
     wk1cvr5: [1,2,3,4,5].map(n => ({
@@ -3770,10 +3942,15 @@ function saveEntry() {
     entry.wk3CvrManual = ex.wk3CvrManual || '';
     entry.wk4CvrManual = ex.wk4CvrManual || '';
     entry.avgCvrManual = ex.avgCvrManual || '';
+    // Grandfathering: preserve the ORIGINAL calc-feature stamp. Never add one on edit — editing a
+    // historical (unstamped) log must NOT flip it into the calculator-required rule.
+    entry.calcFeatureVersion = ex.calcFeatureVersion || '';
     entries[idx] = entry;
   } else {
     entry.rainmakerFocus = [];
     entry.wk1CvrManual = ''; entry.wk2CvrManual = ''; entry.wk3CvrManual = ''; entry.wk4CvrManual = ''; entry.avgCvrManual = '';
+    // New post-feature log → stamp it so the calculators become required for TL completion.
+    entry.calcFeatureVersion = CALC_FEATURE_VERSION;
     entries.unshift(entry);
   }
   saveEntries();
@@ -3916,7 +4093,10 @@ function saveDraft() {
     wk1cvr5      : [1,2,3,4,5].map(i=>({
       lr : document.getElementById('wcLR'+i)?.value || '',
       s  : document.getElementById('wcS'+i)?.value  || ''
-    }))
+    })),
+    peValidPoints      : document.getElementById('fPEPoints')?.value   || '',
+    cvrBonusValidSales : document.getElementById('fCVRSales')?.value    || '',
+    cvrBonusPercent    : document.getElementById('fCVRPercent')?.value  || ''
   };
   if (draft.agent || draft.date || draft.keyDiscussion || draft.strength || draft.areas) {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -3966,6 +4146,10 @@ function resumeDraft() {
   calcPerf();
   (draft.wk1cvr5||[]).forEach((row,i)=>{ setVal('wcLR'+(i+1), row.lr||''); setVal('wcS'+(i+1), row.s||''); });
   if (typeof calcWk1Cvr5 === 'function') calcWk1Cvr5();
+  setVal('fPEPoints',   draft.peValidPoints      != null ? draft.peValidPoints      : '');
+  setVal('fCVRSales',   draft.cvrBonusValidSales != null ? draft.cvrBonusValidSales : '');
+  setVal('fCVRPercent', draft.cvrBonusPercent    != null ? draft.cvrBonusPercent    : '');
+  if (typeof calcEarnings === 'function') calcEarnings();
   calcTenure();
 }
 function setVal(id, val) {
