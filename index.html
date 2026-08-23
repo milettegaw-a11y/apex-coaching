@@ -493,11 +493,12 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         </div>
         <div class="form-group">
           <label>Date of Coaching <span class="required">*</span></label>
-          <input type="date" id="fDate" onchange="calcTenure()"/>
+          <input type="date" id="fDate" onchange="onCoachingDateChange()"/>
         </div>
         <div class="form-group">
           <label>WK # <span class="required">*</span></label>
-          <select id="fWK"><option value="">— Select WK # —</option></select>
+          <select id="fWK" disabled title="Auto-set from the Date of Coaching (Mon–Sun, America/Chicago)" style="background:#f3f5f8;cursor:not-allowed"><option value="">— set by Date —</option></select>
+          <div style="font-size:.72rem;color:#7a8aa0;margin-top:3px">Auto-set from the Date of Coaching (Mon–Sun, Central Time).</div>
         </div>
         <div class="form-group">
           <label>Cluster</label>
@@ -1021,7 +1022,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-23-earnings-calculators-PROD-v17";
+const APEX_BUILD = "2026-08-23-ct-week-coverage-PROD-v18";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2487,6 +2488,75 @@ function fmtCoachingDate(v){
   }
   return v;                                               // unknown format — show as-is, don't fabricate
 }
+// ══ Official APEX week coverage — ONE source of truth. 100% local, ZERO SheetDB. ══
+// A week runs Monday 00:00:00.000 → Sunday 23:59:59.999 in America/Chicago (full calendar
+// week; no unassigned minute). Timezone is resolved with the IANA zone 'America/Chicago',
+// so CST/CDT is handled automatically — never a fixed UTC offset. Anchor: WK555 = the week
+// beginning Monday, Aug 17, 2026 (CT). All other WK#s are counted from that anchor and the
+// numbering is continuous across year boundaries (it never resets).
+const WK_ANCHOR = { wk: 555, monday: '2026-08-17' };   // WK555 = Mon Aug 17 2026 .. Sun Aug 23 2026 (CT)
+function _epochDayUTC(y, m, d){ return Math.floor(Date.UTC(y, m-1, d) / 86400000); }
+// Resolve an input to its America/Chicago CALENDAR date {y,m,d}. A bare date (YYYY-MM-DD,
+// M/D/YYYY, or Google serial) is already a calendar date — used as-is (no TZ shift). A full
+// timestamp / Date is converted to the CT calendar day via Intl (DST-safe).
+function _ctYMD(input){
+  if (input == null || input === '') return null;
+  if (input instanceof Date){
+    const p = new Intl.DateTimeFormat('en-CA',{ timeZone:'America/Chicago', year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(input);
+    const g = t => +p.find(x=>x.type===t).value;
+    return { y:g('year'), m:g('month'), d:g('day') };
+  }
+  const s = String(input).trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);          // full timestamp string → CT day
+  if (m){ return _ctYMD(new Date(s)); }
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);                                 // ISO date-only
+  if (m) return { y:+m[1], m:+m[2], d:+m[3] };
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);                           // US M/D/YYYY
+  if (m) return { y:+m[3], m:+m[1], d:+m[2] };
+  if (/^\d+(\.\d+)?$/.test(s)){                                            // Google Sheets serial (date-only)
+    const serial = parseFloat(s);
+    if (serial >= 20000 && serial <= 90000){
+      const dt = new Date(Date.UTC(1899,11,30) + Math.round(serial)*86400000);
+      return { y:dt.getUTCFullYear(), m:dt.getUTCMonth()+1, d:dt.getUTCDate() };
+    }
+  }
+  return null;
+}
+// Monday-anchored epoch-day of the CT week containing a calendar date (integer, DST-independent).
+function _mondayEpochDay(y, m, d){
+  const wd = new Date(Date.UTC(y, m-1, d)).getUTCDay();   // 0=Sun..6=Sat (from calendar date, not an instant)
+  const back = (wd + 6) % 7;                              // days since Monday
+  return _epochDayUTC(y, m, d) - back;
+}
+// Official WK number for any date/timestamp. Returns an integer, or null if unparseable.
+function ctWeekNumberForDate(input){
+  const c = _ctYMD(input); if (!c) return null;
+  const a = _ctYMD(WK_ANCHOR.monday);
+  const target = _mondayEpochDay(c.y, c.m, c.d);
+  const anchor = _mondayEpochDay(a.y, a.m, a.d);
+  return WK_ANCHOR.wk + Math.round((target - anchor) / 7);
+}
+// Ensure a WK option exists in a <select> so a programmatic value always displays (dropdown
+// is a fixed WK551–WK1000 list; an out-of-range auto/stored WK is injected on demand).
+function ensureWkOption(sel, value){
+  if (!sel || !value) return;
+  if (![...sel.options].some(o => o.value === value)){
+    const o = document.createElement('option'); o.value = value; o.textContent = value; sel.appendChild(o);
+  }
+}
+// Coaching Date change → refresh tenure AND auto-assign WK# from the official CT week.
+// Runs ONLY on a real user change of the date (the input's onchange). editEntry/draft restore
+// set the date programmatically (no onchange) so a historical WK# is never silently recomputed.
+function onCoachingDateChange(){
+  calcTenure();
+  const dateEl = document.getElementById('fDate'), wkEl = document.getElementById('fWK');
+  if (!dateEl || !wkEl) return;
+  const wk = ctWeekNumberForDate(dateEl.value);
+  if (wk == null){ return; }                 // no/invalid date → leave WK as-is
+  const val = 'WK' + wk;
+  ensureWkOption(wkEl, val);
+  wkEl.value = val;
+}
 // Dynamically find the latest N valid week numbers present in a list (no hardcoding).
 function latestWeeks(list, n){
   const nums = [...new Set(list.map(wkNum).filter(x => x > 0))].sort((a,b)=>b-a);
@@ -2820,6 +2890,7 @@ function editEntry(id) {
   // actively edits+saves (still 1 PATCH). A future added type that IS an option is preserved.
   { const _ct = document.getElementById('fCoachingType'); if (_ct && !_ct.value) _ct.value = 'Scheduled Coaching'; }
   setVal('fDate', e.dateOfCoaching);
+  ensureWkOption(document.getElementById('fWK'), e.wkNumber);   // guarantee the stored WK displays/reads on the disabled select
   setVal('fWK', e.wkNumber);
   setVal('fTL', e.teamLead);
   setVal('fAgent', e.agentName);
@@ -4122,6 +4193,7 @@ function resumeDraft() {
   setVal('fCoachingType', draft.coachingType||'');
   { const _ct = document.getElementById('fCoachingType'); if (_ct && !_ct.value) _ct.value = 'Scheduled Coaching'; }  // legacy/blank draft type → default
   setVal('fDate', draft.date||'');
+  ensureWkOption(document.getElementById('fWK'), draft.wk||'');   // restore an in-progress new-log WK on the disabled select
   setVal('fWK', draft.wk||'');
   setVal('fAgent', draft.agent||'');
   setVal('fKeyDiscussion', draft.keyDiscussion||'');
