@@ -923,7 +923,14 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       </p>
     </div>
     <div class="roster-footer">
+      <!-- v16: "Sync TLs to Cloud" removed. It pushed CUSTOM_TLS to the legacy SheetDB
+           "Custom TLs" tab, which nothing has read since the Firebase build (fetchCustomTLsFromSheets
+           returns immediately). CUSTOM_TLS is also always empty on load because loadCustomTLs() is a
+           no-op, so the button could only ever act on TLs added in the same session — writing them to
+           a tab no longer consulted. TL records now go to Firestore via persistUserDoc(). Markup kept
+           (commented) for rollback.
       <button id="btnSyncTLsCloud" style="background:#1565c0;color:#fff;border:none;border-radius:6px;padding:9px 18px;font-weight:700;cursor:pointer" onclick="pushAllCustomTLsToSheets()" title="Push all locally-saved custom TLs to the cloud so they can log in from any device">☁️ Sync TLs to Cloud</button>
+      -->
       <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeTLManager()">Close</button>
     </div>
   </div>
@@ -969,7 +976,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-20-cleanup-PROD-v15";
+const APEX_BUILD = "2026-08-23-roster-identity-PROD-v16";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -1246,6 +1253,37 @@ let RUNTIME_AGENTS = [];   // agent roster loaded from Firestore; source for loa
 const MANAGER_TO_TL_DISPLAY = {};
 Object.values(SEED_TL_EMAILS).forEach(t => { MANAGER_TO_TL_DISPLAY[t.fullName] = t.display; }); // placeholder; rebuilt in applyUsersDocs()
 
+// ── DEACTIVATED-IDENTITY SUPPRESSION (v16) ──────────────────────────────────
+// Firestore `active:false` is the AUTHORITATIVE, cross-device record that someone was
+// deliberately removed from the active roster. Before v16, applyUsersDocs() discarded
+// inactive docs at parse time, so nothing downstream knew they existed — and
+// reconcileRosterFromEntries() happily rebuilt them from historical Coaching Logs as
+// no-email "ghost" rows. We now RETAIN their identity keys (email + name) purely as a
+// suppression set. Nothing here grants access: these users are still excluded from
+// TL_EMAILS / OM_EMAILS / RUNTIME_AGENTS exactly as before, so authorization is unchanged.
+// This replaces the old localStorage tombstone layer, which only ever worked on the one
+// browser that performed the delete (and was never even read back — see loadRosterMods).
+const INACTIVE_EMAIL_KEYS = new Set();   // normalized email of every users/ doc with active !== true
+const INACTIVE_NAME_KEYS  = new Set();   // normalized name/display of the same docs
+function normKey(s){ return String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' '); }
+function noteInactiveUser(d){
+  const e = normEmail(d && d.email); if (e) INACTIVE_EMAIL_KEYS.add(e);
+  [d && d.name, d && d.display, d && d.fullName].forEach(n => { const k = normKey(n); if (k) INACTIVE_NAME_KEYS.add(k); });
+}
+// True when this identity corresponds to a users/ doc that is explicitly deactivated.
+// Email match is preferred (exact); the name fallback exists because a reconcile candidate
+// coming out of the Coaching Logs carries a NAME only — no email — so a name key is the
+// only thing available to match a deactivated person against.
+function isDeactivatedIdentity(a){
+  const e = normEmail(a && a.email); if (e && INACTIVE_EMAIL_KEYS.has(e)) return true;
+  const n = normKey(a && a.name);    if (n && INACTIVE_NAME_KEYS.has(n))  return true;
+  return false;
+}
+// Team Lead display strings found in Coaching Logs that resolve to no known TL at all.
+// Surfaced in the TL Manager as a data-quality warning instead of silently minting a
+// synthetic 'sheet-tl:' identity (the v15 behaviour that produced 'sheet-tl:tl anna').
+const UNRESOLVED_TL_LABELS = new Set();
+
 // ============================================================================
 // FIREBASE LAYER — Firebase Authentication (Google) + Cloud Firestore shared
 // roster/authorization. TEST BUILD — DO NOT DEPLOY. The authoritative "who can
@@ -1307,9 +1345,14 @@ function firebaseLogout(){ if(FB_AUTH) FB_AUTH.signOut(); }
 // anywhere in the roster/dropdowns/scoping.
 function applyUsersDocs(docs){
   TL_EMAILS = {}; OM_EMAILS = {}; DEPT_WIDE_ACCOUNTS = {}; ADMIN_EMAILS = []; RUNTIME_AGENTS = [];
+  INACTIVE_EMAIL_KEYS.clear(); INACTIVE_NAME_KEYS.clear(); UNRESOLVED_TL_LABELS.clear();
   (docs||[]).forEach(d=>{
     if(!d) return;
     const email = normEmail(d.email);
+    // v16: record deactivated identities BEFORE discarding them. They are still excluded from
+    // every authorization/roster structure below — we only keep their keys so that historical
+    // Coaching Logs can never resurrect them as active no-email roster rows.
+    if(email && !isActive(d)) noteInactiveUser(d);
     if(!email || !isActive(d)) return;
     const role = normRole(d.role);
     const display = d.display || d.name || email;
@@ -1318,15 +1361,59 @@ function applyUsersDocs(docs){
     } else if(role==='Admin'){
       ADMIN_EMAILS.push(email);
     } else if(role==='TL'){
-      TL_EMAILS[email] = { display, fullName: d.fullName || d.name || display, cluster: d.cluster || '' };
+      TL_EMAILS[email] = { display, fullName: d.fullName || d.name || display, cluster: d.cluster || '', provisioned: true };
     } else if(role==='OM'){
       OM_EMAILS[email] = { display, cluster: d.cluster || '' };
     } else {   // Agent (default)
       RUNTIME_AGENTS.push({ name: d.name || display, email, manager: d.teamLeadFullName || d.manager || '', cluster: d.cluster || '', startDate: d.startDate || '' });
     }
   });
+  registerUnprovisionedSeedTLs();
   Object.keys(MANAGER_TO_TL_DISPLAY).forEach(k=>delete MANAGER_TO_TL_DISPLAY[k]);
   Object.values(TL_EMAILS).forEach(t=>{ if(t&&t.fullName) MANAGER_TO_TL_DISPLAY[t.fullName]=t.display; });
+}
+// ── LEGACY TL RESOLUTION (v16) ──────────────────────────────────────────────
+// SEED_TL_EMAILS carries the authoritative display -> fullName -> cluster mapping for every
+// TL, INCLUDING ones whose Firestore user document does not exist yet (the one-time migration
+// deliberately skips 'PENDING_LOGIN_EMAIL::' keys because it must never invent a login email).
+// Before v16 that map was unused at runtime, so a Coaching Log naming such a TL fell through
+// to a fabricated 'sheet-tl:<display>' identity whose fullName was the DISPLAY string — which
+// could never match the agents assigned to that TL by full name.
+//
+// We now register those TLs from seed data as UNPROVISIONED entries carrying their REAL
+// fullName and cluster. Effect: their agents map correctly and they appear in filters and
+// dashboards immediately, with no Firestore write. They still cannot sign in — the key is a
+// marker, not an email, and authorization is decided solely by the signed-in user's own
+// users/{email} document in handleFirebaseUser(). Two guards keep this from resurrecting
+// anyone: a TL already present from Firestore (matched on display) is never re-added, and a
+// TL whose email or name is deactivated in Firestore is skipped entirely.
+function registerUnprovisionedSeedTLs(){
+  const liveDisplays = new Set(Object.values(TL_EMAILS).map(t => normKey(t.display)));
+  Object.keys(SEED_TL_EMAILS).forEach(seedKey => {
+    const t = SEED_TL_EMAILS[seedKey]; if(!t || !t.display || !t.fullName) return;
+    if(liveDisplays.has(normKey(t.display))) return;                        // already provisioned in Firestore
+    const seedEmail = normEmail(seedKey);
+    if(seedEmail && INACTIVE_EMAIL_KEYS.has(seedEmail)) return;             // deliberately deactivated
+    if(INACTIVE_NAME_KEYS.has(normKey(t.fullName))) return;                 // deliberately deactivated
+    if(INACTIVE_NAME_KEYS.has(normKey(t.display))) return;
+    TL_EMAILS['unprovisioned-tl:' + normKey(t.display)] =
+      { display: t.display, fullName: t.fullName, cluster: t.cluster || '', provisioned: false };
+    liveDisplays.add(normKey(t.display));
+  });
+}
+// Is this TL_EMAILS key a real Firestore login email (vs. an unprovisioned marker)?
+function isProvisionedTLKey(key){ return !String(key||'').startsWith('unprovisioned-tl:'); }
+// Resolve a Coaching Log "Team Lead" string to a known TL. Matches on display first, then
+// fullName, then a normalized form of each, so casing/spacing drift in the sheet cannot mint
+// a duplicate identity. Returns null when genuinely unknown — callers must NOT fabricate.
+function resolveTL(label){
+  const raw = String(label == null ? '' : label).trim(); if(!raw) return null;
+  const all = Object.values(TL_EMAILS);
+  return all.find(t => t.display === raw)
+      || all.find(t => t.fullName === raw)
+      || all.find(t => normKey(t.display)  === normKey(raw))
+      || all.find(t => normKey(t.fullName) === normKey(raw))
+      || null;
 }
 // Query the users collection ONCE per authenticated session (no realtime listener, no polling).
 async function loadUsersFromFirestore(){
@@ -1434,11 +1521,14 @@ async function persistUserDoc(doc){
   try { await FB_DB.collection(USERS_COL).doc(k).set(doc, { merge:true }); }
   catch(err){ console.warn('[APEX] persistUserDoc failed:', err); alert('Could not save to Firestore: '+((err&&err.message)||err)); }
 }
+// Returns true only when Firestore has confirmed the write. Callers MUST NOT treat the agent
+// as removed unless this resolves true — otherwise the roster and the cloud disagree and the
+// agent silently reappears for everyone else on the next load.
 async function deactivateUser(email){
-  if(!FB_READY||!FB_AUTH||!FB_AUTH.currentUser) return;
-  const k=normEmail(email); if(!k) return;   // reconcile-only (no-email) rows have no doc to deactivate
-  try { await FB_DB.collection(USERS_COL).doc(k).set({ email:k, active:false }, { merge:true }); }
-  catch(err){ console.warn('[APEX] deactivateUser failed:', err); alert('Could not deactivate in Firestore: '+((err&&err.message)||err)); }
+  if(!FB_READY||!FB_AUTH||!FB_AUTH.currentUser){ alert('Not signed in to Firestore — nothing was changed.'); return false; }
+  const k=normEmail(email); if(!k) return false;   // reconcile-only (no-email) rows have no doc to deactivate
+  try { await FB_DB.collection(USERS_COL).doc(k).set({ email:k, active:false }, { merge:true }); return true; }
+  catch(err){ console.warn('[APEX] deactivateUser failed:', err); alert('Could not deactivate in Firestore: '+((err&&err.message)||err)); return false; }
 }
 try { initFirebase(); } catch(e){ console.error('[APEX] initFirebase error', e); }
 
@@ -1585,6 +1675,13 @@ function loadRoster() {
   // shared roster), NOT from the static SEED_AGENTS array. SEED_AGENTS is migration/
   // rollback data only. The localStorage override/tombstone layer is intentionally
   // NOT applied here — the shared source of truth is now Firestore.
+  //
+  // v16: that intent is now actually enforced. Removal is recorded ONLY as Firestore
+  // active:false, captured by applyUsersDocs() into INACTIVE_EMAIL_KEYS/INACTIVE_NAME_KEYS
+  // and honoured by reconcileRosterFromEntries(). The apexRosterDeleted/apexRosterOverrides
+  // keys are vestigial: still written by saveAgent()/deleteAgent() for rollback, still never
+  // read (loadRosterMods() remains uncalled by design). Deleting an agent therefore works for
+  // every user on every device, and clearing a browser cache cannot resurrect anyone.
   const byEmail = new Map();
   RUNTIME_AGENTS.forEach(a => {
     const k = normEmail(a.email);
@@ -1721,9 +1818,12 @@ function renderRosterTable() {
   tbody.innerHTML = filtered.map((a, i) => {
     const idx    = ROSTER.indexOf(a);
     const tlDisp = Object.values(TL_EMAILS).find(t => t.fullName === a.manager)?.display || a.manager || '—';
+    // A row with no email is no longer a broken/ghost record: after v16 it can only be someone
+    // who has Coaching Logs but no users/ document at all. Label it as needing provisioning
+    // rather than as a login failure, which is what the old copy implied.
     const emailBadge = a.email
       ? `<span style="font-size:.72rem;color:#444">${a.email}</span>`
-      : `<span style="font-size:.72rem;color:#e74c3c;font-style:italic">⚠ No email — cannot log in</span>`;
+      : `<span style="font-size:.72rem;color:#b26a00;font-style:italic" title="Found in Coaching Logs but has no APEX account yet. Use Edit to add their email.">⚠ Not provisioned — no APEX account</span>`;
     return `<tr>
       <td>${i + 1}</td>
       <td><strong>${a.name}</strong></td>
@@ -1837,13 +1937,30 @@ function saveAgent() {
   closeAgentForm();
   renderRosterTable();
 }
-function deleteAgent(idx) {
+async function deleteAgent(idx) {
   const a = ROSTER[idx];
   if (currentUser.role === 'TL' && currentUser.tlInfo && a.cluster !== currentUser.tlInfo.cluster) {
     alert('You can only remove agents from your own cluster (' + currentUser.tlInfo.cluster + ').');
     return;
   }
-  if (!confirm('Remove "' + a.name + '" from the roster? This cannot be undone.')) return;
+  // A provisional row has no users/ document to deactivate — removing it would only hide the
+  // person until the next reload. Say so plainly instead of appearing to delete something.
+  if (!a.email) {
+    alert('"' + a.name + '" has no APEX user account, so there is nothing to remove.\n\n'
+        + 'This row is reconstructed from their historical Coaching Logs. To remove them '
+        + 'permanently, add them via Add Agent (which creates their account) and then delete them, '
+        + 'or ask a SOM to provision then deactivate the account.');
+    return;
+  }
+  if (!confirm('Remove "' + a.name + '" from the roster?\n\n'
+             + 'Their APEX account is deactivated and they can no longer sign in. '
+             + 'All historical Coaching Logs are preserved.')) return;
+  // v16: the Firestore write is the authoritative record of the removal, so wait for it and
+  // report failure rather than optimistically updating the table. If the write fails (e.g.
+  // security rules), the agent legitimately stays on the roster and the TL is told why.
+  const ok = await deactivateUser(a.email);
+  if (!ok) { alert('Could not remove "' + a.name + '" — the account is still active. Nothing was changed.'); return; }
+  noteInactiveUser({ email: a.email, name: a.name, display: a.name });   // suppress immediately, no reload needed
   ROSTER.splice(idx, 1);
   // Tombstone by BOTH identity forms so a reconcile re-add (blank-email, name-keyed)
   // or a static-agent re-add cannot resurrect it after reload on this device.
@@ -1859,8 +1976,6 @@ function deleteAgent(idx) {
   });
   saveRoster();
   saveRosterMods();
-  // FIREBASE BUILD: DEACTIVATE (never delete) this agent's users/{email} document.
-  deactivateUser(a.email);
   renderRosterTable();
 }
 function openTLManager() {
@@ -1886,7 +2001,10 @@ function renderTLTable() {
     display:   t.display,
     fullName:  t.fullName,
     cluster:   t.cluster,
-    isCustom:  CUSTOM_TLS.some(c => c.email === email)
+    isCustom:  CUSTOM_TLS.some(c => c.email === email),
+    // v16: provisioned === has a real users/{email} document. Unprovisioned TLs come from the
+    // legacy seed map so their agents still map correctly, but they cannot sign in yet.
+    provisioned: isProvisionedTLKey(email) && t.provisioned !== false
   }));
   if (cluster) all = all.filter(t => t.cluster === cluster);
   if (currentUser.role === 'OM' && currentUser.omInfo) {
@@ -1903,15 +2021,44 @@ function renderTLTable() {
     <tr>
       <td style="font-weight:700">${t.display}</td>
       <td>${t.fullName}</td>
-      <td style="font-size:.75rem;color:#666">${t.email}</td>
+      <td style="font-size:.75rem;color:${t.provisioned ? '#666' : '#b26a00'}">${
+        t.provisioned ? t.email
+                      : '<em title="No users/{email} document yet — mapping works, sign-in does not.">not provisioned</em>'}</td>
       <td>${t.cluster}</td>
       <td>
         ${t.isCustom
           ? `<button class="btn-sm btn-edit" onclick="openTLForm('${t.email.replace(/'/g,"\\'")}')">Edit</button>
              <button class="btn-sm btn-del"  onclick="deleteTL('${t.email.replace(/'/g,"\\'")}')">Delete</button>`
-          : '<span style="font-size:.72rem;color:#999;font-style:italic">Built-in</span>'}
+          : (t.provisioned
+              ? '<span style="font-size:.72rem;color:#999;font-style:italic">Built-in</span>'
+              : '<span style="font-size:.72rem;color:#b26a00;font-style:italic">Needs Firestore account</span>')}
       </td>
     </tr>`).join('');
+  renderUnresolvedTLWarning();
+}
+// Data-quality surface for Team Lead strings in the Coaching Logs that match no known TL.
+// In v15 each of these silently became a synthetic 'sheet-tl:' identity; now they are shown
+// so the sheet value (or the missing Firestore account) can be corrected at the source.
+function renderUnresolvedTLWarning(){
+  const host = document.getElementById('tlMgrTableBody'); if(!host) return;
+  const box  = document.getElementById('tlMgrUnresolved');
+  const labels = [...UNRESOLVED_TL_LABELS].sort();
+  if(!box){
+    const el = document.createElement('div');
+    el.id = 'tlMgrUnresolved';
+    el.style.cssText = 'margin-top:12px;font-size:.78rem;line-height:1.5';
+    const table = host.closest('table');
+    if(table && table.parentNode) table.parentNode.appendChild(el);
+    else return renderUnresolvedTLWarning();
+  }
+  const el = document.getElementById('tlMgrUnresolved'); if(!el) return;
+  el.innerHTML = labels.length
+    ? `<div style="background:#fff8e1;border:1px solid #ffe0a3;border-radius:6px;padding:10px 12px;color:#7a5200">
+         <strong>⚠ ${labels.length} unrecognised Team Lead ${labels.length===1?'name':'names'} in the Coaching Logs.</strong><br>
+         These rows are not mapped to any team lead: ${labels.map(escHtml).join(', ')}.<br>
+         Fix the <em>Team Lead</em> value in the sheet, or add the team lead here so their agents map correctly.
+       </div>`
+    : '';
 }
 function openTLForm(email) {
   const isEdit = !!email;
@@ -1962,6 +2109,17 @@ function saveTL() {
   if (email !== origEmail && TL_EMAILS[email]) {
     errEl.textContent = 'This email is already registered as a Team Lead.'; return;
   }
+  // v16: email uniqueness alone allowed two TL identities for one person (e.g. "TL Anna" twice
+  // under different addresses), which splits their agents across both. Display AND full name
+  // must also be unique. An unprovisioned placeholder for this same person is the one thing we
+  // DO allow to collide — saving over it is exactly how a TL gets promoted to a real account.
+  const clash = Object.entries(TL_EMAILS).find(([k, t]) =>
+    k !== origEmail && k !== email && isProvisionedTLKey(k) &&
+    (normKey(t.display) === normKey(display) || normKey(t.fullName) === normKey(fullName)));
+  if (clash) {
+    errEl.textContent = 'A Team Lead with this display name or full name already exists (' + clash[0] + '). '
+                      + 'Edit that record instead of creating a second identity.'; return;
+  }
   if (origEmail && origEmail !== email) {
     CUSTOM_TLS = CUSTOM_TLS.filter(c => c.email !== origEmail);
     delete TL_EMAILS[origEmail];
@@ -1970,7 +2128,14 @@ function saveTL() {
   const idx = CUSTOM_TLS.findIndex(c => c.email === email);
   if (idx >= 0) CUSTOM_TLS[idx] = tlData;
   else CUSTOM_TLS.push(tlData);
-  TL_EMAILS[email] = { display, fullName, cluster };
+  TL_EMAILS[email] = { display, fullName, cluster, provisioned: true };
+  // Retire any unprovisioned placeholder for the same person so the TL Manager and the
+  // dashboard never show two rows for one team lead between now and the next reload.
+  Object.keys(TL_EMAILS).forEach(k => {
+    if (isProvisionedTLKey(k)) return;
+    const t = TL_EMAILS[k];
+    if (normKey(t.display) === normKey(display) || normKey(t.fullName) === normKey(fullName)) delete TL_EMAILS[k];
+  });
   saveCustomTLs();
   syncCustomTLToSheets(tlData);       // no-op in Firebase build
   // FIREBASE BUILD: create/update this TL's users/{email} document (merge).
@@ -3374,23 +3539,31 @@ async function fetchNTEFromSheets(force){
 // logs — it only makes filters, dashboards and completion counts recognise them.
 function reconcileRosterFromEntries(){
   let rosterChanged = false;
+  UNRESOLVED_TL_LABELS.clear();
   entries.forEach(e => {
     const tlName = (e.teamLead || '').trim();
     if (!tlName) return;
-    let tl = Object.values(TL_EMAILS).find(t => t.display === tlName);
-    if (!tl) {
-      const key = 'sheet-tl:' + tlName.toLowerCase();   // synthetic key — never matches a typed login email
-      if (!TL_EMAILS[key]) TL_EMAILS[key] = { display: tlName, fullName: tlName, cluster: e.cluster || '' };
-      tl = TL_EMAILS[key];
-    } else if (!tl.cluster && e.cluster) {
-      tl.cluster = e.cluster;
-    }
+    // v16: RESOLVE ONLY — never fabricate. A Coaching Log is a historical record, not a roster.
+    // Unknown Team Lead strings are reported in the TL Manager so the sheet (or Firestore) can
+    // be corrected, instead of being turned into a synthetic 'sheet-tl:' identity whose
+    // fullName was the display string and therefore matched none of that TL's agents.
+    const tl = resolveTL(tlName);
+    if (!tl) { UNRESOLVED_TL_LABELS.add(tlName); return; }
+    if (!tl.cluster && e.cluster) tl.cluster = e.cluster;
     const an = (e.agentName || '').trim();
-    // Skip agents the user has locally deleted on this device (tombstoned by name).
-    if (an && !ROSTER.some(a => a.name === an) && !isTombstoned({ name: an, email: '' })) {
-      ROSTER.push({ name: an, email: '', manager: tl.fullName, cluster: tl.cluster || e.cluster || '', startDate: '' });
-      rosterChanged = true;
-    }
+    if (!an) return;
+    // Firestore active:false is authoritative and cross-device: a deliberately removed agent is
+    // NEVER rebuilt from historical logs. This replaces the v15 localStorage tombstone check,
+    // which read state that was written but never loaded, so it always evaluated to "not deleted".
+    if (isDeactivatedIdentity({ name: an, email: '' })) return;
+    // Name comparison is normalized so casing/spacing drift between the sheet and Firestore
+    // cannot create a duplicate row for an agent who is already on the active roster.
+    if (ROSTER.some(a => normKey(a.name) === normKey(an))) return;
+    // Controlled creation: only for someone with coaching history and NO users/ document in
+    // either state. Flagged provisional so the UI can ask for provisioning rather than
+    // rendering a broken "cannot log in" record.
+    ROSTER.push({ name: an, email: '', manager: tl.fullName, cluster: tl.cluster || e.cluster || '', startDate: '', provisional: true });
+    rosterChanged = true;
   });
   // Re-layer local overrides/tombstones so name-keyed edits land on reconcile rows
   // and any locally-deleted agent stays removed. Idempotent.
@@ -3419,13 +3592,11 @@ async function fetchAgentsFromSheets(force){
       if (!email || !name || !isHomeaglowEmail(email)) return;
       const tlDisp  = String(r['Team Lead'] || r['TL'] || '').trim();
       const cluster = String(r['Cluster'] || '').trim();
-      let t = tlDisp ? Object.values(TL_EMAILS).find(x => x.display === tlDisp) : null;
-      // If the Agents tab names a TL we don't know yet, register it dynamically (display-keyed, non-login).
-      if (tlDisp && !t) {
-        const key = 'sheet-tl:' + tlDisp.toLowerCase();
-        if (!TL_EMAILS[key]) TL_EMAILS[key] = { display: tlDisp, fullName: tlDisp, cluster: cluster };
-        t = TL_EMAILS[key];
-      }
+      // v16: resolve only — never fabricate a TL identity from a sheet string. (This whole
+      // function is dormant in the Firebase build; the fabricator is removed so it cannot come
+      // back with it if the Agents tab is ever re-enabled.)
+      const t = tlDisp ? resolveTL(tlDisp) : null;
+      if (tlDisp && !t) UNRESOLVED_TL_LABELS.add(tlDisp);
       const manager = t ? t.fullName : tlDisp;
       const obj = { name, email, manager, cluster: cluster || (t ? t.cluster : ''),
                     startDate: String(r['Start Date'] || r['Start'] || '') };
