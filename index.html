@@ -1023,7 +1023,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-23-tone-of-voice-PROD-v20";
+const APEX_BUILD = "2026-08-23-rainmaker-results-PROD-v21";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -1507,6 +1507,7 @@ async function handleFirebaseUser(user){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').style.display='flex';
   fetchFromSheets();
+  preloadRainmakerOnce();   // one Rainmaker GET/session so linked results show in Coaching Log views
 }
 
 // ---- ONE-TIME, MANUAL, SOM-ONLY migration into users/{email} docs. NEVER on load. ----
@@ -4059,8 +4060,8 @@ function viewEntry(id) {
       <div class="form-group"><label>Agent's Receptiveness</label><div class="view-field">${e.receptiveness||'—'}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Focus Areas</label>
         <div class="view-field">${(e.focusAreas||[]).join(', ')||'—'}</div></div>
-      <div class="form-group" style="grid-column:1/-1"><label>🎯 Rainmaker Practice Focus</label>
-        <div class="view-field">${(e.rainmakerFocus||[]).join(', ')||'—'}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>🎯 Rainmaker Results</label>
+        <div class="view-field" style="display:block">${rainmakerResultInnerHtml(e)}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Key Discussion</label><div class="view-field big">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Strength Identified</label><div class="view-field big">${(e.strength||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Areas of Improvement</label><div class="view-field big">${(e.areas||'—').replace(/\n/g,'<br>')}</div></div>
@@ -4252,30 +4253,37 @@ function _perfAvgFromEntry(e){
 }
 // ── Rainmaker Results — Option B: show the linked result ONLY if rmEntries is already in memory;
 //    otherwise show the persisted Focus + a note. NEVER calls fetchRainmakerFromSheets(). ──
-function agentRainmakerHtml(e){
+// ── SHARED Rainmaker-result renderer — used by BOTH viewEntry() (TL/OM/SOM/Director) and
+//    openCommitmentView() (Agent) so the two views can never drift. Read-only. Reads only the
+//    in-memory rmEntries (populated once per session by preloadRainmakerOnce()); NEVER fetches.
+//    Three explicit states — linked result / loaded-but-no-link / not-yet-loaded — so a viewer can
+//    always tell "no result exists" from "not loaded". Never renders a bare '—'.
+function rainmakerResultInnerHtml(e){
   const focusTxt = (e.rainmakerFocus||[]).join(', ');
-  const loaded = (typeof rmEntries !== 'undefined' && Array.isArray(rmEntries) && rmEntries.length);
-  const linked = loaded ? rmEntries.find(r => String(r.coachingEntryId) === String(e.id)) : null;
+  const arr = (typeof rmEntries !== 'undefined' && Array.isArray(rmEntries)) ? rmEntries : [];
+  const linked = arr.find(r => String(r.coachingEntryId) === String(e.id));
+  const loaded = (typeof rmLoaded !== 'undefined' && rmLoaded) || arr.length > 0;
   if (linked){
     const ad = rmAdherence(linked); const areas = rmAreas(linked);
     const steps = RM_STEPS.map(st=>{ const v = linked.checklist ? linked.checklist[st] : '';
       const color = v==='Followed' ? '#2e7d32' : v==='Needs Coaching' ? '#c62828' : '#888';
       return `<tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">${rmEsc(st)}</td><td style="padding:4px 8px;border:1px solid #eee;color:${color};font-weight:700">${rmEsc(v||'—')}</td></tr>`; }).join('');
-    const inner = `
+    return `
       <div style="font-size:.85rem;margin-bottom:8px">Adherence: <b>${ad.pct!=null?ad.pct+'%':'—'}</b> <span style="color:#888">(${ad.followed}/${ad.applicable} applicable)</span>${ad.fullyAdherent?' · <b style="color:#2e7d32">Fully adherent</b>':''}</div>
       <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr style="background:#f5f5f5"><th style="padding:4px 8px;border:1px solid #eee;text-align:left">Rainmaker Step</th><th style="padding:4px 8px;border:1px solid #eee">Result</th></tr></thead><tbody>${steps}</tbody></table></div>
-      ${areas.length?`<div style="font-size:.82rem;margin-top:8px"><b>Areas needing coaching:</b> ${areas.map(rmEsc).join(', ')}</div>`:''}
-      ${linked.notes?`<div style="font-size:.82rem;margin-top:8px"><b>Call Review Notes:</b><br>${rmEsc(linked.notes).replace(/\n/g,'<br>')}</div>`:''}
-      ${linked.aircall?`<div style="font-size:.82rem;margin-top:8px"><b>Aircall:</b> <a href="${rmEsc(linked.aircall)}" target="_blank" rel="noopener">call recording ↗</a></div>`:''}
+      ${areas.length?`<div style="font-size:.82rem;margin-top:8px"><b>Areas to Reinforce:</b> ${areas.map(rmEsc).join('; ')}</div>`:'<div style="font-size:.82rem;margin-top:8px;color:#2e7d32">No steps flagged Needs Coaching.</div>'}
+      ${linked.notes?`<div style="font-size:.82rem;margin-top:8px"><b>Reviewer Notes:</b><br>${rmEsc(linked.notes).replace(/\n/g,'<br>')}</div>`:''}
+      ${linked.aircall?`<div style="font-size:.82rem;margin-top:8px"><b>Aircall / Review:</b> <a href="${rmEsc(linked.aircall)}" target="_blank" rel="noopener">recording ↗</a></div>`:''}
       ${focusTxt?`<div style="font-size:.82rem;margin-top:8px;color:#555"><b>Rainmaker Practice Focus:</b> ${rmEsc(focusTxt)}</div>`:''}`;
-    return _agentSection('🎯 Rainmaker Results', inner);
   }
-  // Fallback (rmEntries not loaded): persisted Focus + note, zero requests.
-  const inner = `
-    ${focusTxt ? `<div style="font-size:.85rem"><b>Rainmaker Practice Focus:</b> ${rmEsc(focusTxt)}</div>` : `<div style="font-size:.85rem;color:#999">No Rainmaker Practice Focus recorded for this log.</div>`}
-    <div style="font-size:.8rem;color:#8a6d00;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px;margin-top:8px">Open the Rainmaker Practice tab to load your Rainmaker results.</div>`;
-  return _agentSection('🎯 Rainmaker Results', inner);
+  if (loaded){
+    // Rainmaker data IS loaded and no row links to this coaching log → explicit, unambiguous.
+    return `<div style="font-size:.85rem;color:#666">No Rainmaker Practice result linked to this coaching session.</div>${focusTxt?`<div style="font-size:.82rem;margin-top:6px;color:#555"><b>Rainmaker Practice Focus:</b> ${rmEsc(focusTxt)}</div>`:''}`;
+  }
+  // Safety net (preload not yet finished / failed): persisted Focus + note. Never a bare '—'.
+  return `${focusTxt ? `<div style="font-size:.85rem"><b>Rainmaker Practice Focus:</b> ${rmEsc(focusTxt)}</div>` : `<div style="font-size:.85rem;color:#999">No Rainmaker Practice Focus recorded.</div>`}<div style="font-size:.8rem;color:#8a6d00;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px;margin-top:8px">Open the Rainmaker Practice tab to load your Rainmaker results.</div>`;
 }
+function agentRainmakerHtml(e){ return _agentSection('🎯 Rainmaker Results', rainmakerResultInnerHtml(e)); }
 // ── Potential Earnings & WK1 CVR Bonus Calculators — read-only, derived locally from saved inputs ──
 function agentCalcHtml(e){
   const hasPE = e.peValidPoints!=null && String(e.peValidPoints).trim()!=='';
@@ -5208,6 +5216,19 @@ const RM_STEPS = [
 const RM_OPTS = ['Followed','Needs Coaching','N/A'];
 let rmEntries = [];
 let rmInited = false;
+let rmLoaded = false;      // true once rmEntries has been populated (preload, tab open, or localStorage)
+let rmPreloaded = false;   // guards the ONE-per-session/tab Rainmaker preload
+// One-time-per-session preload so linked Rainmaker results show in Coaching Log views without the
+// viewer first opening the Rainmaker Practice tab. Exactly ONE Rainmaker GET per session/tab: the
+// rmPreloaded guard prevents re-entry, and the existing 60s cache gates the underlying fetch. View
+// clicks never call this — they only READ rmEntries — so 1 or 50 log opens add 0 further GETs.
+async function preloadRainmakerOnce(){
+  if (rmPreloaded) return;
+  rmPreloaded = true;
+  try { loadRmEntries(); await fetchRainmakerFromSheets(false); }
+  catch(e){ /* non-fatal: views fall back to the safety-net message */ }
+  finally { rmLoaded = true; }
+}
 function rmEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function rmIsAgent(){ return currentUser && currentUser.role === 'Agent'; }
 
@@ -5301,6 +5322,7 @@ async function fetchRainmakerFromSheets(force){
 async function rmEnsureLoaded(){
   if (!rmEntries.length) loadRmEntries();     // free localStorage hydrate
   await fetchRainmakerFromSheets(false);      // 1 GET first time / 0 within cache
+  rmLoaded = true; rmPreloaded = true;        // Rainmaker data is now in memory for the session
   renderRainmakerDashboard();
 }
 
