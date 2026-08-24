@@ -89,6 +89,8 @@ main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .section-header h2{font-size:1.1rem;font-weight:800}
 .btn-add{background:var(--yellow);border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer}
+.btn-add-green{background:#2f9e44;color:#fff}
+.btn-add-green:hover{background:#278239}
 .btn-add:hover{opacity:.88}
 .table-wrap{overflow-x:auto;border:1.5px solid var(--border);border-radius:8px}
 table{width:100%;border-collapse:collapse;font-size:.87rem}
@@ -371,15 +373,36 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     </div>
     <div id="viewLog" style="display:none">
       <!-- ══ COACHING PROGRESS DASHBOARD (v27) — analytics only; 100% in-memory from entries + ROSTER ══ -->
-      <div class="section-header"><h2>Coaching Progress Dashboard</h2></div>
+      <!-- v29: the single + New Coaching Log button lives here (moved out of View All Coaching Logs). One element, one handler. -->
+      <div class="section-header" style="align-items:center">
+        <h2>Coaching Progress Dashboard</h2>
+        <button class="btn-add btn-add-green" id="btnAddCoaching" onclick="openAddModal()" style="display:none">+ New Coaching Log</button>
+      </div>
       <div class="filter-bar" id="cpFilterBar">
         <div><label>WK #</label><select id="progWK" onchange="renderCoachingProgress()"><option value="">Latest</option></select></div>
         <div><label>Cluster</label><select id="progCluster" onchange="onProgClusterChange()"><option value="">All Clusters</option></select></div>
         <div><label>Team Lead</label><select id="progTL" onchange="onProgTLChange()"><option value="">All TLs</option></select></div>
         <div><label>Agent</label><select id="progAgent" onchange="renderCoachingProgress()"><option value="">All Agents</option></select></div>
         <div><label>Coaching Type</label><select id="progType" onchange="renderCoachingProgress()"><option value="">All Coaching Types</option></select></div>
+        <div><label>Week Coverage <span style="font-weight:400;color:#888">(trends &amp; analysis)</span></label>
+          <select id="progCoverage" onchange="onProgCoverageChange()">
+            <option value="4">Last 4 Weeks</option>
+            <option value="6" selected>Last 6 Weeks</option>
+            <option value="8">Last 8 Weeks</option>
+            <option value="12">Last 12 Weeks</option>
+            <option value="custom">Custom Range</option>
+          </select>
+        </div>
+        <div id="progCustomRange" style="display:none"><label>Custom Range</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="progFromWK" onchange="renderCoachingProgress()"></select>
+            <span style="color:#888">→</span>
+            <select id="progToWK" onchange="renderCoachingProgress()"></select>
+          </div>
+        </div>
         <button class="filter-btn" onclick="clearProgFilters()">Clear</button>
       </div>
+      <div id="progRangeMsg" style="display:none;background:#ffebee;border:1.5px solid #ef9a9a;color:#c62828;border-radius:8px;padding:8px 12px;font-size:.84rem;font-weight:700;margin-bottom:14px"></div>
       <div id="cpBody">
         <div class="cp-section" id="cpCoverage"></div>
         <div class="cp-section" id="cpNotCoached"></div>
@@ -397,7 +420,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div style="margin-top:16px">
       <div class="section-header">
         <h2>All Coaching Entries</h2>
-        <button class="btn-add" id="btnAddCoaching" onclick="openAddModal()" style="display:none">+ New Coaching Log</button>
       </div>
       <div class="filter-bar">
         <div>
@@ -1199,7 +1221,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-24-coverage-full-completion-PROD-v28";
+const APEX_BUILD = "2026-08-24-week-coverage-ui-PROD-v29";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2482,6 +2504,10 @@ function populateWKOptions() {
   if (dash)    dash.innerHTML    = '<option value="">All Weeks</option>' + opts;
   if (log)     log.innerHTML     = '<option value="">All</option>' + opts;
   if (prog)    prog.innerHTML    = '<option value="">Latest</option>' + opts;
+  const pFrom = document.getElementById('progFromWK');
+  const pTo   = document.getElementById('progToWK');
+  if (pFrom)   pFrom.innerHTML   = '<option value="">From WK#</option>' + opts;
+  if (pTo)     pTo.innerHTML     = '<option value="">To WK#</option>' + opts;
   if (form)    form.innerHTML    = '<option value="">— Select WK # —</option>' + opts;
   if (nteDash) nteDash.innerHTML = '<option value="">All Weeks</option>' + opts;
   if (nteForm) nteForm.innerHTML = '<option value="">— Select WK # —</option>' + opts;
@@ -2683,13 +2709,34 @@ function progPopulateAgents(){
 }
 function onProgClusterChange(){ document.getElementById('progTL').value=''; buildTLOptions('progTL', getTLsForUser(document.getElementById('progCluster').value||''),'All TLs'); document.getElementById('progAgent').value=''; progPopulateAgents(); renderCoachingProgress(); }
 function onProgTLChange(){ document.getElementById('progAgent').value=''; progPopulateAgents(); renderCoachingProgress(); }
-function clearProgFilters(){ ['progWK','progCluster','progTL','progAgent','progType'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';}); buildTLOptions('progTL', getTLsForUser(''),'All TLs'); progPopulateAgents(); renderCoachingProgress(); }
+function clearProgFilters(){ ['progWK','progCluster','progTL','progAgent','progType','progFromWK','progToWK'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';}); const cov=document.getElementById('progCoverage'); if(cov) cov.value='6'; const cr=document.getElementById('progCustomRange'); if(cr) cr.style.display='none'; buildTLOptions('progTL', getTLsForUser(''),'All TLs'); progPopulateAgents(); renderCoachingProgress(); }
+function onProgCoverageChange(){ const cov=document.getElementById('progCoverage').value; const cr=document.getElementById('progCustomRange'); if(cr) cr.style.display = (cov==='custom') ? 'block' : 'none'; renderCoachingProgress(); }
 
 // Scope readers — reuse the v26 roster denominator so coverage matches the dashboard exactly.
 function cpScope(){
   return { wk: document.getElementById('progWK')?.value||'', cl: document.getElementById('progCluster')?.value||'',
            tl: document.getElementById('progTL')?.value||'', ag: document.getElementById('progAgent')?.value||'',
-           type: document.getElementById('progType')?.value||'' };
+           type: document.getElementById('progType')?.value||'',
+           coverage: document.getElementById('progCoverage')?.value||'6',
+           fromWK: document.getElementById('progFromWK')?.value||'', toWK: document.getElementById('progToWK')?.value||'' };
+}
+// Resolve the Week Coverage window → { weeks:[...], label:'WKxxx–WKyyy', error:null }. Presets end at the
+// selected WK# (or latest present); Custom uses the exact From/To. Validates From ≤ To (never swaps).
+// Pure in-memory over the already-loaded entries — 0 SheetDB requests.
+function cpResolveWindow(s, scoped){
+  if (s.coverage==='custom'){
+    if (!s.fromWK || !s.toWK) return { weeks:[], label:'', error:'Select both a From WK# and a To WK# for the custom range.' };
+    const from=wkNum({wkNumber:s.fromWK}), to=wkNum({wkNumber:s.toWK});
+    if (from>to) return { weeks:[], label:'', error:`Invalid range: From ${s.fromWK} is after To ${s.toWK}. Set From on or before To.` };
+    const out=[]; for(let w=from; w<=to; w++) out.push(w);
+    return { weeks:out, label:`WK${from}–WK${to}`, error:null };
+  }
+  const n=parseInt(s.coverage,10)||CP_TREND_WEEKS;
+  let end = s.wk ? wkNum({wkNumber:s.wk}) : 0;
+  if (!end){ (scoped||[]).forEach(e=>{ const w=wkNum(e); if(w>end) end=w; }); }
+  if (!end) return { weeks:[], label:'', error:null };
+  const out=[]; for(let w=end-n+1; w<=end; w++){ if(w>0) out.push(w); }
+  return { weeks:out, label: out.length?`WK${out[0]}–WK${end}`:'', error:null };
 }
 // Entries within Cluster/TL/Agent scope (NOT week/type filtered — callers narrow further).
 function cpScopedEntries(s){
@@ -2908,15 +2955,22 @@ function renderCoachingProgress(){
     (oppTop?`<div class="cp-topline">#1 Opportunity: <b>${esc(oppTop.label)}</b> · ${oppTop.n} Agent${oppTop.n===1?'':'s'}</div>`:'')+
     `<div class="cp-note">Reconstructed from stored WK1 performance (TCR/CSR benchmarks). Does not reproduce the historical live "Volume / Leads Touched" opportunity; agents without stored performance show as Insufficient Data.</div>`;
 
-  // ── TRENDS (6-week window ending at target week) ──
-  const weeks=cpWindowWeeks(scoped, s.wk);
+  // ── TRENDS / EFFECTIVENESS / INSIGHTS window (v29 — Week Coverage: presets or custom range) ──
+  const win = cpResolveWindow(s, scoped);
+  const weeks = win.weeks;
+  const rangeMsg = document.getElementById('progRangeMsg');
+  if (rangeMsg){
+    if (win.error){ rangeMsg.style.display='block'; rangeMsg.textContent='⚠ '+win.error; }
+    else { rangeMsg.style.display='none'; rangeMsg.textContent=''; }
+  }
+  const rangeLabel = win.label || 'selected range';
   const limSeries=cpWeeklyTrend(scopedTyped, weeks, cpLimiterLabel);
   document.getElementById('cpLimiterTrend').innerHTML =
-    `<h3>Primary Limiter Trend — Last ${weeks.length} Weeks</h3>`+ cpLineSVG(weeks, limSeries)+
+    `<h3>Primary Limiter Trend — ${rangeLabel}</h3>`+ cpLineSVG(weeks, limSeries)+
     `<div class="cp-note">% of each week's coached unique agents. Top 5 limiters shown + Other.</div>`;
   const oppSeries=cpWeeklyTrend(scopedTyped, weeks, opportunityForEntry);
   document.getElementById('cpOppTrend').innerHTML =
-    `<h3>Primary Opportunity Trend — Last ${weeks.length} Weeks</h3>`+ cpLineSVG(weeks, oppSeries)+
+    `<h3>Primary Opportunity Trend — ${rangeLabel}</h3>`+ cpLineSVG(weeks, oppSeries)+
     `<div class="cp-note">Reconstructed opportunity; % of coached unique agents.</div>`;
 
   // ── COACHING EFFECTIVENESS (prev→current per agent, grouped by current limiter) ──
@@ -2936,10 +2990,10 @@ function renderCoachingProgress(){
   });
   const effLimiters=Object.keys(effGroups).sort((a,b)=>{
     const tot=x=>Object.values(effGroups[x]).reduce((s,arr)=>s+arr.length,0); return tot(b)-tot(a); });
-  let effHtml='<h3>Coaching Effectiveness</h3>';
+  let effHtml=`<h3>Coaching Effectiveness — ${rangeLabel}</h3>`;
   if(!effLimiters.length){ effHtml+='<div class="cp-empty">No coaching sessions in the selected window.</div>'; }
   else {
-    effHtml+=`<div class="cp-note" style="margin-bottom:10px">Compares each agent's latest session to their previous one (Follow-Up link first, else chronological). Objective metrics exist only for Leads Touched (LT) and Call/Objection Handling (CSR); all other limiters report Insufficient Data. Tolerance: ±2pp (rate) / ±10% (Leads Touched).</div>`;
+    effHtml+=`<div class="cp-note" style="margin-bottom:10px">Compares each agent's latest session to their previous one <b>within the selected Week Coverage only</b> (Follow-Up link first, else chronological); a prior session outside the range is never used as a baseline. Objective metrics exist only for Leads Touched (LT) and Call/Objection Handling (CSR); all other limiters report Insufficient Data. Tolerance: ±2pp (rate) / ±10% (Leads Touched).</div>`;
     effLimiters.forEach(lim=>{
       const g=effGroups[lim]; const tot=g['Improved'].length+g['Stayed the Same'].length+g['Worsened'].length+g['Insufficient Data'].length;
       const row=(label,cls,arr)=>{ const pctv=tot?Math.round(arr.length/tot*100):0;
