@@ -487,8 +487,9 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
                (see clearForm / editEntry / restoreDraft, which coerce legacy or blank
                values to Scheduled Coaching). NOTHING here hard-codes a single-type
                assumption into calculations. -->
-          <select id="fCoachingType">
+          <select id="fCoachingType" onchange="onCoachingTypeChange()">
             <option>Scheduled Coaching</option>
+            <option>Follow-Up Coaching</option>
           </select>
         </div>
         <div class="form-group">
@@ -523,6 +524,75 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <label>Tenure</label>
           <div><span class="tenure-badge" id="tenureBadge">—</span></div>
         </div>
+      </div>
+      <!-- ══ FOLLOW-UP COACHING (shown only when Coaching Type = Follow-Up Coaching) ══
+           Guided conversation: Last Coaching → Goal → Execution → Commitment → Limiter →
+           Root Cause → This Week's Plan → TL Support → New Target. All answers persist into ONE
+           JSON column (Follow-Up Data); the link persists as Follow-Up Prev Entry ID. The previous
+           coaching is RESOLVED from the already-loaded in-memory entries — never re-fetched. -->
+      <div class="form-section" id="followUpGroup" style="display:none">
+        <h4>🔁 Follow-Up Coaching</h4>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Link the Previous Coaching being followed up <span class="required">*</span> <span style="font-weight:400;color:#7a8aa0">(same agent only)</span></label>
+          <select id="fFuPrev" onchange="onFuPrevChange()"><option value="">— Select previous coaching —</option></select>
+          <div id="fFuPrevMsg" style="font-size:.78rem;color:#c62828;font-weight:700;margin-top:4px;display:none"></div>
+        </div>
+        <!-- Previous Coaching Review — visually DISTINCT (amber card) so it can't be confused with the new plan -->
+        <div style="grid-column:1/-1;border:1.5px solid #f0c96b;border-radius:10px;overflow:hidden;margin-bottom:6px">
+          <div style="background:#8a6d00;color:#fff;padding:7px 12px;font-weight:800;font-size:.82rem">⏮️ PREVIOUS COACHING REVIEW <span style="font-weight:500;opacity:.85">— historical, read-only</span></div>
+          <div id="fuReview" style="padding:12px;background:#fffdf5;font-size:.85rem">Select a previous coaching above to load its review.</div>
+        </div>
+        <div style="grid-column:1/-1;font-weight:800;color:#1a3353;font-size:.82rem;margin-top:4px;border-top:2px solid #d7e3f4;padding-top:10px">🆕 THIS WEEK'S FOLLOW-UP — current coaching</div>
+
+        <!-- A — GOAL RESULT -->
+        <div class="form-group" style="grid-column:1/-1"><label>① Goal Check — Did the agent meet the Week 1 target set previously? <span class="required">*</span></label>
+          <div id="fuGoalAuto" style="font-size:.8rem;color:#33691e;background:#f1f8e9;border:1px solid #c5e1a5;border-radius:6px;padding:6px 10px;margin-bottom:6px;display:none"></div>
+          <select id="fuGoalMet"><option value="">— Select —</option><option>Yes</option><option>Partially</option><option>No</option></select>
+          <textarea id="fuGoalNotes" placeholder="What helped or prevented the agent from reaching the target?"></textarea></div>
+
+        <!-- B — EXECUTION CHECK (Action Plan follow-through) -->
+        <div class="form-group" style="grid-column:1/-1"><label>② Execution Check — Action Plan follow-through</label>
+          <div id="fuPrevActionPlan" style="font-size:.8rem;color:#555;background:#f7faff;border:1px solid #e3ecf7;border-radius:6px;padding:6px 10px;margin-bottom:6px"></div>
+          <textarea id="fuActCompleted" placeholder="Which action plans from the previous coaching were completed?"></textarea>
+          <textarea id="fuActNotDone" placeholder="Which action from the previous coaching was NOT executed?" style="margin-top:6px"></textarea>
+          <label style="margin-top:6px">Root cause of the non-executed action</label>
+          <select id="fuActRootCause"><option value="">— Select —</option><option>Knowledge</option><option>Skill</option><option>Execution / Consistency</option><option>Process / Tool</option><option>Attendance / Availability</option><option>Outside the Agent's Control</option><option>Other</option></select>
+          <textarea id="fuActWhy" placeholder="Short explanation of why it was not executed" style="margin-top:6px"></textarea></div>
+
+        <!-- C — COMMITMENT CHECK -->
+        <div class="form-group" style="grid-column:1/-1"><label>③ Commitment Check</label>
+          <div id="fuPrevCommit" style="font-size:.8rem;color:#555;background:#f7faff;border:1px solid #e3ecf7;border-radius:6px;padding:6px 10px;margin-bottom:6px"></div>
+          <textarea id="fuCommitKept" placeholder="Which commitments did the agent keep?"></textarea>
+          <textarea id="fuCommitNot" placeholder="Which commitments were NOT kept?" style="margin-top:6px"></textarea>
+          <textarea id="fuCommitWhy" placeholder="What prevented the agent from keeping the commitment?" style="margin-top:6px"></textarea></div>
+
+        <!-- D — LIMITER CHECK -->
+        <div class="form-group" style="grid-column:1/-1"><label>④ Limiter Check</label>
+          <div id="fuPrevLimiter" style="font-size:.8rem;color:#555;background:#f7faff;border:1px solid #e3ecf7;border-radius:6px;padding:6px 10px;margin-bottom:6px"></div>
+          <label>Is the previous Primary Limiter still the Primary Limiter observed this coaching? <span class="required">*</span></label>
+          <select id="fuLimiterStill"><option value="">— Select —</option><option>Yes</option><option>Partially</option><option>No</option></select>
+          <textarea id="fuLimiterEvidence" placeholder="What evidence supports this?" style="margin-top:6px"></textarea>
+          <div style="font-size:.78rem;color:#7a8aa0;margin-top:6px">Set THIS coaching's Primary Limiter using the existing <b>Primary Limiter</b> field in Coaching Notes below (Tone of Voice and the Call/Objection sub-limiter included). It is not duplicated here.</div></div>
+
+        <!-- E — ROOT CAUSE -->
+        <div class="form-group" style="grid-column:1/-1"><label>⑤ Root Cause / Coaching Discussion</label>
+          <textarea id="fuRcChanged" placeholder="What changed since the previous coaching?"></textarea>
+          <textarea id="fuRcUnchanged" placeholder="What did NOT change?" style="margin-top:6px"></textarea>
+          <textarea id="fuRcBehavior" placeholder="What behavior had the biggest impact on the result?" style="margin-top:6px"></textarea>
+          <label style="margin-top:6px">Primary root cause <span class="required">*</span></label>
+          <select id="fuRcCategory"><option value="">— Select —</option><option>Knowledge</option><option>Skill</option><option>Execution / Consistency</option><option>Process / Tool</option><option>Attendance / Availability</option><option>Outside the Agent's Control</option><option>Other</option></select>
+          <textarea id="fuRcEvidence" placeholder="What evidence from performance or calls supports this conclusion?" style="margin-top:6px"></textarea></div>
+
+        <!-- F — THIS WEEK'S PLAN / NEXT ACTION -->
+        <div class="form-group" style="grid-column:1/-1"><label>⑥ This Week's Plan — Next Action <span class="required">*</span></label>
+          <textarea id="fuNextBehavior" placeholder="The ONE behavior/action that will make the biggest difference this week"></textarea>
+          <textarea id="fuNextDifferent" placeholder="What will the agent do differently?" style="margin-top:6px"></textarea>
+          <textarea id="fuNextSuccess" placeholder="How will we know by the next coaching session that it worked? (measurable success condition)" style="margin-top:6px"></textarea>
+          <div style="font-size:.78rem;color:#7a8aa0;margin-top:6px">Record THIS coaching's Action Plan in the existing <b>Action Plan</b> field in Coaching Notes below; the agent's new commitment goes in the existing ⭐ My Commitment section.</div></div>
+
+        <!-- TL SUPPORT -->
+        <div class="form-group" style="grid-column:1/-1"><label>⑦ TL Support <span class="required">*</span></label>
+          <textarea id="fuTlSupport" placeholder="What support do you need from me as your TL to make sure you can execute this commitment this week?"></textarea></div>
       </div>
       <!-- Focus Area(s) input removed from the form (v15). Historical "Focus Area" data is
            NOT deleted: it is still read by parseSheetRow, carried forward on edit (saveEntry),
@@ -1023,7 +1093,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-23-rainmaker-results-PROD-v21";
+const APEX_BUILD = "2026-08-24-followup-coaching-PROD-v22";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2824,6 +2894,9 @@ function tlComplete(e){
   // migration. Explicit Coaching Type FILTERING (dashboard dropdown) is unchanged.
   const base = isFilled(e.coachingStatus) && hasContent;
   if (!base) return false;
+  // v22: Follow-Up Coaching adds its own requirements — gated ONLY by the new Coaching Type, which no
+  // historical row can have, so historical completion is untouched (no version stamp needed).
+  if (e.coachingType === 'Follow-Up Coaching' && !followUpComplete(e)) return false;
   // v17: the two coaching calculators are MANDATORY — but ONLY for logs created under the
   // calculator feature (they carry an immutable calcFeatureVersion stamp set at creation).
   // Historical/pre-feature logs have no stamp → they keep the old rule and are NEVER forced to
@@ -2939,6 +3012,7 @@ function editEntry(id) {
   setVal('fCVRSales',   e.cvrBonusValidSales != null ? e.cvrBonusValidSales : '');
   setVal('fCVRPercent', e.cvrBonusPercent    != null ? e.cvrBonusPercent    : '');
   calcEarnings();
+  fillFollowUpForm(e);   // restore Follow-Up section (link + A–F answers) or hide it for other types
   calcTenure();
   document.getElementById('tenureBadge').textContent = e.tenure || '—';
   openModal('formModal');
@@ -2986,6 +3060,7 @@ function clearForm() {
   const pb=document.getElementById('peBasePay'); if(pb) pb.textContent='$140';
   ['peBonus','peTotal','cvrEligible','cvrRate','cvrBonus'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='—'; });
   if (typeof renderLeverGuidance === 'function') renderLeverGuidance();  // reset lever guidance panel
+  if (typeof clearFollowUpForm === 'function') clearFollowUpForm();      // reset + hide the Follow-Up section
 }
 function populateFormTLs(cluster) {
   const el = document.getElementById('fTL');
@@ -3039,6 +3114,11 @@ function populateFormAgents(tlDisplay) {
 }
 function onAgentSelect() {
   calcTenure();
+  // If Follow-Up Coaching is active, re-scope the previous-coaching selector to the new agent (0 requests).
+  if (document.getElementById('fCoachingType') && document.getElementById('fCoachingType').value==='Follow-Up Coaching'){
+    const sel=document.getElementById('fFuPrev'); if(sel) sel.value='';
+    populateFuPrev(); renderFuReview();
+  }
 }
 function calcTenure() {
   const agentName = document.getElementById('fAgent').value;
@@ -3586,6 +3666,9 @@ function buildCoachingRow(e) {
     'WK1 CVR Bonus Valid Sales': e.cvrBonusValidSales||'',
     'WK1 CVR Bonus Percent': e.cvrBonusPercent||'',
     'Calc Feature Version': e.calcFeatureVersion||'',
+    // Follow-Up Coaching (v22): ONLY 2 new columns — the link (greppable) + one JSON blob of answers.
+    'Follow-Up Prev Entry ID': e.followUpPrev||'',
+    'Follow-Up Data': e.followUp ? JSON.stringify(e.followUp) : '',
     'Key Discussion': e.keyDiscussion||'',
     'Strength': e.strength||'',
     'Areas': e.areas||'',
@@ -3661,6 +3744,9 @@ function parseSheetRow(row) {
     cvrBonusValidSales: row['WK1 CVR Bonus Valid Sales']||'',
     cvrBonusPercent:    row['WK1 CVR Bonus Percent']||'',
     calcFeatureVersion: row['Calc Feature Version']||'',
+    // Follow-Up Coaching (v22): link + JSON answers. Blank/absent for every historical/other-type row.
+    followUpPrev: row['Follow-Up Prev Entry ID']||'',
+    followUp: (function(){ try{ return JSON.parse(row['Follow-Up Data']||'')||null; }catch(err){ return null; } })(),
     keyDiscussion:  row['Key Discussion']||'',
     strength:       row['Strength']||'',
     areas:          row['Areas']||'',
@@ -3999,6 +4085,8 @@ function saveEntry() {
     loggedBy: currentUser.email,
     updatedAt: new Date().toISOString(),
   };
+  // Follow-Up Coaching: link (Prev Entry ID) + A–F answers (one JSON blob). Blank for other types.
+  { const _fu = readFollowUpForm(); entry.followUpPrev = _fu.prev; entry.followUp = _fu.data; }
   const idx = entries.findIndex(x=>x.id===entry.id);
   const isEdit = idx >= 0;
   if(isEdit){
@@ -4055,6 +4143,7 @@ function viewEntry(id) {
       <span class="info-chip">⏱️ ${e.tenure||'—'}</span>
       ${getStatusBadge(e.coachingStatus)}
     </div>
+    ${e.coachingType==='Follow-Up Coaching' ? followUpReviewHtml(e) : ''}
     <div class="form-grid">
       <div class="form-group"><label>Coaching Type</label><div class="view-field">${e.coachingType||'—'}</div></div>
       <div class="form-group"><label>Agent's Receptiveness</label><div class="view-field">${e.receptiveness||'—'}</div></div>
@@ -4170,7 +4259,9 @@ function saveDraft() {
     })),
     peValidPoints      : document.getElementById('fPEPoints')?.value   || '',
     cvrBonusValidSales : document.getElementById('fCVRSales')?.value    || '',
-    cvrBonusPercent    : document.getElementById('fCVRPercent')?.value  || ''
+    cvrBonusPercent    : document.getElementById('fCVRPercent')?.value  || '',
+    followUpPrev       : document.getElementById('fFuPrev')?.value || '',
+    followUp           : (function(){ if(document.getElementById('fCoachingType')?.value!=='Follow-Up Coaching') return null; const d={}; FU_ALL_FIELDS.forEach(id=>{ const el=document.getElementById(id); d[id]=el?el.value:''; }); return d; })()
   };
   if (draft.agent || draft.date || draft.keyDiscussion || draft.strength || draft.areas) {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -4225,6 +4316,8 @@ function resumeDraft() {
   setVal('fCVRSales',   draft.cvrBonusValidSales != null ? draft.cvrBonusValidSales : '');
   setVal('fCVRPercent', draft.cvrBonusPercent    != null ? draft.cvrBonusPercent    : '');
   if (typeof calcEarnings === 'function') calcEarnings();
+  // Restore an in-progress Follow-Up draft (link + A–F answers) via the shared fill helper.
+  if (typeof fillFollowUpForm === 'function') fillFollowUpForm({ coachingType: draft.coachingType||'', followUpPrev: draft.followUpPrev||'', followUp: draft.followUp||null });
   calcTenure();
 }
 function setVal(id, val) {
@@ -4406,8 +4499,191 @@ function agentLeverHtml(e){
   return _agentSection('🎯 Core Metrics Lever — Coaching Guidance', inner);
 }
 // Assemble the read-only Agent coaching-content sections (order per spec; each appears once).
+// Follow-Up review (when applicable) leads, so the agent sees "what we agreed / what happened" first.
 function agentExtraSectionsHtml(e){
-  return agentRainmakerHtml(e) + agentCalcHtml(e) + agentWk1Cvr5Html(e) + agentProjectionHtml(e) + agentLeverHtml(e);
+  return (e.coachingType==='Follow-Up Coaching' ? followUpReviewHtml(e) : '')
+    + agentRainmakerHtml(e) + agentCalcHtml(e) + agentWk1Cvr5Html(e) + agentProjectionHtml(e) + agentLeverHtml(e);
+}
+// ══════════════════ FOLLOW-UP COACHING (v22) — 100% local, ZERO SheetDB requests ══════════════════
+// Persistence = 2 columns only: 'Follow-Up Prev Entry ID' (the link) + 'Follow-Up Data' (one JSON blob
+// of the TL's A–F answers). The previous coaching is RESOLVED from the already-loaded in-memory
+// `entries` — never re-fetched. No previous-coaching content is duplicated into the Follow-Up row.
+const FU_TEXT_FIELDS = ['fuGoalNotes','fuActCompleted','fuActNotDone','fuActWhy','fuCommitKept','fuCommitNot','fuCommitWhy','fuLimiterEvidence','fuRcChanged','fuRcUnchanged','fuRcBehavior','fuRcEvidence','fuNextBehavior','fuNextDifferent','fuNextSuccess','fuTlSupport'];
+const FU_SELECT_FIELDS = ['fuGoalMet','fuActRootCause','fuLimiterStill','fuRcCategory'];
+const FU_ALL_FIELDS = FU_TEXT_FIELDS.concat(FU_SELECT_FIELDS);
+function resolvePrevCoaching(prevId){
+  if(!prevId) return null;
+  return (typeof entries!=='undefined'?entries:[]).find(x=>String(x.id)===String(prevId)) || null;
+}
+// Primary Opportunity selection — mirrors renderLeverGuidance()/agentLeverHtml() (Volume branch omitted:
+// it needs a TL target-leads scenario that is not persisted). Pure; from the entry's own perfData.
+function fuLeverInfo(e){
+  const p1=(e.perfData&&e.perfData[0])||{};
+  const lt=parseFloat(p1.lt)||0, cc=parseFloat(p1.cc)||0, s=parseFloat(p1.s)||0;
+  if(lt<=0) return {opp:'—', focusKey:null};
+  const tcrCurr=cc/lt*100, csrCurr=cc>0?s/cc*100:0;
+  if(tcrCurr < BENCH_TCR-0.05) return {opp:'TCR', focusKey:'TCR'};
+  if(cc>0 && csrCurr < BENCH_CSR-0.05) return {opp:'CSR', focusKey:'CSR'};
+  return {opp:'On Track / No major core-metric gap', focusKey:null};
+}
+// 4-Week Target Ramp for an entry (averages basis — same math as agentLeverHtml's ramp).
+function fuRampHtml(e){
+  const info=fuLeverInfo(e); const f1=v=>v.toFixed(1);
+  if(!info.focusKey) return '<div style="color:#888;font-size:.82rem">No single core-metric gap — no target ramp (on track / insufficient data).</div>';
+  const A=_perfAvgFromEntry(e);
+  const avgTCRv=(A.avgTCR!=null)?A.avgTCR:0, avgCSRv=(A.avgCSR!=null)?A.avgCSR:0, avgCSRrate=avgCSRv/100, avgLTv=A.avgLT, avgCCv=A.avgCC, tgtLeadsAvg=avgLTv;
+  let cur,fin; if(info.focusKey==='TCR'){cur=avgTCRv;fin=BENCH_TCR;} else {cur=avgCSRv;fin=BENCH_CSR;}
+  const gap=fin-cur; if(!(gap>0.05)) return '<div style="color:#888;font-size:.82rem">4-week average already at/above the benchmark — no ramp needed.</div>';
+  let rows=''; for(let i=1;i<=4;i++){ const wt=(i===4)?fin:(cur+gap*(i/4)); const impv=wt-cur; const rel=cur>0?(impv/cur*100):0; let cells;
+    if(info.focusKey==='TCR'){ const addC=(impv/100)*tgtLeadsAvg,totC=(wt/100)*tgtLeadsAvg,addS=avgCSRrate*addC; cells=`<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`; }
+    else { const addS=(impv/100)*avgCCv,totS=(wt/100)*avgCCv; cells=`<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addS)}</td><td>${Math.round(totS)}</td>`; }
+    rows+=`<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`; }
+  const cols=info.focusKey==='CSR'?['CSR Target','Δ vs Today','Rel. Gain','+Sales','Total Sales/Wk']:['TCR Target','Δ vs Today','Rel. Gain','+Connects','Total Connects/Wk','+Sales'];
+  const head='<th style="text-align:left">Week</th>'+cols.map(c=>`<th>${c}</th>`).join('');
+  return `<div style="font-weight:800;font-size:.82rem;color:#1a3353;margin-bottom:4px">📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp</div><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+// Previous coaching's Week-1 ramp target (for the Goal-Check auto panel). null when no ramp applies.
+function fuWeek1Target(e){
+  const info=fuLeverInfo(e); if(!info.focusKey) return null;
+  const A=_perfAvgFromEntry(e); let cur,fin;
+  if(info.focusKey==='TCR'){cur=(A.avgTCR!=null?A.avgTCR:0);fin=BENCH_TCR;} else {cur=(A.avgCSR!=null?A.avgCSR:0);fin=BENCH_CSR;}
+  const gap=fin-cur; if(!(gap>0.05)) return null;
+  return { focusKey:info.focusKey, week1:(cur+gap*0.25) };
+}
+function fuOptionLabel(e){ return `${e.wkNumber||'?'} — ${fmtCoachingDate(e.dateOfCoaching)||'—'} — ${e.coachingType||'—'} — ${e.teamLead||'—'}`; }
+// The read-only "Previous Coaching Review" (7 ordered items) — SHARED by the form panel, the TL/OM
+// Details modal, and the Agent view. Resolves everything from the linked entry; duplicates nothing.
+function prevCoachingReviewHtml(prev){
+  if(!prev) return '<div style="color:#c62828;font-weight:600">Linked previous coaching is not available (it may have been deleted or is outside your current view).</div>';
+  const s=prev.star||{};
+  const commit=(s.situation||s.task||s.action||s.result||s.timeline)
+    ? `📍 ${escHtml(s.situation||'—')}<br>🎯 ${escHtml(s.task||'—')}<br>⚡ ${escHtml(s.action||'—')}<br>✅ ${escHtml(s.result||'—')}<br>📅 ${escHtml(s.timeline||'—')}`
+    : '<span style="color:#999">No commitment submitted.</span>';
+  const row=(l,v)=>`<div style="margin-bottom:6px"><b>${l}:</b> ${v}</div>`;
+  return row('1. Primary Opportunity', escHtml(fuLeverInfo(prev).opp))
+    + row('2. Primary Limiter', escHtml(prev.limiter||'—')+(prev.callObjLimiter?(' — '+escHtml(prev.callObjLimiter)):''))
+    + row('3. Key Discussion', escHtml(prev.keyDiscussion||'—').replace(/\n/g,'<br>'))
+    + row('4. Areas of Improvement', escHtml(prev.areas||'—').replace(/\n/g,'<br>'))
+    + row('5. Action Plan', escHtml(prev.actionPlan||'—').replace(/\n/g,'<br>'))
+    + row("6. Agent's My Commitments", commit)
+    + `<div style="margin-top:8px">${fuRampHtml(prev)}</div>`;
+}
+// ── FORM: show/hide, populate the same-agent selector, guard links, render the live review ──
+function onCoachingTypeChange(){
+  const isFu=document.getElementById('fCoachingType').value==='Follow-Up Coaching';
+  const grp=document.getElementById('followUpGroup'); if(grp) grp.style.display=isFu?'block':'none';
+  if(isFu){ populateFuPrev(); renderFuReview(); }
+}
+function populateFuPrev(){
+  const sel=document.getElementById('fFuPrev'); if(!sel) return;
+  const agent=document.getElementById('fAgent').value; const curId=document.getElementById('editId').value; const keep=sel.value;
+  const list=(typeof entries!=='undefined'?entries:[])
+    .filter(x=>x.agentName===agent && String(x.id)!==String(curId))
+    .sort((a,b)=>(wkNum(b)-wkNum(a))||String(b.dateOfCoaching||'').localeCompare(String(a.dateOfCoaching||'')));
+  sel.innerHTML='<option value="">— Select previous coaching —</option>'+list.map(e=>`<option value="${escHtml(e.id)}">${escHtml(fuOptionLabel(e))}</option>`).join('');
+  if(keep && list.some(e=>String(e.id)===String(keep))) sel.value=keep;
+}
+function fuWouldLoop(prevId, curId){
+  let node=resolvePrevCoaching(prevId), depth=0; const seen=new Set();
+  while(node && depth<25){
+    if(curId && String(node.id)===String(curId)) return true;
+    if(seen.has(String(node.id))) return true; seen.add(String(node.id));
+    node=resolvePrevCoaching(node.followUpPrev); depth++;
+  }
+  return false;
+}
+function onFuPrevChange(){
+  const sel=document.getElementById('fFuPrev'), msg=document.getElementById('fFuPrevMsg');
+  const curId=document.getElementById('editId').value, val=sel.value;
+  const setErr=t=>{ if(msg){msg.style.display='block';msg.textContent=t;} sel.value=''; renderFuReview(); };
+  if(val){
+    if(curId && String(val)===String(curId)) return setErr('A coaching cannot link to itself.');
+    if(fuWouldLoop(val, curId)) return setErr('That link would create a circular Follow-Up chain.');
+  }
+  if(msg){ msg.style.display='none'; msg.textContent=''; }
+  renderFuReview();
+}
+function currentFormWeek1Metric(focusKey){
+  const lt=parseFloat(document.getElementById('lt1').value)||0, cc=parseFloat(document.getElementById('cc1').value)||0, s=parseFloat(document.getElementById('s1').value)||0;
+  if(focusKey==='TCR') return lt>0?(cc/lt*100):null;
+  if(focusKey==='CSR') return cc>0?(s/cc*100):null;
+  return null;
+}
+function renderFuReview(){
+  const box=document.getElementById('fuReview'); if(!box) return;
+  const prev=resolvePrevCoaching(document.getElementById('fFuPrev').value);
+  const hdr = prev ? `<div style="font-weight:700;margin-bottom:8px;color:#8a6d00">${escHtml(fuOptionLabel(prev))}</div>` : '';
+  box.innerHTML = hdr + prevCoachingReviewHtml(prev);
+  const pa=document.getElementById('fuPrevActionPlan'); if(pa) pa.innerHTML = prev?('<b>Previous Action Plan:</b> '+escHtml(prev.actionPlan||'—').replace(/\n/g,'<br>')):'—';
+  const pc=document.getElementById('fuPrevCommit'); if(pc){ const s=(prev&&prev.star)||{}; pc.innerHTML = prev?('<b>Previous Agent Commitment:</b><br>'+`📍 ${escHtml(s.situation||'—')} · 🎯 ${escHtml(s.task||'—')} · ⚡ ${escHtml(s.action||'—')} · ✅ ${escHtml(s.result||'—')} · 📅 ${escHtml(s.timeline||'—')}`):'—'; }
+  const pl=document.getElementById('fuPrevLimiter'); if(pl) pl.innerHTML = prev?('<b>Previous Primary Limiter:</b> '+escHtml(prev.limiter||'—')+(prev.callObjLimiter?(' — '+escHtml(prev.callObjLimiter)):'')):'—';
+  const ga=document.getElementById('fuGoalAuto');
+  if(ga){ const t=prev?fuWeek1Target(prev):null;
+    if(t){ const cur=currentFormWeek1Metric(t.focusKey); ga.style.display='block';
+      ga.innerHTML=`Previous Week 1 ${t.focusKey} Target: <b>${t.week1.toFixed(1)}%</b> · Current Actual ${t.focusKey}: <b>${cur!=null?cur.toFixed(1)+'%':'—'}</b> <span style="color:#888">(auto-calculated — you decide Yes / Partially / No)</span>`;
+    } else { ga.style.display='none'; ga.innerHTML=''; } }
+}
+function readFollowUpForm(){
+  if(document.getElementById('fCoachingType').value!=='Follow-Up Coaching') return { prev:'', data:null };
+  const data={}; FU_ALL_FIELDS.forEach(id=>{ const el=document.getElementById(id); data[id]=el?el.value:''; });
+  return { prev: document.getElementById('fFuPrev').value||'', data };
+}
+function fillFollowUpForm(e){
+  const grp=document.getElementById('followUpGroup');
+  if(e.coachingType==='Follow-Up Coaching'){
+    if(grp) grp.style.display='block';
+    populateFuPrev();
+    const sel=document.getElementById('fFuPrev');
+    if(sel && e.followUpPrev){ if(![...sel.options].some(o=>o.value===String(e.followUpPrev))){ const o=document.createElement('option'); o.value=e.followUpPrev; o.textContent=(resolvePrevCoaching(e.followUpPrev)?fuOptionLabel(resolvePrevCoaching(e.followUpPrev)):e.followUpPrev); sel.appendChild(o);} sel.value=e.followUpPrev; }
+    const fu=e.followUp||{}; FU_ALL_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=fu[id]||''; });
+    renderFuReview();
+  } else if(grp){ grp.style.display='none'; }
+}
+function clearFollowUpForm(){
+  const grp=document.getElementById('followUpGroup'); if(grp) grp.style.display='none';
+  const sel=document.getElementById('fFuPrev'); if(sel) sel.value='';
+  const msg=document.getElementById('fFuPrevMsg'); if(msg){ msg.style.display='none'; msg.textContent=''; }
+  FU_ALL_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const box=document.getElementById('fuReview'); if(box) box.innerHTML='Select a previous coaching above to load its review.';
+  ['fuPrevActionPlan','fuPrevCommit','fuPrevLimiter'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML='—'; });
+  const ga=document.getElementById('fuGoalAuto'); if(ga){ ga.style.display='none'; ga.innerHTML=''; }
+}
+// Completion gate for Follow-Up Coaching (only applies to entries of this type — see tlComplete).
+function followUpComplete(e){
+  const fu=e.followUp||{};
+  return isFilled(e.followUpPrev)
+    && isFilled(fu.fuGoalMet)
+    && (isFilled(fu.fuActCompleted)||isFilled(fu.fuActNotDone))
+    && (isFilled(fu.fuCommitKept)||isFilled(fu.fuCommitNot))
+    && isFilled(fu.fuLimiterStill)
+    && isFilled(e.limiter)
+    && isFilled(fu.fuRcCategory)
+    && isFilled(e.actionPlan)
+    && isFilled(fu.fuNextBehavior) && isFilled(fu.fuNextSuccess)
+    && isFilled(fu.fuTlSupport);
+}
+// Read-only Follow-Up render — SHARED by TL/OM viewEntry() and Agent openCommitmentView().
+function followUpAnswersHtml(e){
+  const fu=e.followUp||{}; const row=(l,v)=> (v&&String(v).trim()!=='')?`<div style="margin-bottom:5px"><b>${l}:</b> ${escHtml(String(v)).replace(/\n/g,'<br>')}</div>`:'';
+  return `<div style="font-size:.85rem">`
+    + row('Goal Check', fu.fuGoalMet) + row('What helped/prevented', fu.fuGoalNotes)
+    + row('Actions completed', fu.fuActCompleted) + row('Action not executed', fu.fuActNotDone) + row('Root cause (execution)', fu.fuActRootCause) + row('Why not executed', fu.fuActWhy)
+    + row('Commitments kept', fu.fuCommitKept) + row('Commitments not kept', fu.fuCommitNot) + row('What prevented', fu.fuCommitWhy)
+    + row('Limiter still primary?', fu.fuLimiterStill) + row('Evidence', fu.fuLimiterEvidence)
+    + row('What changed', fu.fuRcChanged) + row('What did not change', fu.fuRcUnchanged) + row('Biggest-impact behavior', fu.fuRcBehavior) + row('Root cause', fu.fuRcCategory) + row('Root-cause evidence', fu.fuRcEvidence)
+    + row('Next action (ONE behavior)', fu.fuNextBehavior) + row('What agent will do differently', fu.fuNextDifferent) + row('Success measure', fu.fuNextSuccess)
+    + row('TL Support', fu.fuTlSupport)
+    + `</div>`;
+}
+function followUpReviewHtml(e){
+  if(e.coachingType!=='Follow-Up Coaching') return '';
+  const prev=resolvePrevCoaching(e.followUpPrev);
+  const hdr = prev ? `<div style="font-weight:700;margin-bottom:8px;color:#8a6d00">${escHtml(fuOptionLabel(prev))}</div>` : '';
+  return `<div class="form-section" style="margin-top:18px"><h4>🔁 Follow-Up Coaching</h4>`
+    + `<div style="border:1.5px solid #f0c96b;border-radius:10px;overflow:hidden;margin-bottom:12px"><div style="background:#8a6d00;color:#fff;padding:7px 12px;font-weight:800;font-size:.82rem">⏮️ PREVIOUS COACHING REVIEW — historical, read-only</div><div style="padding:12px;background:#fffdf5;font-size:.85rem">${hdr}${prevCoachingReviewHtml(prev)}</div></div>`
+    + `<div style="font-weight:800;color:#1a3353;font-size:.82rem;margin-bottom:6px">🆕 THIS WEEK'S FOLLOW-UP</div>`
+    + followUpAnswersHtml(e)
+    + `</div>`;
 }
 let _commitmentEntryId = null;
 function openCommitmentView(entryId) {
