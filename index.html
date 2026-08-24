@@ -44,6 +44,39 @@ main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
 .stat-card .value{font-size:2rem;font-weight:900;color:var(--dark)}
 .stat-card .sublabel{font-size:.75rem;color:#888;margin-top:2px}
 .stat-card .cov-count{font-size:.9rem;font-weight:800;color:#2f6f43;margin-top:3px}
+/* Coaching Progress Dashboard (v27) — all client-side, 0 SheetDB impact */
+.cp-section{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:18px}
+.cp-section h3{font-size:1rem;font-weight:800;color:var(--dark);margin:0 0 12px;letter-spacing:.02em}
+.cp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:820px){.cp-grid2{grid-template-columns:1fr}}
+.cp-cov-big{font-size:2rem;font-weight:900;color:var(--dark)}
+.cp-cov-sub{font-size:.9rem;color:#2f6f43;font-weight:800;margin-top:2px}
+.cp-bar-track{height:12px;background:#eef2f7;border-radius:6px;overflow:hidden;margin-top:8px;max-width:420px}
+.cp-bar-fill{height:100%;background:var(--yellow)}
+.cp-tl-group{margin-bottom:10px}
+.cp-tl-group .cp-tl-name{font-weight:800;font-size:.86rem;color:#44556a}
+.cp-tl-group ul{margin:4px 0 0;padding-left:20px}
+.cp-tl-group li{font-size:.85rem;margin:1px 0}
+.cp-donut-wrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.cp-legend{font-size:.8rem;line-height:1.7;min-width:150px}
+.cp-legend .sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.cp-topline{font-size:.9rem;margin-top:10px;color:#333}
+.cp-topline b{color:#1565c0}
+.cp-chart-scroll{overflow-x:auto;max-width:100%}
+.cp-eff-limiter{border:1px solid #e3ecf7;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+.cp-eff-limiter .cp-eff-head{font-weight:800;font-size:.92rem;color:var(--dark);margin-bottom:8px}
+.cp-eff-row{margin:4px 0}
+.cp-eff-row summary{cursor:pointer;font-size:.86rem;font-weight:700;list-style:revert;padding:3px 0}
+.cp-eff-row ul{margin:3px 0 6px;padding-left:22px}
+.cp-eff-row li{font-size:.83rem;margin:1px 0;color:#444}
+.cp-badge{display:inline-block;font-size:.72rem;font-weight:800;padding:1px 8px;border-radius:10px;margin-left:6px}
+.cp-imp{color:#2f6f43}.cp-imp .cp-sw{background:#2f6f43}
+.cp-same{color:#8a6d0b}.cp-wor{color:#c62828}.cp-insuf{color:#888}
+.cp-note{font-size:.76rem;color:#888;font-style:italic;margin-top:6px}
+.cp-empty{color:#999;font-size:.9rem;font-style:italic;padding:18px 0;text-align:center}
+.cp-insight{margin-bottom:12px}
+.cp-insight .cp-i-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#888}
+.cp-insight .cp-i-val{font-size:1.05rem;font-weight:800;color:#1565c0}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .section-header h2{font-size:1.1rem;font-weight:800}
 .btn-add{background:var(--yellow);border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer}
@@ -328,6 +361,31 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       </div>
     </div>
     <div id="viewLog" style="display:none">
+      <!-- ══ COACHING PROGRESS DASHBOARD (v27) — analytics only; 100% in-memory from entries + ROSTER ══ -->
+      <div class="section-header"><h2>Coaching Progress Dashboard</h2></div>
+      <div class="filter-bar" id="cpFilterBar">
+        <div><label>WK #</label><select id="progWK" onchange="renderCoachingProgress()"><option value="">Latest</option></select></div>
+        <div><label>Cluster</label><select id="progCluster" onchange="onProgClusterChange()"><option value="">All Clusters</option></select></div>
+        <div><label>Team Lead</label><select id="progTL" onchange="onProgTLChange()"><option value="">All TLs</option></select></div>
+        <div><label>Agent</label><select id="progAgent" onchange="renderCoachingProgress()"><option value="">All Agents</option></select></div>
+        <div><label>Coaching Type</label><select id="progType" onchange="renderCoachingProgress()"><option value="">All Coaching Types</option></select></div>
+        <button class="filter-btn" onclick="clearProgFilters()">Clear</button>
+      </div>
+      <div id="cpBody">
+        <div class="cp-section" id="cpCoverage"></div>
+        <div class="cp-section" id="cpNotCoached"></div>
+        <div class="cp-grid2">
+          <div class="cp-section" id="cpLimiterDonut"></div>
+          <div class="cp-section" id="cpOppDonut"></div>
+        </div>
+        <div class="cp-section" id="cpLimiterTrend"></div>
+        <div class="cp-section" id="cpOppTrend"></div>
+        <div class="cp-section" id="cpEffectiveness"></div>
+        <div class="cp-section" id="cpInsights"></div>
+      </div>
+      <details class="cp-logs" id="cpAllLogs" style="margin-top:20px">
+      <summary style="cursor:pointer;font-weight:800;font-size:1rem;padding:12px 16px;background:#fff;border:2px solid var(--yellow);border-radius:10px;list-style:revert">📋 View All Coaching Logs</summary>
+      <div style="margin-top:16px">
       <div class="section-header">
         <h2>All Coaching Entries</h2>
         <button class="btn-add" id="btnAddCoaching" onclick="openAddModal()" style="display:none">+ New Coaching Log</button>
@@ -358,6 +416,8 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <tbody id="logTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
         </table>
       </div>
+      </div>
+      </details>
     </div>
     <div id="viewNTE" style="display:none">
       <div class="section-header">
@@ -1130,7 +1190,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-24-agent-coverage-PROD-v26";
+const APEX_BUILD = "2026-08-24-coaching-progress-dashboard-PROD-v27";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2394,6 +2454,7 @@ function initApp() {
   populateLogFilterTLs();
   populateNTEFilterTLs();
   populateCoachingTypeFilter();
+  populateProgFilters();
   renderDashboard();
   renderLogTable();
   showView('dashboard');
@@ -2405,11 +2466,13 @@ function populateWKOptions() {
   }
   const dash    = document.getElementById('filterWK');
   const log     = document.getElementById('logFilterWK');
+  const prog    = document.getElementById('progWK');
   const form    = document.getElementById('fWK');
   const nteDash = document.getElementById('nteFilterWK');
   const nteForm = document.getElementById('nteFWK');
   if (dash)    dash.innerHTML    = '<option value="">All Weeks</option>' + opts;
   if (log)     log.innerHTML     = '<option value="">All</option>' + opts;
+  if (prog)    prog.innerHTML    = '<option value="">Latest</option>' + opts;
   if (form)    form.innerHTML    = '<option value="">— Select WK # —</option>' + opts;
   if (nteDash) nteDash.innerHTML = '<option value="">All Weeks</option>' + opts;
   if (nteForm) nteForm.innerHTML = '<option value="">— Select WK # —</option>' + opts;
@@ -2471,6 +2534,7 @@ function showView(view) {
   setAct('navRainmaker', view==='rainmaker');
   if (view==='nte' && typeof renderNTETable==='function') renderNTETable();  // dormant path
   if (view==='rainmaker') openRainmakerTab();
+  if (view==='log' && typeof renderCoachingProgress==='function') renderCoachingProgress();  // v27 analytics (in-memory)
 }
 function onClusterChange() {
   const cluster = document.getElementById('filterCluster').value;
@@ -2570,6 +2634,312 @@ function populateCoachingTypeFilter() {
   const types = form ? [...form.options].map(o => (o.value||o.textContent||'').trim()).filter(Boolean) : [];
   sel.innerHTML = '<option value="">All Coaching Types</option>' + types.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
   if (prev && types.includes(prev)) sel.value = prev;   // keep selection only if still a supported type
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COACHING PROGRESS DASHBOARD (v27) — analytics only. Every number here is
+// computed in memory from the already-loaded `entries` + `ROSTER`. It performs
+// ZERO SheetDB reads/writes, stores nothing, and never mutates a record. It
+// reuses the v26 roster denominator (agentsForScope) unchanged.
+// ═══════════════════════════════════════════════════════════════════════════
+const CP_TREND_WEEKS = 6;
+const CP_LT_TOL = 0.10;      // Leads Touched: ±10% relative
+const CP_RATE_TOL = 2;       // rate metrics (CSR): ±2 percentage points
+// Only these limiters have a reliable STORED performance metric (audited v27).
+// Everything else is reported as Insufficient Data — no proxy metrics invented.
+const CP_METRIC_FOR_LIMITER = { 'Leads Touched':'LT', 'Call/Objection Handling':'CSR' };
+const CP_DONUT_COLORS = ['#f4c430','#1565c0','#2f6f43','#c62828','#8a4fbf','#e08a1e','#00897b','#7a8aa0','#b0490f','#546e7a'];
+
+function populateProgFilters(){
+  // Cluster options mirror the dashboard's cluster filter (single source; no new list).
+  const src = document.getElementById('filterCluster');
+  const pc = document.getElementById('progCluster');
+  if (src && pc){ const prev=pc.value; pc.innerHTML = src.innerHTML; if(prev) pc.value=prev; }
+  buildTLOptions('progTL', getTLsForUser(document.getElementById('progCluster')?.value||''), 'All TLs');
+  // Coaching Type options mirror the current supported types (form is the source of truth, v25).
+  const form = document.getElementById('fCoachingType');
+  const pt = document.getElementById('progType');
+  if (form && pt){ const prev=pt.value; const types=[...form.options].map(o=>(o.value||o.textContent||'').trim()).filter(Boolean);
+    pt.innerHTML = '<option value="">All Coaching Types</option>'+types.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+    if(prev && types.includes(prev)) pt.value=prev; }
+  progPopulateAgents();
+}
+function progPopulateAgents(){
+  const tl=document.getElementById('progTL')?.value||''; const cl=document.getElementById('progCluster')?.value||'';
+  const agEl=document.getElementById('progAgent'); if(!agEl) return; const prev=agEl.value;
+  agEl.innerHTML='<option value="">All Agents</option>';
+  let list = tl ? getAgentsForTL(tl) : (cl ? ROSTER.filter(a=>a.cluster===cl) : ROSTER.slice());
+  list.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a=>{ const o=document.createElement('option');o.value=a.name;o.textContent=a.name;agEl.appendChild(o); });
+  if(prev) agEl.value=prev;
+}
+function onProgClusterChange(){ document.getElementById('progTL').value=''; buildTLOptions('progTL', getTLsForUser(document.getElementById('progCluster').value||''),'All TLs'); document.getElementById('progAgent').value=''; progPopulateAgents(); renderCoachingProgress(); }
+function onProgTLChange(){ document.getElementById('progAgent').value=''; progPopulateAgents(); renderCoachingProgress(); }
+function clearProgFilters(){ ['progWK','progCluster','progTL','progAgent','progType'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';}); buildTLOptions('progTL', getTLsForUser(''),'All TLs'); progPopulateAgents(); renderCoachingProgress(); }
+
+// Scope readers — reuse the v26 roster denominator so coverage matches the dashboard exactly.
+function cpScope(){
+  return { wk: document.getElementById('progWK')?.value||'', cl: document.getElementById('progCluster')?.value||'',
+           tl: document.getElementById('progTL')?.value||'', ag: document.getElementById('progAgent')?.value||'',
+           type: document.getElementById('progType')?.value||'' };
+}
+// Entries within Cluster/TL/Agent scope (NOT week/type filtered — callers narrow further).
+function cpScopedEntries(s){
+  const src = getVisibleEntries();
+  return src.filter(e=>{
+    if (s.tl && (e.teamLead||'')!==s.tl) return false;
+    if (s.ag && (e.agentName||'')!==s.ag) return false;
+    if (s.cl){ const t=Object.values(TL_EMAILS).find(x=>x.display===e.teamLead); if(!t || t.cluster!==s.cl) return false; }
+    return true;
+  });
+}
+function cpApplyType(list, s){ return s.type ? list.filter(e=>(e.coachingType||'')===s.type) : list; }
+// The 6-week window ending at the selected week (or latest week present in scope).
+function cpWindowWeeks(scopedEntries, endWk){
+  let end = endWk ? wkNum({wkNumber:endWk}) : 0;
+  if (!end){ scopedEntries.forEach(e=>{ const w=wkNum(e); if(w>end) end=w; }); }
+  if (!end) return [];
+  const out=[]; for(let w=end-CP_TREND_WEEKS+1; w<=end; w++){ if(w>0) out.push(w); } return out;
+}
+// Latest-entry-wins: for a set of entries, return one entry per agent (newest by date, then updatedAt).
+function cpLatestPerAgent(list){
+  const by={};
+  list.forEach(e=>{ const k=e.agentName||'?'; const cur=by[k];
+    if(!cur || String(e.dateOfCoaching||'').localeCompare(String(cur.dateOfCoaching||''))>0
+       || (String(e.dateOfCoaching||'')===String(cur.dateOfCoaching||'') && String(e.updatedAt||'').localeCompare(String(cur.updatedAt||''))>0)) by[k]=e; });
+  return by;   // {agentName: entry}
+}
+// Reconstruct Primary Opportunity from STORED WK1 perf only (v27). Never "Volume" (target leads
+// not stored), never from free text. Missing perf → Insufficient Data.
+function opportunityForEntry(e){
+  const p=(e.perfData&&e.perfData[0])||{};
+  const lt=parseFloat(p.lt), cc=parseFloat(p.cc), s=parseFloat(p.s);
+  if(!(lt>0)) return 'Insufficient Data';
+  const tcr=cc/lt*100;
+  if(tcr < BENCH_TCR-0.05) return 'TCR';
+  if(cc>0){ if((s/cc*100) < BENCH_CSR-0.05) return 'CSR'; return 'On Track'; }
+  return 'TCR';   // lt>0, cc=0 → TCR is 0% → the opportunity is TCR
+}
+function cpLimiterLabel(e){ return (e.limiter||'').trim() || 'Unspecified'; }
+
+// Distinct-agent distribution of a classifier over latest-per-agent entries.
+function cpDistribution(latestMap, classifyFn){
+  const counts={}; let total=0;
+  Object.values(latestMap).forEach(e=>{ const k=classifyFn(e)||'Unspecified'; counts[k]=(counts[k]||0)+1; total++; });
+  const arr=Object.keys(counts).map(k=>({label:k,n:counts[k]})).sort((a,b)=>b.n-a.n);
+  return { arr, total };
+}
+
+// ── metric extraction + progress classification (effectiveness) ──
+function cpMetricValue(e, metric){
+  const p=(e.perfData&&e.perfData[0])||{};
+  const lt=parseFloat(p.lt), cc=parseFloat(p.cc), s=parseFloat(p.s);
+  if(metric==='LT') return (lt>0||lt===0)&&!Number.isNaN(lt)&&p.lt!=='' ? lt : null;
+  if(metric==='CSR') return (cc>0)&&!Number.isNaN(s) ? (s/cc*100) : null;
+  return null;
+}
+// Returns 'Improved' | 'Stayed the Same' | 'Worsened' | 'Insufficient Data'
+function cpClassifyProgress(prev, curr, limiter){
+  const metric=CP_METRIC_FOR_LIMITER[limiter];
+  if(!metric || !prev || !curr) return 'Insufficient Data';
+  const pv=cpMetricValue(prev, metric), cv=cpMetricValue(curr, metric);
+  if(pv==null || cv==null) return 'Insufficient Data';
+  if(metric==='LT'){
+    if(pv===0) return cv>0 ? 'Improved' : 'Stayed the Same';
+    const rel=(cv-pv)/Math.abs(pv);
+    if(rel > CP_LT_TOL) return 'Improved';
+    if(rel < -CP_LT_TOL) return 'Worsened';
+    return 'Stayed the Same';
+  } else { // CSR — percentage points, higher is better
+    const d=cv-pv;
+    if(d > CP_RATE_TOL) return 'Improved';
+    if(d < -CP_RATE_TOL) return 'Worsened';
+    return 'Stayed the Same';
+  }
+}
+// Find the previous coaching entry for `curr` among the agent's window entries.
+// Priority: explicit Follow-Up Prev Entry ID (chain-aware) → immediately-earlier by (WK#, date).
+function cpPrevEntry(curr, agentEntries, byId){
+  if(curr.followUpPrev && byId[curr.followUpPrev]) return byId[curr.followUpPrev];
+  // chronological fallback: latest entry strictly before curr
+  const ordered=agentEntries.slice().sort((a,b)=> (wkNum(a)-wkNum(b)) || String(a.dateOfCoaching||'').localeCompare(String(b.dateOfCoaching||'')));
+  const idx=ordered.findIndex(x=>x===curr);
+  return idx>0 ? ordered[idx-1] : null;
+}
+
+// ── tiny inline-SVG charts (no dependency, fully client-side) ──
+function cpDonutSVG(dist, colorMap){
+  const total=dist.total;
+  if(!total) return '<div class="cp-empty">No data for the selected week.</div>';
+  const R=54, r=32, cx=64, cy=64; let a0=-Math.PI/2; let paths='';
+  dist.arr.forEach((seg,i)=>{ const frac=seg.n/total; const a1=a0+frac*2*Math.PI;
+    const col=(colorMap&&colorMap[seg.label])||CP_DONUT_COLORS[i%CP_DONUT_COLORS.length];
+    if(frac>=0.9999){ paths+=`<circle cx="${cx}" cy="${cy}" r="${(R+r)/2}" fill="none" stroke="${col}" stroke-width="${R-r}"/>`; }
+    else { const x0=cx+R*Math.cos(a0),y0=cy+R*Math.sin(a0),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);
+      const xi1=cx+r*Math.cos(a1),yi1=cy+r*Math.sin(a1),xi0=cx+r*Math.cos(a0),yi0=cy+r*Math.sin(a0);
+      const large=frac>0.5?1:0;
+      paths+=`<path d="M${x0.toFixed(2)},${y0.toFixed(2)} A${R},${R} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} L${xi1.toFixed(2)},${yi1.toFixed(2)} A${r},${r} 0 ${large} 0 ${xi0.toFixed(2)},${yi0.toFixed(2)} Z" fill="${col}"><title>${esc(seg.label)}: ${seg.n} (${Math.round(frac*100)}%)</title></path>`; }
+    a0=a1; });
+  const legend=dist.arr.map((seg,i)=>{ const col=(colorMap&&colorMap[seg.label])||CP_DONUT_COLORS[i%CP_DONUT_COLORS.length];
+    return `<div><span class="sw" style="background:${col}"></span>${esc(seg.label)} — ${seg.n} (${Math.round(seg.n/total*100)}%)</div>`; }).join('');
+  return `<div class="cp-donut-wrap"><svg viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="distribution">${paths}<text x="64" y="60" text-anchor="middle" font-size="15" font-weight="800" fill="#333">${total}</text><text x="64" y="76" text-anchor="middle" font-size="8" fill="#888">agents</text></svg><div class="cp-legend">${legend}</div></div>`;
+}
+function cpLineSVG(weeks, series){
+  if(!weeks.length || !series.length) return '<div class="cp-empty">Not enough weekly data to plot a trend.</div>';
+  const W=Math.max(420, 60+weeks.length*90), H=240, padL=40, padB=30, padT=14, padR=12;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const x=i=>padL+(weeks.length===1?plotW/2:(i/(weeks.length-1))*plotW);
+  const y=v=>padT+plotH-(v/100)*plotH;
+  let grid=''; [0,25,50,75,100].forEach(v=>{ grid+=`<line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W-padR}" y2="${y(v).toFixed(1)}" stroke="#eef2f7"/><text x="${padL-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#999">${v}%</text>`; });
+  let xlabels=weeks.map((w,i)=>`<text x="${x(i).toFixed(1)}" y="${H-padB+16}" text-anchor="middle" font-size="9" fill="#666">WK${w}</text>`).join('');
+  let lines=''; series.forEach((s,si)=>{ const col=CP_DONUT_COLORS[si%CP_DONUT_COLORS.length];
+    const pts=s.values.map((v,i)=> v==null?null:`${x(i).toFixed(1)},${y(v).toFixed(1)}`).filter(Boolean);
+    if(pts.length) lines+=`<polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="2"/>`;
+    s.values.forEach((v,i)=>{ if(v!=null) lines+=`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="${col}"><title>${esc(s.label)} WK${weeks[i]}: ${Math.round(v)}%</title></circle>`; }); });
+  const legend=series.map((s,si)=>`<span style="margin-right:14px;white-space:nowrap"><span class="sw" style="background:${CP_DONUT_COLORS[si%CP_DONUT_COLORS.length]}"></span>${esc(s.label)}</span>`).join('');
+  return `<div class="cp-chart-scroll"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${grid}${lines}${xlabels}</svg></div><div class="cp-legend" style="margin-top:8px">${legend}</div>`;
+}
+
+// Weekly trend: for each week, % of that week's coached unique agents in each category.
+// Top 5 categories across the window + "Other". classifyFn maps an entry → category label.
+function cpWeeklyTrend(scopedTyped, weeks, classifyFn){
+  const perWeek=weeks.map(w=>{ const wl=scopedTyped.filter(e=>wkNum(e)===w); const latest=cpLatestPerAgent(wl);
+    const agents=Object.values(latest); const counts={};
+    agents.forEach(e=>{ const k=classifyFn(e)||'Unspecified'; counts[k]=(counts[k]||0)+1; });
+    return { total:agents.length, counts }; });
+  const totalByCat={}; perWeek.forEach(pw=>Object.keys(pw.counts).forEach(k=>totalByCat[k]=(totalByCat[k]||0)+pw.counts[k]));
+  const ranked=Object.keys(totalByCat).sort((a,b)=>totalByCat[b]-totalByCat[a]);
+  const top=ranked.slice(0,5); const hasOther=ranked.length>5;
+  const series=top.map(cat=>({ label:cat, values: perWeek.map(pw=> pw.total? Math.round((pw.counts[cat]||0)/pw.total*100):null) }));
+  if(hasOther){ series.push({ label:'Other', values: perWeek.map(pw=>{ if(!pw.total) return null; let o=0; Object.keys(pw.counts).forEach(k=>{ if(!top.includes(k)) o+=pw.counts[k]; }); return Math.round(o/pw.total*100); }) }); }
+  return series;
+}
+
+function cpAgentList(names){ return names.length ? '<ul>'+names.slice().sort().map(n=>`<li>${esc(n)}</li>`).join('')+'</ul>' : '<div class="cp-note">None.</div>'; }
+
+function renderCoachingProgress(){
+  const host=document.getElementById('cpBody'); if(!host) return;
+  const s=cpScope();
+  const scoped=cpScopedEntries(s);                 // Cluster/TL/Agent scope (all weeks, all types)
+  const scopedTyped=cpApplyType(scoped, s);        // + Coaching Type (numerator only)
+  const denomAgents=agentsForScope(s.cl, s.tl, s.ag);   // v26 roster denominator — type-independent
+  const denom=denomAgents.length;
+  // Target week = selected, else latest week present in scoped entries.
+  let targetWeek = s.wk ? wkNum({wkNumber:s.wk}) : 0;
+  if(!targetWeek){ scoped.forEach(e=>{ const w=wkNum(e); if(w>targetWeek) targetWeek=w; }); }
+  const weekTyped = scopedTyped.filter(e=>wkNum(e)===targetWeek);
+  const weekLatest = cpLatestPerAgent(weekTyped);   // latest-entry-wins per agent for the week
+  const coachedNames = Object.keys(weekLatest);
+  const coached = coachedNames.length;
+  const wkTag = targetWeek ? ('WK'+targetWeek) : '—';
+
+  // ── COACHING COVERAGE (reuses roster denominator) ──
+  const covPct = denom? Math.round(coached/denom*100) : 0;
+  document.getElementById('cpCoverage').innerHTML =
+    `<h3>Coaching Coverage — ${wkTag}</h3>`+
+    (denom? `<div class="cp-cov-big">${coached}/${denom} Agents Coached</div><div class="cp-cov-sub">${covPct}%</div>`+
+      `<div class="cp-bar-track"><div class="cp-bar-fill" style="width:${covPct}%"></div></div>`+
+      (s.type?`<div class="cp-note">Numerator counts ${esc(s.type)} only; denominator is the full active roster in scope.</div>`:'')
+     : `<div class="cp-empty">No active agents in the selected scope.</div>`);
+
+  // ── AGENTS NOT YET COACHED ──
+  const coachedSet=new Set(coachedNames);
+  const notCoached=denomAgents.filter(a=>!coachedSet.has(a.name));
+  let ncHtml=`<h3>Agents Not Yet Coached — ${wkTag}</h3>`;
+  if(!denom){ ncHtml+='<div class="cp-empty">No active agents in scope.</div>'; }
+  else if(!notCoached.length){ ncHtml+=`<div class="cp-cov-sub">All ${denom} agents coached 🎉</div>`; }
+  else {
+    ncHtml+=`<div style="margin-bottom:8px"><b>${notCoached.length}</b> of <b>${denom}</b> agents still need coaching</div>`;
+    if(s.tl){ ncHtml+=cpAgentList(notCoached.map(a=>a.name)); }
+    else {   // group by TL when viewing a cluster / all
+      const groups={}; notCoached.forEach(a=>{ const disp=MANAGER_TO_TL_DISPLAY[a.manager]||a.manager||'(Unassigned)'; (groups[disp]=groups[disp]||[]).push(a.name); });
+      ncHtml+=Object.keys(groups).sort().map(tl=>`<div class="cp-tl-group"><div class="cp-tl-name">${esc(tl)} — ${groups[tl].length} Not Coached</div>${cpAgentList(groups[tl])}</div>`).join('');
+    }
+  }
+  document.getElementById('cpNotCoached').innerHTML=ncHtml;
+
+  // ── PRIMARY LIMITER DONUT (selected week, unique agents, latest-wins) ──
+  const limDist=cpDistribution(weekLatest, cpLimiterLabel);
+  const limTop=limDist.arr[0];
+  document.getElementById('cpLimiterDonut').innerHTML =
+    `<h3>Primary Limiter — ${wkTag}</h3>`+ cpDonutSVG(limDist)+
+    (limTop?`<div class="cp-topline">#1 Primary Limiter: <b>${esc(limTop.label)}</b> · ${limTop.n} Agent${limTop.n===1?'':'s'}</div>`:'');
+
+  // ── PRIMARY OPPORTUNITY DONUT (reconstructed) ──
+  const oppColors={'TCR':'#1565c0','CSR':'#2f6f43','On Track':'#f4c430','Insufficient Data':'#b8c2cc'};
+  const oppDist=cpDistribution(weekLatest, opportunityForEntry);
+  const oppTop=oppDist.arr.filter(x=>x.label!=='Insufficient Data')[0];
+  document.getElementById('cpOppDonut').innerHTML =
+    `<h3>Primary Opportunity — ${wkTag}</h3>`+ cpDonutSVG(oppDist, oppColors)+
+    (oppTop?`<div class="cp-topline">#1 Opportunity: <b>${esc(oppTop.label)}</b> · ${oppTop.n} Agent${oppTop.n===1?'':'s'}</div>`:'')+
+    `<div class="cp-note">Reconstructed from stored WK1 performance (TCR/CSR benchmarks). Does not reproduce the historical live "Volume / Leads Touched" opportunity; agents without stored performance show as Insufficient Data.</div>`;
+
+  // ── TRENDS (6-week window ending at target week) ──
+  const weeks=cpWindowWeeks(scoped, s.wk);
+  const limSeries=cpWeeklyTrend(scopedTyped, weeks, cpLimiterLabel);
+  document.getElementById('cpLimiterTrend').innerHTML =
+    `<h3>Primary Limiter Trend — Last ${weeks.length} Weeks</h3>`+ cpLineSVG(weeks, limSeries)+
+    `<div class="cp-note">% of each week's coached unique agents. Top 5 limiters shown + Other.</div>`;
+  const oppSeries=cpWeeklyTrend(scopedTyped, weeks, opportunityForEntry);
+  document.getElementById('cpOppTrend').innerHTML =
+    `<h3>Primary Opportunity Trend — Last ${weeks.length} Weeks</h3>`+ cpLineSVG(weeks, oppSeries)+
+    `<div class="cp-note">Reconstructed opportunity; % of coached unique agents.</div>`;
+
+  // ── COACHING EFFECTIVENESS (prev→current per agent, grouped by current limiter) ──
+  const windowSet=new Set(weeks);
+  const windowEntries=scopedTyped.filter(e=>windowSet.has(wkNum(e)));
+  const byId={}; windowEntries.forEach(e=>{ if(e.id) byId[e.id]=e; });
+  const byAgent={}; windowEntries.forEach(e=>{ (byAgent[e.agentName||'?']=byAgent[e.agentName||'?']||[]).push(e); });
+  // current = each agent's latest entry in the window; group by that entry's limiter
+  const effGroups={};   // limiter → {Improved:[],'Stayed the Same':[],Worsened:[],'Insufficient Data':[]}
+  Object.keys(byAgent).forEach(name=>{
+    const list=byAgent[name]; const curr=cpLatestPerAgent(list)[name]; if(!curr) return;
+    const limiter=cpLimiterLabel(curr);
+    const prev=cpPrevEntry(curr, list, byId);
+    const cls=cpClassifyProgress(prev, curr, limiter);
+    const g=effGroups[limiter]=effGroups[limiter]||{'Improved':[],'Stayed the Same':[],'Worsened':[],'Insufficient Data':[]};
+    g[cls].push(name);
+  });
+  const effLimiters=Object.keys(effGroups).sort((a,b)=>{
+    const tot=x=>Object.values(effGroups[x]).reduce((s,arr)=>s+arr.length,0); return tot(b)-tot(a); });
+  let effHtml='<h3>Coaching Effectiveness</h3>';
+  if(!effLimiters.length){ effHtml+='<div class="cp-empty">No coaching sessions in the selected window.</div>'; }
+  else {
+    effHtml+=`<div class="cp-note" style="margin-bottom:10px">Compares each agent's latest session to their previous one (Follow-Up link first, else chronological). Objective metrics exist only for Leads Touched (LT) and Call/Objection Handling (CSR); all other limiters report Insufficient Data. Tolerance: ±2pp (rate) / ±10% (Leads Touched).</div>`;
+    effLimiters.forEach(lim=>{
+      const g=effGroups[lim]; const tot=g['Improved'].length+g['Stayed the Same'].length+g['Worsened'].length+g['Insufficient Data'].length;
+      const row=(label,cls,arr)=>{ const pctv=tot?Math.round(arr.length/tot*100):0;
+        return `<details class="cp-eff-row"><summary class="${cls}">${label} — ${arr.length}/${tot} (${pctv}%)</summary>${cpAgentList(arr)}</details>`; };
+      effHtml+=`<div class="cp-eff-limiter"><div class="cp-eff-head">${esc(lim)} · ${tot} Agent${tot===1?'':'s'} Tracked`+
+        (CP_METRIC_FOR_LIMITER[lim]?` <span class="cp-note" style="font-style:normal">(metric: ${CP_METRIC_FOR_LIMITER[lim]})</span>`:` <span class="cp-note" style="font-style:normal">(no objective metric)</span>`)+`</div>`+
+        row('Improved','cp-imp',g['Improved'])+row('Stayed the Same','cp-same',g['Stayed the Same'])+
+        row('Worsened','cp-wor',g['Worsened'])+row('Insufficient Data','cp-insuf',g['Insufficient Data'])+`</div>`;
+    });
+  }
+  document.getElementById('cpEffectiveness').innerHTML=effHtml;
+
+  // ── INSIGHTS (deterministic) ──
+  // Top Improving Opportunity: measurable limiter with the most agents Improved.
+  let topImp=null; effLimiters.forEach(lim=>{ if(!CP_METRIC_FOR_LIMITER[lim]) return; const arr=effGroups[lim]['Improved']; if(!topImp||arr.length>topImp.arr.length) topImp={lim,arr}; });
+  // Recurring: same agent with the same limiter across ≥2 distinct sessions (by date) in window.
+  const recur={};   // limiter → Set(agents)
+  Object.keys(byAgent).forEach(name=>{ const cnt={};
+    byAgent[name].forEach(e=>{ const l=cpLimiterLabel(e); const d=String(e.dateOfCoaching||'')+'|'+(e.id||''); (cnt[l]=cnt[l]||new Set()).add(d); });
+    Object.keys(cnt).forEach(l=>{ if(cnt[l].size>=2){ (recur[l]=recur[l]||new Set()).add(name); } }); });
+  let recurTop=null; Object.keys(recur).forEach(l=>{ if(!recurTop||recur[l].size>recurTop.set.size) recurTop={lim:l,set:recur[l]}; });
+  // Most Persistent: agents whose LATEST session has limiter L and L also appeared in a PRIOR session.
+  const persist={};
+  Object.keys(byAgent).forEach(name=>{ const list=byAgent[name]; const curr=cpLatestPerAgent(list)[name]; if(!curr) return;
+    const l=cpLimiterLabel(curr); const priorHas=list.some(e=>e!==curr && cpLimiterLabel(e)===l);
+    if(priorHas){ (persist[l]=persist[l]||new Set()).add(name); } });
+  let persistTop=null; Object.keys(persist).forEach(l=>{ if(!persistTop||persist[l].size>persistTop.set.size) persistTop={lim:l,set:persist[l]}; });
+
+  const insight=(label,val,names)=>`<div class="cp-insight"><div class="cp-i-label">${label}</div>`+
+    (val?`<div class="cp-i-val">${esc(val)}</div>`+(names&&names.length?`<details class="cp-eff-row"><summary>${names.length} agent${names.length===1?'':'s'}</summary>${cpAgentList(names)}</details>`:''):'<div class="cp-note">None in the selected window.</div>')+`</div>`;
+  document.getElementById('cpInsights').innerHTML =
+    '<h3>Coaching Insights</h3>'+
+    insight('Top Improving Opportunity', topImp&&topImp.arr.length?`${topImp.lim} — ${topImp.arr.length} improving`:'', topImp?topImp.arr:[])+
+    insight('Recurring Opportunity', recurTop?`${recurTop.lim} — ${recurTop.set.size} recurring agent${recurTop.set.size===1?'':'s'}`:'', recurTop?[...recurTop.set]:[])+
+    insight('Most Persistent Limiter', persistTop?`${persistTop.lim} — ${persistTop.set.size} agent${persistTop.set.size===1?'':'s'}`:'', persistTop?[...persistTop.set]:[]);
 }
 function applyLogFilters(list) {
   const wk = document.getElementById('logFilterWK')?.value || '';
@@ -3849,7 +4219,7 @@ async function fetchFromSheets(force) {
   if (!SHEETDB_API_URL || !currentUser) return;
   // Cache hit: reuse already-loaded coaching logs instead of re-downloading the sheet
   if (!force && cacheFresh('coaching') && entries.length) {
-    reconcileRosterFromEntries(); populateCoachingTypeFilter(); renderLogTable(); renderDashboard(); return;
+    reconcileRosterFromEntries(); populateCoachingTypeFilter(); if(typeof populateProgFilters==='function') populateProgFilters(); renderLogTable(); renderDashboard(); if(typeof renderCoachingProgress==='function') renderCoachingProgress(); return;
   }
   try {
     let url;
@@ -3883,8 +4253,10 @@ async function fetchFromSheets(force) {
     cacheStamp('coaching');         // record freshness for the 60s cache
     reconcileRosterFromEntries();   // auto-register any TL/agent found only in the sheet (e.g. Team Anna)
     populateCoachingTypeFilter();    // refresh Coaching Type options from freshly-loaded logs (0 requests)
+    if (typeof populateProgFilters==='function') populateProgFilters();
     renderLogTable();
     renderDashboard();
+    if (typeof renderCoachingProgress==='function') renderCoachingProgress();
   } catch (err) {
     console.warn('fetchFromSheets error:', err);
   }
