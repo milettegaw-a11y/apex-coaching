@@ -542,57 +542,53 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div style="background:#8a6d00;color:#fff;padding:7px 12px;font-weight:800;font-size:.82rem">⏮️ PREVIOUS COACHING REVIEW <span style="font-weight:500;opacity:.85">— historical, read-only</span></div>
           <div id="fuReview" style="padding:12px;background:#fffdf5;font-size:.85rem">Select a previous coaching above to load its review.</div>
         </div>
-        <div style="grid-column:1/-1;font-weight:800;color:#1a3353;font-size:.82rem;margin-top:4px;border-top:2px solid #d7e3f4;padding-top:10px">🆕 THIS WEEK'S FOLLOW-UP — current coaching</div>
+        <div style="grid-column:1/-1;font-weight:800;color:#1a3353;font-size:.82rem;margin-top:4px;border-top:2px solid #d7e3f4;padding-top:10px">🔄 PROGRESS AGAINST PREVIOUS COACHING PLAN — current coaching</div>
 
-        <!-- A — GOAL RESULT -->
-        <div class="form-group" style="grid-column:1/-1"><label>① Goal Check — Did the agent meet the Week 1 target set previously? <span class="required">*</span></label>
-          <div id="fuGoalAuto" style="font-size:.8rem;color:#33691e;background:#f1f8e9;border:1px solid #c5e1a5;border-radius:6px;padding:6px 10px;margin-bottom:6px;display:none"></div>
+        <!-- SECTION 1 — PROGRESS CHECK (against the ORIGINAL ramp; no new ramp is created) -->
+        <div class="form-group" style="grid-column:1/-1"><label>① Which week of the ORIGINAL 4-Week Target Ramp are we reviewing? <span class="required">*</span></label>
+          <select id="fuCheckWeek" onchange="renderFuReview()"><option value="">— Select checkpoint —</option><option>Week 1</option><option>Week 2</option><option>Week 3</option><option>Week 4</option></select>
+          <div id="fuProgress" style="font-size:.82rem;color:#33691e;background:#f1f8e9;border:1px solid #c5e1a5;border-radius:6px;padding:8px 12px;margin-top:8px;display:none"></div>
+          <label style="margin-top:8px">Did the agent meet the target for this checkpoint? <span class="required">*</span> <span style="font-weight:400;color:#7a8aa0">(your coaching judgment — the system will not decide this)</span></label>
           <select id="fuGoalMet"><option value="">— Select —</option><option>Yes</option><option>Partially</option><option>No</option></select>
-          <textarea id="fuGoalNotes" placeholder="What helped or prevented the agent from reaching the target?"></textarea></div>
+          <textarea id="fuGoalNotes" placeholder="What improved since the previous coaching?" style="margin-top:6px"></textarea></div>
 
-        <!-- B — EXECUTION CHECK (Action Plan follow-through) -->
+        <!-- SECTION 2 — EXECUTION CHECK (Action Plan follow-through) -->
         <div class="form-group" style="grid-column:1/-1"><label>② Execution Check — Action Plan follow-through</label>
           <div id="fuPrevActionPlan" style="font-size:.8rem;color:#555;background:#f7faff;border:1px solid #e3ecf7;border-radius:6px;padding:6px 10px;margin-bottom:6px"></div>
-          <textarea id="fuActCompleted" placeholder="Which action plans from the previous coaching were completed?"></textarea>
-          <textarea id="fuActNotDone" placeholder="Which action from the previous coaching was NOT executed?" style="margin-top:6px"></textarea>
+          <textarea id="fuActCompleted" placeholder="Which actions agreed in the previous coaching were completed?"></textarea>
+          <textarea id="fuActNotDone" placeholder="Which action was NOT executed?" style="margin-top:6px"></textarea>
           <label style="margin-top:6px">Root cause of the non-executed action</label>
           <select id="fuActRootCause"><option value="">— Select —</option><option>Knowledge</option><option>Skill</option><option>Execution / Consistency</option><option>Process / Tool</option><option>Attendance / Availability</option><option>Outside the Agent's Control</option><option>Other</option></select>
-          <textarea id="fuActWhy" placeholder="Short explanation of why it was not executed" style="margin-top:6px"></textarea></div>
+          <textarea id="fuActWhy" placeholder="Why was it not executed?" style="margin-top:6px"></textarea></div>
 
-        <!-- C — COMMITMENT CHECK -->
+        <!-- SECTION 3 — COMMITMENT CHECK -->
         <div class="form-group" style="grid-column:1/-1"><label>③ Commitment Check</label>
           <div id="fuPrevCommit" style="font-size:.8rem;color:#555;background:#f7faff;border:1px solid #e3ecf7;border-radius:6px;padding:6px 10px;margin-bottom:6px"></div>
           <textarea id="fuCommitKept" placeholder="Which commitments did the agent keep?"></textarea>
           <textarea id="fuCommitNot" placeholder="Which commitments were NOT kept?" style="margin-top:6px"></textarea>
-          <textarea id="fuCommitWhy" placeholder="What prevented the agent from keeping the commitment?" style="margin-top:6px"></textarea></div>
+          <textarea id="fuCommitWhy" placeholder="What prevented the agent from keeping those commitments?" style="margin-top:6px"></textarea></div>
 
-        <!-- D — LIMITER CHECK -->
+        <!-- SECTION 4 — LIMITER CHECK -->
         <div class="form-group" style="grid-column:1/-1"><label>④ Limiter Check</label>
           <div id="fuPrevLimiter" style="font-size:.8rem;color:#555;background:#f7faff;border:1px solid #e3ecf7;border-radius:6px;padding:6px 10px;margin-bottom:6px"></div>
-          <label>Is the previous Primary Limiter still the Primary Limiter observed this coaching? <span class="required">*</span></label>
+          <label>Is the previous Primary Limiter still the limiter affecting the agent now? <span class="required">*</span></label>
           <select id="fuLimiterStill"><option value="">— Select —</option><option>Yes</option><option>Partially</option><option>No</option></select>
           <textarea id="fuLimiterEvidence" placeholder="What evidence supports this?" style="margin-top:6px"></textarea>
           <div style="font-size:.78rem;color:#7a8aa0;margin-top:6px">Set THIS coaching's Primary Limiter using the existing <b>Primary Limiter</b> field in Coaching Notes below (Tone of Voice and the Call/Objection sub-limiter included). It is not duplicated here.</div></div>
 
-        <!-- E — ROOT CAUSE -->
-        <div class="form-group" style="grid-column:1/-1"><label>⑤ Root Cause / Coaching Discussion</label>
-          <textarea id="fuRcChanged" placeholder="What changed since the previous coaching?"></textarea>
-          <textarea id="fuRcUnchanged" placeholder="What did NOT change?" style="margin-top:6px"></textarea>
-          <textarea id="fuRcBehavior" placeholder="What behavior had the biggest impact on the result?" style="margin-top:6px"></textarea>
-          <label style="margin-top:6px">Primary root cause <span class="required">*</span></label>
+        <!-- SECTION 5 — ROOT CAUSE -->
+        <div class="form-group" style="grid-column:1/-1"><label>⑤ Root Cause — What is the main reason the expected action or result did not happen? <span class="required">*</span></label>
           <select id="fuRcCategory"><option value="">— Select —</option><option>Knowledge</option><option>Skill</option><option>Execution / Consistency</option><option>Process / Tool</option><option>Attendance / Availability</option><option>Outside the Agent's Control</option><option>Other</option></select>
           <textarea id="fuRcEvidence" placeholder="What evidence from performance or calls supports this conclusion?" style="margin-top:6px"></textarea></div>
 
-        <!-- F — THIS WEEK'S PLAN / NEXT ACTION -->
-        <div class="form-group" style="grid-column:1/-1"><label>⑥ This Week's Plan — Next Action <span class="required">*</span></label>
-          <textarea id="fuNextBehavior" placeholder="The ONE behavior/action that will make the biggest difference this week"></textarea>
-          <textarea id="fuNextDifferent" placeholder="What will the agent do differently?" style="margin-top:6px"></textarea>
-          <textarea id="fuNextSuccess" placeholder="How will we know by the next coaching session that it worked? (measurable success condition)" style="margin-top:6px"></textarea>
-          <div style="font-size:.78rem;color:#7a8aa0;margin-top:6px">Record THIS coaching's Action Plan in the existing <b>Action Plan</b> field in Coaching Notes below; the agent's new commitment goes in the existing ⭐ My Commitment section.</div></div>
+        <!-- SECTION 6 — THIS WEEK'S ADJUSTMENT -->
+        <div class="form-group" style="grid-column:1/-1"><label>⑥ This Week's Adjustment <span class="required">*</span></label>
+          <textarea id="fuNextBehavior" placeholder="Based on today's review, what specific behavior or action needs to change before the next checkpoint?"></textarea>
+          <div style="font-size:.78rem;color:#7a8aa0;margin-top:6px">Record THIS coaching's Action Plan in the existing <b>Action Plan</b> field below; the agent's next commitment goes in the existing ⭐ My Commitment section.</div></div>
 
-        <!-- TL SUPPORT -->
+        <!-- SECTION 7 — TL SUPPORT -->
         <div class="form-group" style="grid-column:1/-1"><label>⑦ TL Support <span class="required">*</span></label>
-          <textarea id="fuTlSupport" placeholder="What support do you need from me as your TL to make sure you can execute this commitment this week?"></textarea></div>
+          <textarea id="fuTlSupport" placeholder="What support will you (the TL) provide before the next checkpoint?"></textarea></div>
       </div>
       <!-- Focus Area(s) input removed from the form (v15). Historical "Focus Area" data is
            NOT deleted: it is still read by parseSheetRow, carried forward on edit (saveEntry),
@@ -1093,7 +1089,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-24-followup-coaching-PROD-v22";
+const APEX_BUILD = "2026-08-24-followup-progress-check-PROD-v23";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -3468,6 +3464,10 @@ function renderLeverGuidance(){
   // unchanged. Only the ramp's Current baseline and its connect/sales projection rates are
   // re-based here onto the trailing averages, matching the values shown in the trailing tables.
   const rampEl = document.getElementById('leverRamp');
+  // v23: Follow-Up Coaching must NOT generate a NEW 4-Week Target Ramp — the original/root coaching's
+  // ramp is the baseline (shown read-only in the Follow-Up review). Suppress the current ramp here.
+  const _ctEl = document.getElementById('fCoachingType');
+  if (rampEl && _ctEl && _ctEl.value === 'Follow-Up Coaching') { rampEl.style.display='none'; rampEl.innerHTML=''; return; }
   if (rampEl) {
     const A = perf4wkAverages();
     const avgTCRv  = (A.avgTCR != null) ? A.avgTCR : 0;   // avg-of-ratios %
@@ -4479,7 +4479,9 @@ function agentLeverHtml(e){
   if (focusKey==='TCR'){ cur=avgTCRv; fin=BENCH_TCR; valType='pct'; }
   else if (focusKey==='CSR'){ cur=avgCSRv; fin=BENCH_CSR; valType='pct'; }
   const gap=(fin!=null&&!isNaN(fin))?(fin-cur):0;
-  if (focusKey && gap>0.05){
+  // v23: Follow-Up Coaching never renders a NEW ramp here — its baseline is the original coaching's
+  // ramp, shown read-only in the Follow-Up review. Other coaching types are unaffected.
+  if (focusKey && gap>0.05 && e.coachingType!=='Follow-Up Coaching'){
     const curStr=f1(cur)+'%', finStr=f1(fin)+'%', gapStr='+'+f1(gap)+'pp';
     let rowsHtml='';
     for(let i=1;i<=4;i++){ const wt=(i===4)?fin:(cur+gap*(i/4)); const impv=wt-cur; const rel=cur>0?(impv/cur*100):0; let cells;
@@ -4508,12 +4510,29 @@ function agentExtraSectionsHtml(e){
 // Persistence = 2 columns only: 'Follow-Up Prev Entry ID' (the link) + 'Follow-Up Data' (one JSON blob
 // of the TL's A–F answers). The previous coaching is RESOLVED from the already-loaded in-memory
 // `entries` — never re-fetched. No previous-coaching content is duplicated into the Follow-Up row.
-const FU_TEXT_FIELDS = ['fuGoalNotes','fuActCompleted','fuActNotDone','fuActWhy','fuCommitKept','fuCommitNot','fuCommitWhy','fuLimiterEvidence','fuRcChanged','fuRcUnchanged','fuRcBehavior','fuRcEvidence','fuNextBehavior','fuNextDifferent','fuNextSuccess','fuTlSupport'];
-const FU_SELECT_FIELDS = ['fuGoalMet','fuActRootCause','fuLimiterStill','fuRcCategory'];
+// v23: the 5 unused v22 free-text fields (fuRcChanged/fuRcUnchanged/fuRcBehavior/fuNextDifferent/
+// fuNextSuccess) are no longer read or written by the new flow. They are NOT deleted from any
+// historical Follow-Up Data JSON — the app simply stops using them. `fuCheckWeek` is added to the
+// SAME JSON blob (no new SheetDB column).
+const FU_TEXT_FIELDS = ['fuGoalNotes','fuActCompleted','fuActNotDone','fuActWhy','fuCommitKept','fuCommitNot','fuCommitWhy','fuLimiterEvidence','fuRcEvidence','fuNextBehavior','fuTlSupport'];
+const FU_SELECT_FIELDS = ['fuCheckWeek','fuGoalMet','fuActRootCause','fuLimiterStill','fuRcCategory'];
 const FU_ALL_FIELDS = FU_TEXT_FIELDS.concat(FU_SELECT_FIELDS);
 function resolvePrevCoaching(prevId){
   if(!prevId) return null;
   return (typeof entries!=='undefined'?entries:[]).find(x=>String(x.id)===String(prevId)) || null;
+}
+// Resolve the ORIGINAL/root coaching of a Follow-Up chain: walk immediate-previous links up to the
+// FIRST non-Follow-Up ancestor (the initial coaching that established the 4-Week Target Ramp).
+// In-memory only, cycle/depth-guarded. Returns null if no non-Follow-Up original is reachable
+// (broken/deleted chain) — callers then show an explicit message and never invent a baseline.
+function followUpRootCoaching(e){
+  let node=resolvePrevCoaching(e && e.followUpPrev), depth=0; const seen=new Set();
+  while(node && depth<25){
+    if(node.coachingType!=='Follow-Up Coaching') return node;      // the original/initial coaching
+    if(seen.has(String(node.id))) break; seen.add(String(node.id));
+    node=resolvePrevCoaching(node.followUpPrev); depth++;
+  }
+  return null;
 }
 // Primary Opportunity selection — mirrors renderLeverGuidance()/agentLeverHtml() (Volume branch omitted:
 // it needs a TL target-leads scenario that is not persisted). Pure; from the entry's own perfData.
@@ -4526,8 +4545,10 @@ function fuLeverInfo(e){
   if(cc>0 && csrCurr < BENCH_CSR-0.05) return {opp:'CSR', focusKey:'CSR'};
   return {opp:'On Track / No major core-metric gap', focusKey:null};
 }
-// 4-Week Target Ramp for an entry (averages basis — same math as agentLeverHtml's ramp).
-function fuRampHtml(e){
+// 4-Week Target Ramp for an entry (averages basis). `heading` lets callers relabel it (the
+// Follow-Up review shows the ORIGINAL/root ramp as a read-only progress reference).
+function fuRampHtml(e, heading){
+  const H = heading || '📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp';
   const info=fuLeverInfo(e); const f1=v=>v.toFixed(1);
   if(!info.focusKey) return '<div style="color:#888;font-size:.82rem">No single core-metric gap — no target ramp (on track / insufficient data).</div>';
   const A=_perfAvgFromEntry(e);
@@ -4540,33 +4561,55 @@ function fuRampHtml(e){
     rows+=`<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`; }
   const cols=info.focusKey==='CSR'?['CSR Target','Δ vs Today','Rel. Gain','+Sales','Total Sales/Wk']:['TCR Target','Δ vs Today','Rel. Gain','+Connects','Total Connects/Wk','+Sales'];
   const head='<th style="text-align:left">Week</th>'+cols.map(c=>`<th>${c}</th>`).join('');
-  return `<div style="font-weight:800;font-size:.82rem;color:#1a3353;margin-bottom:4px">📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp</div><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  return `<div style="font-weight:800;font-size:.82rem;color:#1a3353;margin-bottom:4px">${H}</div><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
-// Previous coaching's Week-1 ramp target (for the Goal-Check auto panel). null when no ramp applies.
-function fuWeek1Target(e){
-  const info=fuLeverInfo(e); if(!info.focusKey) return null;
-  const A=_perfAvgFromEntry(e); let cur,fin;
+// ORIGINAL ramp's target for checkpoint week N (1–4). Never recalculated from the current result.
+function fuWeekTarget(root, n){
+  const info=fuLeverInfo(root); if(!info.focusKey) return null;
+  const A=_perfAvgFromEntry(root); let cur,fin;
   if(info.focusKey==='TCR'){cur=(A.avgTCR!=null?A.avgTCR:0);fin=BENCH_TCR;} else {cur=(A.avgCSR!=null?A.avgCSR:0);fin=BENCH_CSR;}
   const gap=fin-cur; if(!(gap>0.05)) return null;
-  return { focusKey:info.focusKey, week1:(cur+gap*0.25) };
+  return { focusKey:info.focusKey, target:(n>=4?fin:(cur+gap*(n/4))) };
+}
+function entryWeek1Metric(e, focusKey){
+  const p1=(e&&e.perfData&&e.perfData[0])||{}; const lt=parseFloat(p1.lt)||0,cc=parseFloat(p1.cc)||0,s=parseFloat(p1.s)||0;
+  if(focusKey==='TCR') return lt>0?(cc/lt*100):null;
+  if(focusKey==='CSR') return cc>0?(s/cc*100):null;
+  return null;
+}
+// Progress Check line: ORIGINAL target for the checkpoint week vs the current actual + gap.
+// `actualFn(focusKey)` supplies the current actual (form uses live inputs; view uses the saved entry).
+// Computed only — never stored, never mutates the original ramp.
+function fuProgressHtml(root, actualFn, weekLabel){
+  if(!root) return '<span style="color:#c62828">Original coaching not available — cannot resolve the baseline ramp.</span>';
+  const n=parseInt(String(weekLabel||'').replace(/\D/g,''))||0;
+  if(!n) return '<span style="color:#888">Select a checkpoint week to see Original Target vs Current Actual.</span>';
+  const t=fuWeekTarget(root, n);
+  if(!t) return '<span style="color:#888">The original coaching has no target ramp for this lever (on track / insufficient data).</span>';
+  const actual=actualFn(t.focusKey); const gap=(actual!=null)?(actual - t.target):null;
+  return `<b>${weekLabel} Progress Check</b><br>Original Target ${t.focusKey}: <b>${t.target.toFixed(1)}%</b><br>Current Actual ${t.focusKey}: <b>${actual!=null?actual.toFixed(1)+'%':'—'}</b><br>Gap: <b>${gap!=null?((gap>=0?'+':'')+gap.toFixed(1)+' percentage points'):'—'}</b>`;
 }
 function fuOptionLabel(e){ return `${e.wkNumber||'?'} — ${fmtCoachingDate(e.dateOfCoaching)||'—'} — ${e.coachingType||'—'} — ${e.teamLead||'—'}`; }
-// The read-only "Previous Coaching Review" (7 ordered items) — SHARED by the form panel, the TL/OM
-// Details modal, and the Agent view. Resolves everything from the linked entry; duplicates nothing.
-function prevCoachingReviewHtml(prev){
+// The read-only "Previous Coaching Review" — SHARED by the form panel, the TL/OM Details modal, and
+// the Agent view. Items 1–6 come from the IMMEDIATE previous coaching; item 7 (the ramp) comes from
+// the ORIGINAL/root coaching, relabeled and read-only. Duplicates nothing.
+function prevCoachingReviewHtml(prev, root){
   if(!prev) return '<div style="color:#c62828;font-weight:600">Linked previous coaching is not available (it may have been deleted or is outside your current view).</div>';
   const s=prev.star||{};
   const commit=(s.situation||s.task||s.action||s.result||s.timeline)
     ? `📍 ${escHtml(s.situation||'—')}<br>🎯 ${escHtml(s.task||'—')}<br>⚡ ${escHtml(s.action||'—')}<br>✅ ${escHtml(s.result||'—')}<br>📅 ${escHtml(s.timeline||'—')}`
     : '<span style="color:#999">No commitment submitted.</span>';
   const row=(l,v)=>`<div style="margin-bottom:6px"><b>${l}:</b> ${v}</div>`;
+  const rampBlock = root
+    ? `${fuRampHtml(root, '📅 Original 4-Week Target Ramp — Progress Reference')}${(String(root.id)!==String(prev.id))?`<div style="font-size:.74rem;color:#8a6d00;margin-top:3px">Baseline from the original coaching: ${escHtml(fuOptionLabel(root))}</div>`:''}`
+    : '<div style="color:#c62828">Original coaching not available — cannot resolve the baseline ramp.</div>';
   return row('1. Primary Opportunity', escHtml(fuLeverInfo(prev).opp))
     + row('2. Primary Limiter', escHtml(prev.limiter||'—')+(prev.callObjLimiter?(' — '+escHtml(prev.callObjLimiter)):''))
     + row('3. Key Discussion', escHtml(prev.keyDiscussion||'—').replace(/\n/g,'<br>'))
     + row('4. Areas of Improvement', escHtml(prev.areas||'—').replace(/\n/g,'<br>'))
     + row('5. Action Plan', escHtml(prev.actionPlan||'—').replace(/\n/g,'<br>'))
     + row("6. Agent's My Commitments", commit)
-    + `<div style="margin-top:8px">${fuRampHtml(prev)}</div>`;
+    + `<div style="margin-bottom:4px"><b>7. Original 4-Week Target Ramp — Progress Reference:</b></div><div style="margin-top:4px">${rampBlock}</div>`;
 }
 // ── FORM: show/hide, populate the same-agent selector, guard links, render the live review ──
 function onCoachingTypeChange(){
@@ -4611,17 +4654,17 @@ function currentFormWeek1Metric(focusKey){
 }
 function renderFuReview(){
   const box=document.getElementById('fuReview'); if(!box) return;
-  const prev=resolvePrevCoaching(document.getElementById('fFuPrev').value);
+  const prevId=document.getElementById('fFuPrev').value;
+  const prev=resolvePrevCoaching(prevId);
+  const root=followUpRootCoaching({followUpPrev:prevId});   // ORIGINAL/root for the ramp
   const hdr = prev ? `<div style="font-weight:700;margin-bottom:8px;color:#8a6d00">${escHtml(fuOptionLabel(prev))}</div>` : '';
-  box.innerHTML = hdr + prevCoachingReviewHtml(prev);
+  box.innerHTML = hdr + prevCoachingReviewHtml(prev, root);
   const pa=document.getElementById('fuPrevActionPlan'); if(pa) pa.innerHTML = prev?('<b>Previous Action Plan:</b> '+escHtml(prev.actionPlan||'—').replace(/\n/g,'<br>')):'—';
   const pc=document.getElementById('fuPrevCommit'); if(pc){ const s=(prev&&prev.star)||{}; pc.innerHTML = prev?('<b>Previous Agent Commitment:</b><br>'+`📍 ${escHtml(s.situation||'—')} · 🎯 ${escHtml(s.task||'—')} · ⚡ ${escHtml(s.action||'—')} · ✅ ${escHtml(s.result||'—')} · 📅 ${escHtml(s.timeline||'—')}`):'—'; }
   const pl=document.getElementById('fuPrevLimiter'); if(pl) pl.innerHTML = prev?('<b>Previous Primary Limiter:</b> '+escHtml(prev.limiter||'—')+(prev.callObjLimiter?(' — '+escHtml(prev.callObjLimiter)):'')):'—';
-  const ga=document.getElementById('fuGoalAuto');
-  if(ga){ const t=prev?fuWeek1Target(prev):null;
-    if(t){ const cur=currentFormWeek1Metric(t.focusKey); ga.style.display='block';
-      ga.innerHTML=`Previous Week 1 ${t.focusKey} Target: <b>${t.week1.toFixed(1)}%</b> · Current Actual ${t.focusKey}: <b>${cur!=null?cur.toFixed(1)+'%':'—'}</b> <span style="color:#888">(auto-calculated — you decide Yes / Partially / No)</span>`;
-    } else { ga.style.display='none'; ga.innerHTML=''; } }
+  const pg=document.getElementById('fuProgress');
+  if(pg){ if(prev){ pg.style.display='block'; pg.innerHTML=fuProgressHtml(root, currentFormWeek1Metric, document.getElementById('fuCheckWeek').value); }
+          else { pg.style.display='none'; pg.innerHTML=''; } }
 }
 function readFollowUpForm(){
   if(document.getElementById('fCoachingType').value!=='Follow-Up Coaching') return { prev:'', data:null };
@@ -4646,12 +4689,13 @@ function clearFollowUpForm(){
   FU_ALL_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   const box=document.getElementById('fuReview'); if(box) box.innerHTML='Select a previous coaching above to load its review.';
   ['fuPrevActionPlan','fuPrevCommit','fuPrevLimiter'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML='—'; });
-  const ga=document.getElementById('fuGoalAuto'); if(ga){ ga.style.display='none'; ga.innerHTML=''; }
+  const pg=document.getElementById('fuProgress'); if(pg){ pg.style.display='none'; pg.innerHTML=''; }
 }
 // Completion gate for Follow-Up Coaching (only applies to entries of this type — see tlComplete).
 function followUpComplete(e){
   const fu=e.followUp||{};
   return isFilled(e.followUpPrev)
+    && isFilled(fu.fuCheckWeek)
     && isFilled(fu.fuGoalMet)
     && (isFilled(fu.fuActCompleted)||isFilled(fu.fuActNotDone))
     && (isFilled(fu.fuCommitKept)||isFilled(fu.fuCommitNot))
@@ -4659,29 +4703,33 @@ function followUpComplete(e){
     && isFilled(e.limiter)
     && isFilled(fu.fuRcCategory)
     && isFilled(e.actionPlan)
-    && isFilled(fu.fuNextBehavior) && isFilled(fu.fuNextSuccess)
+    && isFilled(fu.fuNextBehavior)
     && isFilled(fu.fuTlSupport);
 }
 // Read-only Follow-Up render — SHARED by TL/OM viewEntry() and Agent openCommitmentView().
 function followUpAnswersHtml(e){
   const fu=e.followUp||{}; const row=(l,v)=> (v&&String(v).trim()!=='')?`<div style="margin-bottom:5px"><b>${l}:</b> ${escHtml(String(v)).replace(/\n/g,'<br>')}</div>`:'';
   return `<div style="font-size:.85rem">`
-    + row('Goal Check', fu.fuGoalMet) + row('What helped/prevented', fu.fuGoalNotes)
+    + row('Goal result', fu.fuGoalMet) + row('What improved', fu.fuGoalNotes)
     + row('Actions completed', fu.fuActCompleted) + row('Action not executed', fu.fuActNotDone) + row('Root cause (execution)', fu.fuActRootCause) + row('Why not executed', fu.fuActWhy)
     + row('Commitments kept', fu.fuCommitKept) + row('Commitments not kept', fu.fuCommitNot) + row('What prevented', fu.fuCommitWhy)
     + row('Limiter still primary?', fu.fuLimiterStill) + row('Evidence', fu.fuLimiterEvidence)
-    + row('What changed', fu.fuRcChanged) + row('What did not change', fu.fuRcUnchanged) + row('Biggest-impact behavior', fu.fuRcBehavior) + row('Root cause', fu.fuRcCategory) + row('Root-cause evidence', fu.fuRcEvidence)
-    + row('Next action (ONE behavior)', fu.fuNextBehavior) + row('What agent will do differently', fu.fuNextDifferent) + row('Success measure', fu.fuNextSuccess)
+    + row('Root cause', fu.fuRcCategory) + row('Root-cause evidence', fu.fuRcEvidence)
+    + row("This week's adjustment", fu.fuNextBehavior)
     + row('TL Support', fu.fuTlSupport)
     + `</div>`;
 }
 function followUpReviewHtml(e){
   if(e.coachingType!=='Follow-Up Coaching') return '';
   const prev=resolvePrevCoaching(e.followUpPrev);
+  const root=followUpRootCoaching(e);   // ORIGINAL/root for the ramp + progress baseline
+  const fu=e.followUp||{};
   const hdr = prev ? `<div style="font-weight:700;margin-bottom:8px;color:#8a6d00">${escHtml(fuOptionLabel(prev))}</div>` : '';
+  const progress = fuProgressHtml(root, (fk)=>entryWeek1Metric(e, fk), fu.fuCheckWeek);
   return `<div class="form-section" style="margin-top:18px"><h4>🔁 Follow-Up Coaching</h4>`
-    + `<div style="border:1.5px solid #f0c96b;border-radius:10px;overflow:hidden;margin-bottom:12px"><div style="background:#8a6d00;color:#fff;padding:7px 12px;font-weight:800;font-size:.82rem">⏮️ PREVIOUS COACHING REVIEW — historical, read-only</div><div style="padding:12px;background:#fffdf5;font-size:.85rem">${hdr}${prevCoachingReviewHtml(prev)}</div></div>`
-    + `<div style="font-weight:800;color:#1a3353;font-size:.82rem;margin-bottom:6px">🆕 THIS WEEK'S FOLLOW-UP</div>`
+    + `<div style="border:1.5px solid #f0c96b;border-radius:10px;overflow:hidden;margin-bottom:12px"><div style="background:#8a6d00;color:#fff;padding:7px 12px;font-weight:800;font-size:.82rem">⏮️ PREVIOUS COACHING REVIEW — historical, read-only</div><div style="padding:12px;background:#fffdf5;font-size:.85rem">${hdr}${prevCoachingReviewHtml(prev, root)}</div></div>`
+    + `<div style="font-weight:800;color:#1a3353;font-size:.82rem;margin-bottom:6px">🔄 Progress Against Previous Coaching Plan</div>`
+    + `<div style="font-size:.85rem;background:#f1f8e9;border:1px solid #c5e1a5;border-radius:6px;padding:8px 12px;margin-bottom:10px">${fu.fuCheckWeek?('<b>Checkpoint:</b> '+escHtml(fu.fuCheckWeek)+'<br>'):''}${progress}</div>`
     + followUpAnswersHtml(e)
     + `</div>`;
 }
