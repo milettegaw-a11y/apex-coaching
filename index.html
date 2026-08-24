@@ -43,6 +43,7 @@ main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
 .stat-card .label{font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
 .stat-card .value{font-size:2rem;font-weight:900;color:var(--dark)}
 .stat-card .sublabel{font-size:.75rem;color:#888;margin-top:2px}
+.stat-card .cov-count{font-size:.9rem;font-weight:800;color:#2f6f43;margin-top:3px}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .section-header h2{font-size:1.1rem;font-weight:800}
 .btn-add{background:var(--yellow);border:none;border-radius:6px;padding:9px 20px;font-weight:700;font-size:.88rem;cursor:pointer}
@@ -288,21 +289,25 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <div class="stat-card">
           <div class="label">Coaching Sessions</div>
           <div class="value" id="statCount">0</div>
+          <div class="cov-count" id="covCoached">—</div>
           <div class="sublabel">Coaching logs in the selected view</div>
         </div>
         <div class="stat-card">
           <div class="label">TL Coaching Completion</div>
           <div class="value" id="statTLC">—</div>
+          <div class="cov-count" id="covTLC">—</div>
           <div class="sublabel" id="subTLC">Logs with TL content complete</div>
         </div>
         <div class="stat-card">
           <div class="label">Agent Coaching Completion</div>
           <div class="value" id="statAgentC">—</div>
+          <div class="cov-count" id="covAgentC">—</div>
           <div class="sublabel" id="subAgentC">Logs with Agent Complete</div>
         </div>
         <div class="stat-card">
           <div class="label">Fully Completed Coaching</div>
           <div class="value" id="statFully">—</div>
+          <div class="cov-count" id="covFully">—</div>
           <div class="sublabel" id="subFully">TL + Agent complete</div>
         </div>
       </div>
@@ -1125,7 +1130,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-24-coaching-guidance-PROD-v24";
+const APEX_BUILD = "2026-08-24-agent-coverage-PROD-v26";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2548,15 +2553,23 @@ function applyDashFilters(list) {
     return true;
   });
 }
-// Populate the Coaching Type filter from the actual Coaching Type values already stored in the
-// loaded Coaching Logs (distinct, sorted). Preserves the current selection. 0 SheetDB requests.
+// Populate the Coaching Type filter from the CURRENT allowed Coaching Types — the New Coaching
+// Log form's #fCoachingType <option> list is the single source of truth (v25). Only currently
+// supported types (Scheduled Coaching, Follow-Up Coaching, and any future option added to the
+// form) are selectable here. Legacy/removed Coaching Types (Ad-Hoc, Behavioral, Live Call
+// Monitoring Feedback, etc.) are intentionally NOT listed as filter choices — but their records
+// are NEVER modified or hidden: they remain fully visible under "All Coaching Types" (empty
+// filter value) and keep their original stored Coaching Type in the log/details. Follow-Up
+// Coaching therefore always appears even when zero Follow-Up records are loaded. Preserves the
+// current selection when still valid. Reads static in-memory DOM options only → 0 SheetDB requests.
 function populateCoachingTypeFilter() {
   const sel = document.getElementById('filterCoachingType');
   if (!sel) return;
   const prev = sel.value;
-  const types = [...new Set((entries||[]).map(e => (e.coachingType||'').trim()).filter(Boolean))].sort();
+  const form = document.getElementById('fCoachingType');
+  const types = form ? [...form.options].map(o => (o.value||o.textContent||'').trim()).filter(Boolean) : [];
   sel.innerHTML = '<option value="">All Coaching Types</option>' + types.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
-  if (prev && types.includes(prev)) sel.value = prev;   // keep selection if still valid
+  if (prev && types.includes(prev)) sel.value = prev;   // keep selection only if still a supported type
 }
 function applyLogFilters(list) {
   const wk = document.getElementById('logFilterWK')?.value || '';
@@ -2709,27 +2722,45 @@ function activeTLsForScope(cluster, tlFilter){
 }
 // Zero-safe display: an active TL with no logs shows 0%, never '—' / 'NaN%' / blank.
 function pctOrZero(v){ return (v === '—' || v === 'NaN%' || v == null || v === '') ? '0%' : v; }
+// v26 — compact "60% (6/10)" for the per-TL breakdown. den (active agents for that TL) is the
+// roster denominator; num is the distinct-complete-agent count. Zero-safe.
+function pctCount(pctStr, num, den){ return pctOrZero(pctStr) + (den > 0 ? ' (' + num + '/' + den + ')' : ''); }
 // Completion stats. `expected` = required coaching logs for the window (1/agent/week).
 // TL% and Fully% are measured against `expected`; Agent% is measured against logs that
 // actually exist (you can only expect an agent to respond to a log the TL created).
+// v26 — Agent-coverage aggregation. Every card/table percentage is now
+// DISTINCT COMPLETE AGENTS ÷ ACTIVE AGENTS IN SCOPE (`expected`), not a raw log ratio.
+// Each call passes a SINGLE-WEEK `list`, so an agent-week key collapses to one agent:
+//   • coached   = distinct agents with ≥1 coaching entry
+//   • tl        = distinct agents with ≥1 entry that satisfies tlComplete()
+//   • agent     = distinct agents with ≥1 entry that is Agent Complete
+//   • full      = distinct agents with ≥1 SINGLE entry that is BOTH TL-complete AND Agent-complete
+//                 (TL-complete on entry A + Agent-complete on entry B does NOT count — same-entry only)
+// Underlying per-record tlComplete()/agentStatusCoaching() definitions are UNCHANGED — this only
+// changes how the dashboard AGGREGATES them. The agent identity key reuses the app's existing
+// agentName-based agent-week key (no new identity-matching method). Coaching Type filtering is
+// applied to `list` by the caller (numerator only); `expected` comes from the roster and is
+// therefore type-independent. Computed in memory each render — 0 SheetDB storage / requests.
 function completionStats(list, expected){
-  const total = list.length;                         // existing logs (require an agent response)
+  const total = list.length;                         // raw coaching sessions in view (card 1 main value)
   const keyAW = e => (e.agentName || '?') + '|' + wkNum(e);
-  const tlKeys = new Set(), fullKeys = new Set();
-  let agentComplete = 0;
+  const coachedKeys = new Set(), tlKeys = new Set(), agentKeys = new Set(), fullKeys = new Set();
   list.forEach(e => {
+    const k   = keyAW(e);
     const tlc = tlComplete(e);
     const ac  = agentStatusCoaching(e) === 'Agent Complete';
-    if (ac) agentComplete++;
-    if (tlc) tlKeys.add(keyAW(e));            // distinct agent-week with a complete TL log
-    if (tlc && ac) fullKeys.add(keyAW(e));
+    coachedKeys.add(k);                       // distinct coached agent
+    if (tlc) tlKeys.add(k);                   // ≥1 TL-complete entry for this agent
+    if (ac)  agentKeys.add(k);                // ≥1 Agent-complete entry for this agent
+    if (tlc && ac) fullKeys.add(k);           // ≥1 SAME entry both complete
   });
   const exp = expected > 0 ? expected : 0;
   return {
-    total, expected: exp, tl: tlKeys.size, agent: agentComplete, full: fullKeys.size,
-    tlPct:    exp ? pct(tlKeys.size, exp)   : '—',
-    agentPct: pct(agentComplete, total),
-    fullPct:  exp ? pct(fullKeys.size, exp) : '—',
+    total, expected: exp,
+    coached: coachedKeys.size, tl: tlKeys.size, agent: agentKeys.size, full: fullKeys.size,
+    tlPct:    exp ? pct(tlKeys.size, exp)    : '—',
+    agentPct: exp ? pct(agentKeys.size, exp) : '—',
+    fullPct:  exp ? pct(fullKeys.size, exp)  : '—',
     pending:  exp ? Math.max(0, exp - fullKeys.size) : Math.max(0, total - fullKeys.size)
   };
 }
@@ -2753,6 +2784,15 @@ function renderDashboard() {
   if (tlcEl) tlcEl.textContent = cs.tlPct;
   if (agEl)  agEl.textContent  = cs.agentPct;
   if (fuEl)  fuEl.textContent  = cs.fullPct;
+  // v26 — agent-coverage counts (distinct agents ÷ active agents in scope). scopeAgents is the
+  // roster denominator computed BEFORE the Coaching Type filter, so a Coaching Type selection
+  // changes only the numerator, never the /N denominator.
+  const covCoached = document.getElementById('covCoached');
+  const covTLC = document.getElementById('covTLC'), covAg = document.getElementById('covAgentC'), covFu = document.getElementById('covFully');
+  if (covCoached) covCoached.textContent = scopeAgents ? (cs.coached + '/' + scopeAgents + ' Agents Coached') : '';
+  if (covTLC) covTLC.textContent = scopeAgents ? (cs.tl    + '/' + scopeAgents + ' Agents Complete') : '';
+  if (covAg)  covAg.textContent  = scopeAgents ? (cs.agent + '/' + scopeAgents + ' Agents Complete') : '';
+  if (covFu)  covFu.textContent  = scopeAgents ? (cs.full  + '/' + scopeAgents + ' Agents Complete') : '';
   const wkTag = targetWeek ? ('WK' + targetWeek) : 'this week';
   const subTL = document.getElementById('subTLC'), subAg = document.getElementById('subAgentC'), subFu = document.getElementById('subFully');
   if (subTL) subTL.textContent = 'TL content complete · ' + wkTag;
@@ -2805,9 +2845,9 @@ function renderOMBreakdown(filtered, weeks4, targetWeek){
     const c = completionStats(tlList, tlAgents);
     return `<tr>
       <td class="proj-label">${escHtml(tlDisplay)}</td>
-      <td>${pctOrZero(c.tlPct)}</td>
-      <td>${pctOrZero(c.agentPct)}</td>
-      <td>${pctOrZero(c.fullPct)}</td>
+      <td>${pctCount(c.tlPct, c.tl, tlAgents)}</td>
+      <td>${pctCount(c.agentPct, c.agent, tlAgents)}</td>
+      <td>${pctCount(c.fullPct, c.full, tlAgents)}</td>
       <td>${c.pending}</td>
     </tr>`;
   }).join('');
