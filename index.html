@@ -51,6 +51,15 @@ main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
 @media(max-width:820px){.cp-grid2{grid-template-columns:1fr}}
 .cp-cov-big{font-size:2rem;font-weight:900;color:var(--dark)}
 .cp-cov-sub{font-size:.9rem;color:#2f6f43;font-weight:800;margin-top:2px}
+.cp-cov-row{display:flex;gap:20px;flex-wrap:wrap}
+.cp-cov-metric{flex:1;min-width:220px}
+.cp-cov-metric .cp-cov-big{font-size:1.7rem}
+@media(max-width:640px){.cp-cov-row{flex-direction:column;gap:14px}}
+.cp-cov-pending{margin-top:10px}
+.cp-cov-pending summary{cursor:pointer;font-weight:700;font-size:.85rem;color:#b26a00;list-style:revert}
+.cp-cov-pending ul{margin:6px 0 0;padding-left:20px}
+.cp-cov-pending li{font-size:.84rem;margin:1px 0}
+.cp-cov-pending .cp-reason{color:#888;font-style:italic}
 .cp-bar-track{height:12px;background:#eef2f7;border-radius:6px;overflow:hidden;margin-top:8px;max-width:420px}
 .cp-bar-fill{height:100%;background:var(--yellow)}
 .cp-tl-group{margin-bottom:10px}
@@ -1190,7 +1199,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-24-coaching-progress-dashboard-PROD-v27";
+const APEX_BUILD = "2026-08-24-coverage-full-completion-PROD-v28";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2832,14 +2841,40 @@ function renderCoachingProgress(){
   const coached = coachedNames.length;
   const wkTag = targetWeek ? ('WK'+targetWeek) : '—';
 
-  // ── COACHING COVERAGE (reuses roster denominator) ──
+  // ── COACHING COVERAGE (reuses roster denominator + v26/v27 completionStats) ──
   const covPct = denom? Math.round(coached/denom*100) : 0;
-  document.getElementById('cpCoverage').innerHTML =
-    `<h3>Coaching Coverage — ${wkTag}</h3>`+
-    (denom? `<div class="cp-cov-big">${coached}/${denom} Agents Coached</div><div class="cp-cov-sub">${covPct}%</div>`+
-      `<div class="cp-bar-track"><div class="cp-bar-fill" style="width:${covPct}%"></div></div>`+
-      (s.type?`<div class="cp-note">Numerator counts ${esc(s.type)} only; denominator is the full active roster in scope.</div>`:'')
-     : `<div class="cp-empty">No active agents in the selected scope.</div>`);
+  // Fully Completed reuses the EXACT existing completionStats() over the week's (type-filtered)
+  // entries and the SAME roster denominator — so it reconciles with the Weekly Coaching Dashboard.
+  // .full = distinct agents with ≥1 SINGLE entry that is both tlComplete && Agent Complete.
+  const cs = completionStats(weekTyped, denom);
+  const fullPctNum = denom? Math.round(cs.full/denom*100) : 0;
+  // Fully Completed agent names: same same-entry-both rule, distinct agents (mirrors completionStats keys).
+  const fullSet = new Set();
+  weekTyped.forEach(e=>{ if (tlComplete(e) && agentStatusCoaching(e)==='Agent Complete') fullSet.add((e.agentName||'?')+'|'+wkNum(e)); });
+  const isFull = name => fullSet.has(name+'|'+targetWeek);
+  // Pending = Coached agents MINUS Fully Completed agents. Reason from existing per-entry logic only.
+  const pending = coachedNames.filter(n=>!isFull(n)).map(name=>{
+    const es = weekTyped.filter(e=>(e.agentName||'?')===name);
+    const anyTL = es.some(e=>tlComplete(e));
+    const anyAgent = es.some(e=>agentStatusCoaching(e)==='Agent Complete');
+    let reason = 'Coaching Not Fully Completed';
+    if (anyTL && !anyAgent) reason = 'Agent Response Pending';   // TL side done, agent hasn't responded
+    return { name, reason };
+  }).sort((a,b)=>a.name.localeCompare(b.name));
+  let covHtml = `<h3>Coaching Coverage — ${wkTag}</h3>`;
+  if(!denom){ covHtml += `<div class="cp-empty">No active agents in the selected scope.</div>`; }
+  else {
+    covHtml += `<div class="cp-cov-row">`+
+      `<div class="cp-cov-metric"><div class="cp-cov-big">${coached}/${denom} Agents Coached</div><div class="cp-cov-sub">${covPct}%</div><div class="cp-bar-track"><div class="cp-bar-fill" style="width:${covPct}%"></div></div></div>`+
+      `<div class="cp-cov-metric"><div class="cp-cov-big">${cs.full}/${denom} Fully Completed</div><div class="cp-cov-sub">${cs.fullPct==='—'?fullPctNum+'%':cs.fullPct}</div><div class="cp-bar-track"><div class="cp-bar-fill" style="width:${fullPctNum}%;background:#2f6f43"></div></div></div>`+
+      `</div>`;
+    if(pending.length){
+      covHtml += `<details class="cp-cov-pending"><summary>${pending.length} Agent${pending.length===1?'':'s'} Pending Completion</summary>`+
+        `<ul>`+pending.map(p=>`<li>${esc(p.name)} — <span class="cp-reason">${p.reason}</span></li>`).join('')+`</ul></details>`;
+    }
+    if(s.type){ covHtml += `<div class="cp-note">Coaching Type filters the numerator only; the denominator is the full active roster in scope.</div>`; }
+  }
+  document.getElementById('cpCoverage').innerHTML = covHtml;
 
   // ── AGENTS NOT YET COACHED ──
   const coachedSet=new Set(coachedNames);
