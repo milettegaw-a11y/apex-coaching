@@ -160,6 +160,16 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .star-field label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#888;display:block;margin-bottom:6px}
 .star-field textarea,.star-field input,.star-field select{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.88rem;font-family:inherit;outline:none;transition:border .2s;background:#fff}
 .star-field textarea:focus,.star-field input:focus,.star-field select:focus{border-color:var(--yellow)}
+/* Coaching guidance helper text (display-only; never stored, never parsed for completion) */
+.fld-guide{font-size:.78rem;color:#5a6b80;line-height:1.5;margin:2px 0 8px}
+.fld-guide .fg-lead{color:#44556a}
+.fld-guide ul{margin:5px 0 0;padding-left:18px}
+.fld-guide ul li{margin:2px 0}
+.fld-guide details{margin-top:6px}
+.fld-guide summary{cursor:pointer;color:#b26a00;font-weight:700;font-size:.76rem;list-style:revert;user-select:none}
+.fld-guide summary:hover{text-decoration:underline}
+.fld-guide .fg-ex{margin-top:5px;padding:8px 10px;background:#fff8ea;border:1px solid #f0e2c0;border-radius:6px;color:#555;font-style:italic;white-space:pre-line}
+.commit-reminder{font-size:.82rem;color:#44556a;line-height:1.5;background:#fff8ea;border:1px solid #f0e2c0;border-radius:8px;padding:10px 12px;margin-bottom:14px}
 .coaching-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .coaching-detail-item{background:#f9f9f9;border-radius:8px;padding:12px}
 .coaching-detail-item.full{grid-column:1/-1}
@@ -754,6 +764,19 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <div class="form-grid" style="grid-template-columns:1fr">
           <div class="form-group">
             <label>Key Discussion</label>
+            <div class="fld-guide">
+              <div class="fg-lead">Summarize the main focus of the coaching. Include the agent's Primary Opportunity and Primary Limiter, then briefly explain what the performance data, call review, or coaching discussion showed.</div>
+              <ul>
+                <li><b>Primary Opportunity</b> — What metric or performance area needs improvement?</li>
+                <li><b>Primary Limiter</b> — What is preventing the agent from improving?</li>
+                <li><b>Brief Explanation</b> — What did you observe that supports this?</li>
+              </ul>
+              <details><summary>Show example</summary>
+                <div class="fg-ex">Primary Opportunity: TCR
+Primary Limiter: Leads Touched
+Brief Explanation: The agent's TCR is below target mainly because of low leads touched. We reviewed their activity and found incomplete contact attempts on Day 2–7 leads.</div>
+              </details>
+            </div>
             <textarea id="fKeyDiscussion" placeholder="Key topics discussed during coaching..."></textarea>
           </div>
           <div class="form-group">
@@ -809,6 +832,19 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
           <div class="form-group" style="grid-column:1/-1">
             <label>Action Plan / Next Steps</label>
+            <div class="fld-guide">
+              <div class="fg-lead">Document the agreed action plan and next steps for both the Agent and TL. Be specific about what each person will do, how often or by when, and how progress will be checked.</div>
+              <ul>
+                <li><b>Agent Action</b> — What specific behavior or action will the agent execute?</li>
+                <li><b>TL Action</b> — What coaching, monitoring, or support will the TL provide?</li>
+                <li><b>Follow-Up</b> — How and when will progress be checked?</li>
+              </ul>
+              <details><summary>Show example</summary>
+                <div class="fg-ex">Agent: Complete 2 sets of contact attempts for all eligible Day 2–7 leads daily and complete scheduled callbacks on time.
+TL: Review call cadence daily and provide real-time feedback on missed contact attempts.
+Follow-Up: Review TCR, leads touched, and cadence compliance during next week's coaching.</div>
+              </details>
+            </div>
             <textarea id="fActionPlan" placeholder="Agreed action items and next steps..."></textarea>
           </div>
         </div>
@@ -1089,7 +1125,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-24-followup-progress-check-PROD-v23";
+const APEX_BUILD = "2026-08-24-coaching-guidance-PROD-v24";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -4820,24 +4856,55 @@ function openCommitmentView(entryId) {
       <span style="font-size:.78rem;color:#666">Agent Status:</span>
       <span id="commitStatusBadge" style="background:${statusColor};color:#fff;border-radius:12px;padding:3px 12px;font-size:.78rem;font-weight:700">${agentStat}</span>
     </div>
+    <div class="commit-reminder">Your commitment will be reviewed during your next coaching session. Be specific about what you will do, how you will do it, and when you will complete it.</div>
     <div class="star-field">
       <label>📍 Situation — What is the current performance situation?</label>
+      <div class="fld-guide">
+        <div class="fg-lead">What performance issue or opportunity did you discuss with your TL? Briefly describe your current result and what needs to improve.</div>
+        <details><summary>Show example</summary>
+          <div class="fg-ex">My TCR is below target because I am not completing all required contact attempts on my leads.</div>
+        </details>
+      </div>
       <textarea id="cSituation" rows="3" placeholder="Describe the current situation...">${esc(star.situation||'')}</textarea>
     </div>
     <div class="star-field">
       <label>🎯 Task — What is the goal or target to achieve?</label>
+      <div class="fld-guide">
+        <div class="fg-lead">What specific goal or responsibility are you committing to? State what you need to accomplish based on the coaching discussion.</div>
+        <details><summary>Show example</summary>
+          <div class="fg-ex">I need to increase my leads touched and consistently complete the required call cadence.</div>
+        </details>
+      </div>
       <textarea id="cTask" rows="3" placeholder="Describe the task or goal...">${esc(star.task||'')}</textarea>
     </div>
     <div class="star-field">
       <label>⚡ Action — What specific actions will you take?</label>
+      <div class="fld-guide">
+        <div class="fg-lead">What specific actions will you personally take to reach the goal? List the behaviors you will consistently execute. Avoid general answers like "I will do better."</div>
+        <details><summary>Show example</summary>
+          <div class="fg-ex">I will complete 2 sets of contact attempts on my eligible leads, complete my callbacks on time, and check my pipeline before the end of my shift.</div>
+        </details>
+      </div>
       <textarea id="cAction" rows="3" placeholder="List the actions you commit to...">${esc(star.action||'')}</textarea>
     </div>
     <div class="star-field">
       <label>✅ Result — What measurable result do you commit to?</label>
+      <div class="fld-guide">
+        <div class="fg-lead">What measurable improvement do you expect from these actions? Connect your commitment to the metric or performance goal discussed during coaching.</div>
+        <details><summary>Show example</summary>
+          <div class="fg-ex">I expect to increase my TCR and reach the Week 1 target discussed with my TL.</div>
+        </details>
+      </div>
       <textarea id="cResult" rows="3" placeholder="Define the expected result...">${esc(star.result||'')}</textarea>
     </div>
     <div class="star-field">
       <label>📅 Timeline — Target completion date</label>
+      <div class="fld-guide">
+        <div class="fg-lead">When will you start, and by when should the improvement be seen? Include when your TL should check your progress.</div>
+        <details><summary>Show example</summary>
+          <div class="fg-ex">I will start today and consistently follow this plan throughout the week. My progress will be reviewed during my next coaching session.</div>
+        </details>
+      </div>
       <input type="date" id="cTimeline" value="${star.timeline||''}">
     </div>
     <div style="margin-top:18px;text-align:right">
