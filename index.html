@@ -44,6 +44,21 @@ main{flex:1;padding:20px 28px;max-width:1600px;width:100%;margin:0 auto}
 .stat-card .value{font-size:2rem;font-weight:900;color:var(--dark)}
 .stat-card .sublabel{font-size:.75rem;color:#888;margin-top:2px}
 .stat-card .cov-count{font-size:.9rem;font-weight:800;color:#2f6f43;margin-top:3px}
+/* v32 — per-card completion-detail dropdowns (leadership/TL only; 0 SheetDB impact) */
+.cc-dd-slot{margin-top:10px}
+.cc-dd>summary{cursor:pointer;font-weight:700;font-size:.8rem;color:#b26a00;list-style:none;display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1.5px solid #f0d8a8;background:#fff8ea;border-radius:8px;user-select:none;transition:background .15s}
+.cc-dd>summary::-webkit-details-marker{display:none}
+.cc-dd>summary::before{content:'▸';font-size:.75rem;transition:transform .15s}
+.cc-dd[open]>summary::before{transform:rotate(90deg)}
+.cc-dd>summary:hover{background:#fdefd0}
+.cc-dd-list{margin-top:8px;max-height:230px;overflow-y:auto;border-top:1px solid #eef2f7}
+.cc-dd-row{display:flex;justify-content:space-between;gap:10px;padding:5px 2px;border-bottom:1px solid #f4f7fb;font-size:.82rem}
+.cc-dd-row .cc-agent{font-weight:700;color:#333;flex:0 0 auto}
+.cc-dd-row .cc-what{color:#7a8494;text-align:right;flex:1 1 auto}
+.cc-dd-row .cc-what .cc-detail{display:block;font-size:.74rem;color:#aab2bf;font-style:italic}
+@media(max-width:640px){.cc-dd-row{flex-direction:column;gap:1px}.cc-dd-row .cc-what{text-align:left}}
+.cc-dd-empty{font-size:.82rem;color:#2f6f43;font-weight:700;padding:8px 2px}
+.cc-dd-tlgroup{font-weight:800;font-size:.78rem;color:#44556a;padding:6px 2px 2px;border-bottom:1px solid #f4f7fb}
 /* Coaching Progress Dashboard (v27) — all client-side, 0 SheetDB impact */
 .cp-section{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column}
 .cp-section h3{font-size:1.02rem;font-weight:800;color:var(--dark);margin:0 0 12px;letter-spacing:.01em}
@@ -361,24 +376,28 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div class="value" id="statCount">0</div>
           <div class="cov-count" id="covCoached">—</div>
           <div class="sublabel">Coaching logs in the selected view</div>
+          <div class="cc-dd-slot" id="ddCoached"></div>
         </div>
         <div class="stat-card">
           <div class="label">TL Coaching Completion</div>
           <div class="value" id="statTLC">—</div>
           <div class="cov-count" id="covTLC">—</div>
           <div class="sublabel" id="subTLC">Logs with TL content complete</div>
+          <div class="cc-dd-slot" id="ddTLC"></div>
         </div>
         <div class="stat-card">
           <div class="label">Agent Coaching Completion</div>
           <div class="value" id="statAgentC">—</div>
           <div class="cov-count" id="covAgentC">—</div>
           <div class="sublabel" id="subAgentC">Logs with Agent Complete</div>
+          <div class="cc-dd-slot" id="ddAgentC"></div>
         </div>
         <div class="stat-card">
           <div class="label">Fully Completed Coaching</div>
           <div class="value" id="statFully">—</div>
           <div class="cov-count" id="covFully">—</div>
           <div class="sublabel" id="subFully">TL + Agent complete</div>
+          <div class="cc-dd-slot" id="ddFully"></div>
         </div>
       </div>
       <div id="omBreakdown" style="display:none;margin-bottom:26px"></div>
@@ -525,7 +544,6 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <div id="viewRainmaker" style="display:none">
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
         <button id="rmSubScript" class="btn-add" style="background:#7a3b12" onclick="rmShowSub('script')">📖 Rainmaker Script</button>
-        <button id="rmSubReview" class="btn-add" style="background:#b0490f" onclick="rmShowSub('review')">📝 Call Review</button>
         <button id="rmSubHistory" class="btn-add" style="background:#1a3353" onclick="rmShowSub('history')">📊 Results &amp; History</button>
       </div>
 
@@ -535,47 +553,13 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <iframe id="rmScriptFrame" title="Rainmaker Script" style="width:100%;height:72vh;border:1px solid var(--border);border-radius:8px;background:#fff" sandbox="allow-same-origin allow-scripts"></iframe>
       </div>
 
-      <!-- ===== Call Review ===== -->
-      <div id="rmPaneReview" style="display:none">
-        <div class="form-section">
-          <h4>📝 Rainmaker Call Review</h4>
-          <div class="form-grid">
-            <div class="form-group"><label>Agent <span class="required">*</span></label>
-              <select id="rmAgent" onchange="rmOnAgentChange()"><option value="">— Select Agent —</option></select></div>
-            <div class="form-group"><label>WK # <span class="required">*</span></label>
-              <select id="rmWK"><option value="">— Select WK # —</option></select></div>
-            <div class="form-group"><label>Linked Coaching Log <span style="font-weight:400;color:#888">(optional)</span></label>
-              <select id="rmCoachingLink"><option value="">— None —</option></select></div>
-            <div class="form-group"><label>Aircall Call Link</label>
-              <input type="url" id="rmAircall" placeholder="https://…"/><div id="rmAircallErr" style="display:none;color:#c62828;font-size:.75rem;margin-top:3px">Please enter a valid URL (starting with http:// or https://).</div></div>
-          </div>
-          <div id="rmFocusRef" style="font-size:.82rem;color:#555;margin-top:6px"></div>
-        </div>
-        <div class="form-section">
-          <h4>Rainmaker Adherence Checklist</h4>
-          <div style="font-size:.8rem;color:#666;margin-bottom:8px">Mark each step: <b>Followed</b> / <b>Needs Coaching</b> / <b>N/A</b>. N/A is excluded from Adherence. Complete the whole review, then Save once.</div>
-          <div id="rmChecklist"></div>
-          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:14px">
-            <div class="stat-card" style="flex:1;min-width:180px"><div class="label">Rainmaker Adherence</div><div class="value" id="rmAdherenceLive">—</div><div class="sublabel">Followed ÷ applicable (N/A excluded)</div></div>
-            <div class="stat-card" style="flex:2;min-width:220px"><div class="label">Areas to Reinforce</div><div id="rmAreasLive" style="font-size:.9rem;font-weight:700;color:#b0490f;margin-top:6px">None yet</div><div class="sublabel">Auto-generated from “Needs Coaching”</div></div>
-          </div>
-        </div>
-        <div class="form-section">
-          <h4>Call Review Notes</h4>
-          <div class="form-group"><textarea id="rmNotes" rows="4" placeholder="What the agent did well, what was missed, feedback given, what to improve on the next call…"></textarea></div>
-        </div>
-        <div class="error-msg" id="rmSaveErr" style="display:none"></div>
-        <div id="rmSaveMsg" style="display:none;margin:10px 0;background:#e8f5e9;border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:700;color:#388e3c">✅ Rainmaker Practice saved.</div>
-        <input type="hidden" id="rmEditId"/>
-        <div style="display:flex;gap:10px;margin-top:4px">
-          <button class="btn-primary" style="width:auto;padding:10px 28px" onclick="saveRainmaker()">💾 Save Rainmaker Practice</button>
-          <button style="background:#f5f5f5;border:none;border-radius:6px;padding:10px 20px;font-weight:700;cursor:pointer" onclick="rmResetReviewForm()">Clear</button>
-        </div>
-      </div>
+      <!-- Call Review moved into the Coaching Log modal (v33). The standalone creation
+           sub-tab was removed; historical reviews remain visible in Results & History. -->
 
       <!-- ===== Results & History ===== -->
       <div id="rmPaneHistory" style="display:none">
-        <div class="filters-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+        <div id="rmAgentOwnNote" style="display:none;font-size:.85rem;color:#555;margin-bottom:12px;background:#f5f8ff;border:1px solid #dbe6ff;border-radius:8px;padding:10px 14px">📊 <b>My Rainmaker Results &amp; History</b> — these are your own Rainmaker Call Reviews only (read-only).</div>
+        <div id="rmFilterBar" class="filters-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
           <select id="rmFilterWK" onchange="renderRainmakerDashboard()"><option value="">All Weeks</option></select>
           <select id="rmFilterCluster" onchange="rmOnFilterClusterChange()"><option value="">All Clusters</option><option>Jubee</option><option>Kendryck</option><option>Princess</option></select>
           <select id="rmFilterTL" onchange="rmOnFilterTLChange()"><option value="">All TLs</option></select>
@@ -886,6 +870,41 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           </div>
         </div>
       </div>
+      <!-- ===== Rainmaker Call Review — placed immediately BEFORE Coaching Notes (v33 UI placement).
+           Conditional on the entry's immutable WK1 CVR snapshot (< 9% → required). ===== -->
+      <div class="form-section" id="rmcSection">
+        <div id="rmcHeader" onclick="rmcToggleBody()" style="display:flex;align-items:center;gap:10px;cursor:pointer;flex-wrap:wrap">
+          <h4 style="margin:0">📞 Rainmaker Call Review</h4>
+          <span id="rmcBadge" class="badge badge-gray" style="font-size:.72rem">Optional</span>
+          <span id="rmcToggle" style="margin-left:auto;font-size:.85rem;color:#888">▸</span>
+        </div>
+        <div id="rmcHint" style="font-size:.8rem;color:#666;margin:6px 0 0"></div>
+        <div id="rmcBody" style="display:none;margin-top:12px">
+          <div class="form-grid">
+            <div class="form-group" style="grid-column:1/-1">
+              <label>Aircall Call Link</label>
+              <input type="url" id="rmcAircall" placeholder="https://…" oninput="rmcRecalc()"/>
+              <div id="rmcAircallErr" style="display:none;color:#c62828;font-size:.75rem;margin-top:3px">Please enter a valid URL (starting with http:// or https://).</div>
+            </div>
+          </div>
+          <div style="font-size:.8rem;color:#666;margin:8px 0 6px">Mark each step: <b>Followed</b> / <b>Needs Coaching</b> / <b>N/A</b>. N/A is excluded from Adherence.</div>
+          <div id="rmcChecklist"></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:14px">
+            <div class="stat-card" style="flex:1;min-width:170px"><div class="label">Rainmaker Adherence</div><div class="value" id="rmcAdherenceLive">—</div><div class="sublabel">Followed ÷ applicable (N/A excluded)</div></div>
+            <div class="stat-card" style="flex:2;min-width:220px"><div class="label">Areas to Reinforce</div><div id="rmcAreasLive" style="font-size:.9rem;font-weight:700;color:#b0490f;margin-top:6px">None</div><div class="sublabel">Auto-generated from “Needs Coaching”</div></div>
+          </div>
+          <div class="form-group" style="margin-top:12px">
+            <label>Call Review Notes</label>
+            <textarea id="rmcNotes" rows="3" placeholder="Observations from the reviewed sales call and Rainmaker Script adherence…"></textarea>
+          </div>
+          <div id="rmcRetry" style="display:none;margin-top:10px;background:#fff3e0;border:1.5px solid #ef6c00;border-radius:8px;padding:10px 14px;font-size:.85rem;color:#7a3b12">
+            <div id="rmcRetryMsg" style="margin-bottom:8px"></div>
+            <button class="btn-primary" style="width:auto;padding:8px 22px" onclick="rmcRetrySave()">Retry saving the review</button>
+          </div>
+        </div>
+        <input type="hidden" id="rmcPracticeId"/>
+        <input type="hidden" id="rmcPosted"/>
+      </div>
       <div class="form-section">
         <h4>Coaching Notes</h4>
         <div class="form-grid" style="grid-template-columns:1fr">
@@ -1053,7 +1072,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
     </div>
     <div class="modal-footer">
       <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeFormModal()">Cancel</button>
-      <button class="btn-primary" style="width:auto" onclick="saveEntry()">Save Coaching Log</button>
+      <button class="btn-primary" id="saveEntryBtn" style="width:auto" onclick="saveEntry()">Save Coaching Log</button>
     </div>
   </div>
 </div>
@@ -1252,7 +1271,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-08-24-dashboard-polish-PROD-v31";
+const APEX_BUILD = "2026-09-01-rainmaker-completion-PROD-v33";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -3267,6 +3286,145 @@ function completionStats(list, expected){
     pending:  exp ? Math.max(0, exp - fullKeys.size) : Math.max(0, total - fullKeys.size)
   };
 }
+// ═══════════════════════════════════════════════════════════════════════════
+// v32 — COMPLETION-DETAIL DROPDOWNS for the 4 Weekly Dashboard cards.
+// Membership is driven by the SAME functions the cards use — tlComplete(),
+// agentStatusCoaching(), and same-entry-both for Fully — so each dropdown
+// reconciles exactly with its metric. Reasons are derived from those same
+// definitions (never a second completion rule). 100% in-memory over the
+// already-loaded weekList + ROSTER → 0 SheetDB GET/POST/PATCH/DELETE.
+// Leadership/TL only; Agents never see these dropdowns.
+// ═══════════════════════════════════════════════════════════════════════════
+// Missing STAR fields for an entry. agentStatusCoaching() requires all five,
+// so an empty array here ⟺ that entry is Agent Complete.
+function dashStarMissing(e){
+  const s=(e&&e.star)||{}; const out=[];
+  if(!isFilled(s.situation)) out.push('Situation');
+  if(!isFilled(s.task))      out.push('Task');
+  if(!isFilled(s.action))    out.push('Action');
+  if(!isFilled(s.result))    out.push('Result');
+  if(!isFilled(s.timeline))  out.push('Timeline');
+  return out;
+}
+// TL completion blockers for an entry — mirrors tlComplete() EXACTLY, so an empty
+// array here ⟺ tlComplete(e) === true. (Coaching Status + at least one content
+// field; plus Follow-Up review and mandatory calculator inputs where they apply.)
+function dashTLBlockers(e){
+  const out=[];
+  if (e.completionRuleVersion === COMPLETION_RULE_V33){
+    // NEW RULE — the six required TL fields (named individually), + Follow-Up/calculator/Rainmaker.
+    if(!isFilled(e.coachingStatus)) out.push('Coaching Status');
+    if(!isFilled(e.strength))       out.push('Strength');
+    if(!isFilled(e.areas))          out.push('Areas of Improvement');
+    if(!isFilled(e.limiter))        out.push('Primary Limiter');
+    if(!isFilled(e.actionPlan))     out.push('Action Plan');
+    if(!isFilled(e.followUpDate))   out.push('Follow-up Date');
+    if(e.coachingType==='Follow-Up Coaching' && !followUpComplete(e)) out.push('Follow-Up review');
+    if(isFilled(e.calcFeatureVersion) && !(isNumericFilled(e.peValidPoints)&&isNumericFilled(e.cvrBonusValidSales)&&isNumericFilled(e.cvrBonusPercent))) out.push('calculator inputs');
+    if(rmRequiredForEntry(e) && !rmReviewComplete(linkedRmReview(e))){
+      const rec=linkedRmReview(e); const miss=[];
+      if(!rec || !isFilled(rec.aircall)) miss.push('Aircall Call Link');
+      RM_STEPS.forEach(s=>{ if(!rec || !isFilled((rec.checklist||{})[s])) miss.push(s); });
+      if(!rec || !isFilled(rec.notes)) miss.push('Call Review Notes');
+      out.push('__RM__'+(e.wk1CvrSnapshot||'')+'__'+miss.join('; '));   // special token → rendered as the Rainmaker blocker
+    }
+    return out;
+  }
+  // LEGACY RULE — unchanged.
+  const hasContent = isFilled(e.keyDiscussion)||isFilled(e.strength)||isFilled(e.areas)||isFilled(e.actionPlan);
+  if(!isFilled(e.coachingStatus)) out.push('Coaching Status');
+  if(!hasContent) out.push('coaching notes (Key Discussion / Strength / Areas / Action Plan)');
+  if(e.coachingType==='Follow-Up Coaching' && !followUpComplete(e)) out.push('Follow-Up review');
+  if(isFilled(e.calcFeatureVersion) && !(isNumericFilled(e.peValidPoints)&&isNumericFilled(e.cvrBonusValidSales)&&isNumericFilled(e.cvrBonusPercent))) out.push('calculator inputs');
+  return out;
+}
+// Advisory-only: which individual documentation sections are blank. These are NOT
+// tlComplete() gates (so they never change dropdown membership) — shown as a hint
+// so a TL can see exactly which sections to fill in.
+function dashTLAdvisory(e){
+  const adv=[];
+  if(!isFilled(e.strength))     adv.push('Strength');
+  if(!isFilled(e.areas))        adv.push('Areas of Improvement');
+  if(!isFilled(e.actionPlan))   adv.push('Action Plan');
+  if(!isFilled(e.followUpDate)) adv.push('Follow-up Date');
+  return adv;
+}
+// Split a dashTLBlockers array into plain field blockers + a readable Rainmaker blocker line.
+function dashSplitBlockers(b){
+  const fields=[]; let rmLine='';
+  b.forEach(x=>{
+    if(typeof x==='string' && x.indexOf('__RM__')===0){
+      const rest=x.slice('__RM__'.length); const us=rest.indexOf('__');
+      const snap=us>=0?rest.slice(0,us):''; const miss=us>=0?rest.slice(us+2):'';
+      rmLine = 'Rainmaker Call Review required — 4-WK WK1 CVR Avg: '+(snap?snap+'%':'below 9%')+(miss?(' · Missing: '+miss.replace(/; /g,', ')):'');
+    } else fields.push(x);
+  });
+  return { fields, rmLine };
+}
+// Pick the entry closest to TL-complete (fewest blockers) as the representative.
+function dashRepTL(entries){ return entries.slice().sort((a,b)=>dashTLBlockers(a).length-dashTLBlockers(b).length)[0]; }
+// Pick the entry closest to Agent-complete (fewest missing STAR fields).
+function dashRepAgent(entries){ return entries.slice().sort((a,b)=>dashStarMissing(a).length-dashStarMissing(b).length)[0]; }
+function ccRow(name, what, detail){
+  return `<div class="cc-dd-row"><span class="cc-agent">${escHtml(name)}</span><span class="cc-what">${escHtml(what)}${detail?`<span class="cc-detail">${escHtml(detail)}</span>`:''}</span></div>`;
+}
+// Build one <details> dropdown. rowsHtml already rendered; count reconciles with the card.
+function ccDropdown(label, rowsHtml, emptyMsg){
+  if(!rowsHtml) return `<details class="cc-dd"><summary>${escHtml(label)}</summary><div class="cc-dd-empty">${escHtml(emptyMsg)}</div></details>`;
+  return `<details class="cc-dd"><summary>${escHtml(label)}</summary><div class="cc-dd-list">${rowsHtml}</div></details>`;
+}
+function renderCompletionDropdowns(weekList, scopeAgentsArr, targetWeek, tlFilter){
+  const slots=['ddCoached','ddTLC','ddAgentC','ddFully'];
+  // Agents must NOT see these leadership dropdowns. Clear the slots for the Agent role.
+  if(!currentUser || currentUser.role==='Agent'){ slots.forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML='';}); return; }
+  // Per-agent view of THIS week's (already filtered) entries. Membership uses the same
+  // predicates as the metric cards; lists are the roster agents in scope who fail them.
+  const byAgent={}; weekList.forEach(e=>{ (byAgent[e.agentName||'?']=byAgent[e.agentName||'?']||[]).push(e); });
+  let notCoached='', tlInc='', agInc='', fullyInc='';
+  scopeAgentsArr.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(a=>{
+    const es = byAgent[a.name]||[];
+    const coached = es.length>0;
+    const tlOK = es.some(e=>tlComplete(e));
+    const agOK = es.some(e=>agentStatusCoaching(e)==='Agent Complete');
+    const fullyOK = es.some(e=>tlComplete(e) && agentStatusCoaching(e)==='Agent Complete');
+    // 1. Not yet coached
+    if(!coached) notCoached += ccRow(a.name, 'No coaching log this week');
+    // 2. TL incomplete
+    if(!tlOK){
+      if(!coached){ tlInc += ccRow(a.name, 'No coaching log this week'); }
+      else { const e=dashRepTL(es); const sp=dashSplitBlockers(dashTLBlockers(e)); const adv=dashTLAdvisory(e);
+        const what = sp.fields.length ? ('Missing '+sp.fields.join(', ')) : (sp.rmLine ? 'TL coaching incomplete' : 'TL coaching incomplete');
+        const detail = [sp.rmLine, adv.length?('Also blank: '+adv.join(', ')):''].filter(Boolean).join(' — ');
+        tlInc += ccRow(a.name, what, detail); }
+    }
+    // 3. Agent commitment incomplete
+    if(!agOK){
+      if(!coached){ agInc += ccRow(a.name, 'My Commitment not submitted'); }
+      else { const e=dashRepAgent(es); const miss=dashStarMissing(e);
+        const what = miss.length===5 ? 'My Commitment not submitted' : ('Missing '+miss.join(', '));
+        agInc += ccRow(a.name, what); }
+    }
+    // 4. Not fully completed — indicate which side (TL / Agent / both) remains
+    if(!fullyOK){
+      let side, detail='';
+      const tlDetail = ()=>{ const sp=dashSplitBlockers(dashTLBlockers(dashRepTL(es))); return [sp.fields.length?('TL: Missing '+sp.fields.join(', ')):'', sp.rmLine].filter(Boolean).join(' · '); };
+      if(!coached){ side='TL coaching + Agent commitment incomplete'; detail='No coaching log this week'; }
+      else if(tlOK && !agOK){ side='Agent commitment incomplete'; const e=dashRepAgent(es); const m=dashStarMissing(e); detail = m.length&&m.length<5?('Agent: Missing '+m.join(', ')):(m.length===5?'Agent: My Commitment not submitted':''); }
+      else if(!tlOK && agOK){ side='TL coaching incomplete'; detail = tlDetail(); }
+      else if(!tlOK && !agOK){ side='TL coaching + Agent commitment incomplete';
+        const ae=dashRepAgent(es); const am=dashStarMissing(ae);
+        const apart = am.length&&am.length<5?('Agent: Missing '+am.join(', ')):(am.length===5?'Agent: My Commitment not submitted':'');
+        detail=[tlDetail(),apart].filter(Boolean).join(' · '); }
+      else { side='TL + Agent complete on different sessions'; }
+      fullyInc += ccRow(a.name, side, detail);
+    }
+  });
+  const set=(id,html)=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; };
+  set('ddCoached', ccDropdown('View Agents Not Yet Coached', notCoached, 'All agents in scope have been coached this week.'));
+  set('ddTLC',     ccDropdown('View Agents with Incomplete TL Coaching', tlInc, 'All agents in scope have complete TL coaching.'));
+  set('ddAgentC',  ccDropdown('View Agents with Incomplete Commitment', agInc, 'All agents in scope have a complete commitment.'));
+  set('ddFully',   ccDropdown('View Agents Not Fully Completed', fullyInc, 'All agents in scope are fully completed.'));
+}
 function renderDashboard() {
   const filtered = applyDashFilters(getVisibleEntries());
   // Card 1 — count of logs in the current filtered view
@@ -3301,6 +3459,8 @@ function renderDashboard() {
   if (subTL) subTL.textContent = 'TL content complete · ' + wkTag;
   if (subAg) subAg.textContent = 'Agent Complete · ' + wkTag;
   if (subFu) subFu.textContent = 'TL + Agent complete · ' + wkTag;
+  // v32 — per-card completion-detail dropdowns (leadership/TL only; in-memory; 0 SheetDB requests).
+  renderCompletionDropdowns(weekList, agentsForScope(cl, tl, ag), targetWeek, tl);
   // Weekly breakdown + per-TL table (per-TL table is for the target week; hidden for Agent role)
   renderOMBreakdown(filtered, allWeeks, targetWeek);
   // Table: newest weeks first
@@ -3458,25 +3618,59 @@ function agentStatusNTE(n){
 }
 // TL side is "complete" when the core coaching content the TL owns is present.
 // (No "expected coaching count" field exists in the data — see writeup note.)
+// ═══ v33 — stricter completion rule (grandfathered) + conditional Rainmaker ═══
+const COMPLETION_RULE_V33 = '2026-09-01';   // stamped on creation; blank = legacy rule
+const RM_REQUIRED_THRESHOLD = 9;            // 4-WK WK1 CVR Avg < 9% → Rainmaker Call Review required
+// Cured 4-week WK1 CVR average from a stored wk1cvr5 array — the SAME calculation the WK1 CVR
+// 5-Week View uses (mean of Weeks 2–5 where Leads Received > 0; a valid 0% week counts). Returns
+// null when not computable (no qualifying cured week). Pure — 0 SheetDB requests.
+function curedWk1CvrAvg(wk1cvr5){
+  if (!Array.isArray(wk1cvr5)) return null;
+  const cured = [];
+  for (let i=1;i<=4;i++){ const r=wk1cvr5[i]||{}; const lr=parseFloat(r.lr); const s=parseFloat(r.s);
+    if (!isNaN(lr) && lr>0){ const sales=isNaN(s)?0:s; cured.push(sales/lr*100); } }
+  if (!cured.length) return null;
+  return cured.reduce((a,b)=>a+b,0)/cured.length;
+}
+// Rainmaker required for THIS entry, from its immutable snapshot only (never recomputed from newer weeks).
+function rmRequiredForEntry(e){
+  const snap = e && e.wk1CvrSnapshot;
+  if (snap==null || String(snap).trim()==='') return false;   // blank snapshot → optional
+  const v = parseFloat(snap); return !isNaN(v) && v < RM_REQUIRED_THRESHOLD;
+}
+// The linked Rainmaker review for a coaching entry, from in-memory rmEntries (0 requests).
+function linkedRmReview(e){
+  const arr = (typeof rmEntries!=='undefined' && Array.isArray(rmEntries)) ? rmEntries : [];
+  return arr.find(r => String(r.coachingEntryId) === String(e && e.id)) || null;
+}
+// A required Rainmaker review is complete when: Aircall link present, all 9 items selected, notes non-blank.
+// Adherence % / Areas to Reinforce are DERIVED and are NOT completion gates.
+function rmReviewComplete(rec){
+  if (!rec) return false;
+  if (!isFilled(rec.aircall)) return false;
+  const c = rec.checklist||{};
+  if (!RM_STEPS.every(s => isFilled(c[s]))) return false;
+  if (!isFilled(rec.notes)) return false;
+  return true;
+}
 function tlComplete(e){
   if (!e) return false;
+  // NEW RULE (entries stamped completionRuleVersion === '2026-09-01'): six required TL fields,
+  // plus a complete linked Rainmaker Call Review when the WK1 CVR snapshot is below 9%.
+  if (e.completionRuleVersion === COMPLETION_RULE_V33){
+    const six = isFilled(e.coachingStatus) && isFilled(e.strength) && isFilled(e.areas)
+      && isFilled(e.limiter) && isFilled(e.actionPlan) && isFilled(e.followUpDate);
+    if (!six) return false;
+    if (e.coachingType === 'Follow-Up Coaching' && !followUpComplete(e)) return false;
+    if (isFilled(e.calcFeatureVersion) && !(isNumericFilled(e.peValidPoints) && isNumericFilled(e.cvrBonusValidSales) && isNumericFilled(e.cvrBonusPercent))) return false;
+    if (rmRequiredForEntry(e) && !rmReviewComplete(linkedRmReview(e))) return false;
+    return true;
+  }
+  // LEGACY RULE (blank version) — unchanged, so historical completion % never moves.
   const hasContent = isFilled(e.keyDiscussion) || isFilled(e.strength) || isFilled(e.areas) || isFilled(e.actionPlan);
-  // Coaching Type is NO LONGER a completion gate (v15). It was the only place Coaching Type
-  // could drop an otherwise-valid historical record (blank/legacy type) from the numerator,
-  // and keeping it meant the Google-Sheets consolidation to "Scheduled Coaching" would flip
-  // blank-type rows from incomplete→complete — distorting totals. Completion now depends only
-  // on TL content + Coaching Status, so the metrics are invariant to Coaching Type and to the
-  // migration. Explicit Coaching Type FILTERING (dashboard dropdown) is unchanged.
   const base = isFilled(e.coachingStatus) && hasContent;
   if (!base) return false;
-  // v22: Follow-Up Coaching adds its own requirements — gated ONLY by the new Coaching Type, which no
-  // historical row can have, so historical completion is untouched (no version stamp needed).
   if (e.coachingType === 'Follow-Up Coaching' && !followUpComplete(e)) return false;
-  // v17: the two coaching calculators are MANDATORY — but ONLY for logs created under the
-  // calculator feature (they carry an immutable calcFeatureVersion stamp set at creation).
-  // Historical/pre-feature logs have no stamp → they keep the old rule and are NEVER forced to
-  // backfill calculator inputs, so historical TL-completion % does not drop after deployment.
-  // A legitimate 0 counts as a completed numeric input (isNumericFilled), never treated as blank.
   if (isFilled(e.calcFeatureVersion)) {
     return isNumericFilled(e.peValidPoints) && isNumericFilled(e.cvrBonusValidSales) && isNumericFilled(e.cvrBonusPercent);
   }
@@ -3519,6 +3713,7 @@ function openAddModal() {
   } else if (draftBanner) {
     draftBanner.style.display = 'none';
   }
+  rmcUpdateBadge();   // v33: set the Rainmaker required/optional badge for the fresh form
   openModal('formModal');
 }
 function editEntry(id) {
@@ -3590,6 +3785,7 @@ function editEntry(id) {
   fillFollowUpForm(e);   // restore Follow-Up section (link + A–F answers) or hide it for other types
   calcTenure();
   document.getElementById('tenureBadge').textContent = e.tenure || '—';
+  rmcLoadFromEntry(e);   // v33: restore the linked Rainmaker Call Review + set the required/optional badge
   openModal('formModal');
 }
 function clearForm() {
@@ -3636,6 +3832,7 @@ function clearForm() {
   ['peBonus','peTotal','cvrEligible','cvrRate','cvrBonus'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='—'; });
   if (typeof renderLeverGuidance === 'function') renderLeverGuidance();  // reset lever guidance panel
   if (typeof clearFollowUpForm === 'function') clearFollowUpForm();      // reset + hide the Follow-Up section
+  if (typeof rmcResetForm === 'function') rmcResetForm();                // v33: reset the in-modal Rainmaker review
 }
 function populateFormTLs(cluster) {
   const el = document.getElementById('fTL');
@@ -3792,6 +3989,8 @@ function calcWk1Cvr5() {
     if (avgEl) avgEl.textContent = '—';
     if (sumEl){ sumEl.style.display = 'none'; sumEl.innerHTML = ''; }
   }
+  // v33: keep the in-modal Rainmaker required/optional badge in sync with the live curing table.
+  if (typeof rmcUpdateBadge === 'function') rmcUpdateBadge();
 }
 // ══ Earnings & WK1 CVR Bonus calculators — 100% client-side, ZERO SheetDB requests ══
 // Version stamp written ONCE at creation of a post-feature log (grandfathering: historical
@@ -4245,6 +4444,9 @@ function buildCoachingRow(e) {
     'WK1 CVR Bonus Valid Sales': e.cvrBonusValidSales||'',
     'WK1 CVR Bonus Percent': e.cvrBonusPercent||'',
     'Calc Feature Version': e.calcFeatureVersion||'',
+    // v33: completion-rule stamp + immutable WK1 CVR snapshot (2 new columns). Both blank on legacy rows.
+    'Completion Rule Version': e.completionRuleVersion||'',
+    'WK1 CVR Snapshot': e.wk1CvrSnapshot||'',
     // Follow-Up Coaching (v22): ONLY 2 new columns — the link (greppable) + one JSON blob of answers.
     'Follow-Up Prev Entry ID': e.followUpPrev||'',
     'Follow-Up Data': e.followUp ? JSON.stringify(e.followUp) : '',
@@ -4324,6 +4526,8 @@ function parseSheetRow(row) {
     cvrBonusPercent:    row['WK1 CVR Bonus Percent']||'',
     calcFeatureVersion: row['Calc Feature Version']||'',
     // Follow-Up Coaching (v22): link + JSON answers. Blank/absent for every historical/other-type row.
+    completionRuleVersion: row['Completion Rule Version']||'',
+    wk1CvrSnapshot: row['WK1 CVR Snapshot']||'',
     followUpPrev: row['Follow-Up Prev Entry ID']||'',
     followUp: (function(){ try{ return JSON.parse(row['Follow-Up Data']||'')||null; }catch(err){ return null; } })(),
     keyDiscussion:  row['Key Discussion']||'',
@@ -4607,7 +4811,222 @@ function onCallObjLimiterChange() {
   const v = document.getElementById('fCallObjLimiter').value;
   help.textContent = COH_LIMITER_DESC[v] || '';
 }
-function saveEntry() {
+// ═══ v33 — in-Coaching-Log Rainmaker Call Review (rmc*) ══════════════════════
+// The Call Review lives inside the Coaching Log modal. It reuses the existing
+// RM_STEPS/RM_OPTS/rmAdherence/rmAreas/rmValidUrl/rmAgentContext/buildRmRow and
+// still persists to the SAME "Rainmaker Practice" tab (Approach A), linked by
+// Coaching Entry ID. Adherence % / Areas to Reinforce are DERIVED, never stored,
+// and are NOT completion gates. Building/reading the checklist makes 0 requests.
+function rmcRenderChecklist(){
+  const box = document.getElementById('rmcChecklist');
+  if (!box || box.dataset.built === '1'){ rmcRecalc(); return; }
+  box.innerHTML = RM_STEPS.map((step, i) => {
+    const opts = RM_OPTS.map(o => `<label style="margin-right:14px;font-weight:500;font-size:.85rem"><input type="radio" name="rmc_${i}" value="${o}" onchange="rmcRecalc()"> ${o}</label>`).join('');
+    return `<div style="padding:8px 0;border-bottom:1px solid #eee"><div style="font-weight:700;font-size:.86rem;margin-bottom:4px">${i+1}. ${rmEsc(step)}</div><div>${opts}</div></div>`;
+  }).join('');
+  box.dataset.built = '1';
+  rmcRecalc();
+}
+function rmcReadChecklist(){
+  const c = {};
+  RM_STEPS.forEach((step, i) => {
+    const sel = document.querySelector(`input[name="rmc_${i}"]:checked`);
+    c[step] = sel ? sel.value : '';
+  });
+  return c;
+}
+function rmcSetChecklist(checklist){
+  RM_STEPS.forEach((step, i) => {
+    const want = (checklist && checklist[step]) || '';
+    document.querySelectorAll(`input[name="rmc_${i}"]`).forEach(r => { r.checked = (r.value === want); });
+  });
+}
+function rmcRecalc(){
+  const rec = { checklist: rmcReadChecklist() };
+  const a = rmAdherence(rec);
+  const adhEl = document.getElementById('rmcAdherenceLive');
+  if (adhEl) adhEl.textContent = a.applicable > 0 ? (a.pct + '%') : '—';
+  const areas = rmAreas(rec);
+  const arEl = document.getElementById('rmcAreasLive');
+  if (arEl) arEl.innerHTML = areas.length ? areas.map(x=>rmEsc(x)).join('<br>') : 'None';
+  // live Aircall URL validity feedback
+  const air = document.getElementById('rmcAircall');
+  const airErr = document.getElementById('rmcAircallErr');
+  if (air && airErr) airErr.style.display = rmValidUrl(air.value.trim()) ? 'none' : 'block';
+}
+// Live cured 4-week WK1 CVR average from the curing-table inputs (NEW entries only).
+function rmcLiveCuredAvg(){
+  const arr = [1,2,3,4,5].map(n => ({ lr:(document.getElementById('wcLR'+n)||{}).value||'', s:(document.getElementById('wcS'+n)||{}).value||'' }));
+  return curedWk1CvrAvg(arr);
+}
+// Any review data entered? (drives whether we attempt a Rainmaker save at all)
+function rmcHasData(){
+  if (isFilled((document.getElementById('rmcAircall')||{}).value)) return true;
+  if (isFilled((document.getElementById('rmcNotes')||{}).value)) return true;
+  const c = rmcReadChecklist();
+  return RM_STEPS.some(s => isFilled(c[s]));
+}
+function rmcToggleBody(force){
+  const body = document.getElementById('rmcBody');
+  const tog = document.getElementById('rmcToggle');
+  if (!body) return;
+  const open = (typeof force === 'boolean') ? force : (body.style.display === 'none');
+  body.style.display = open ? 'block' : 'none';
+  if (tog) tog.textContent = open ? '▾' : '▸';
+}
+// Required/optional badge + hint. On EDIT of a v33 entry the requirement is driven
+// by the IMMUTABLE snapshot (never the live table); on a NEW entry it tracks the
+// live curing table; a legacy entry is never required.
+function rmcUpdateBadge(){
+  const badge = document.getElementById('rmcBadge');
+  const hint = document.getElementById('rmcHint');
+  if (!badge) return;
+  const editId = (document.getElementById('editId')||{}).value || '';
+  let avg = null, required = false, locked = false, legacy = false;
+  if (editId){
+    const ex = entries.find(x => x.id === editId);
+    if (ex && ex.completionRuleVersion === COMPLETION_RULE_V33){
+      locked = true;
+      const snap = ex.wk1CvrSnapshot;
+      avg = (snap != null && String(snap).trim() !== '') ? parseFloat(snap) : null;
+      required = rmRequiredForEntry(ex);
+    } else { legacy = true; avg = rmcLiveCuredAvg(); }
+  } else {
+    avg = rmcLiveCuredAvg();
+    required = (avg != null && avg < RM_REQUIRED_THRESHOLD);
+  }
+  const avgTxt = (avg == null || isNaN(avg)) ? 'n/a (no cured week yet)' : (avg.toFixed(2) + '%');
+  if (required){
+    badge.className = 'badge badge-red'; badge.textContent = 'Required';
+  } else {
+    badge.className = 'badge badge-gray'; badge.textContent = 'Optional';
+  }
+  if (hint){
+    let msg = `4-WK WK1 CVR Avg: <b>${avgTxt}</b> · threshold ${RM_REQUIRED_THRESHOLD}%. `;
+    if (required) msg += 'A complete Call Review (Aircall link + all 9 steps + notes) is required for TL Completion.';
+    else if (legacy) msg += 'This is a grandfathered log — the review is optional.';
+    else msg += 'The review is optional at this WK1 CVR level.';
+    if (locked) msg += ' <span style="color:#999">(locked at creation — editing the curing table does not change this)</span>';
+    hint.innerHTML = msg;
+  }
+  // Auto-expand when required; otherwise leave the current state but default-collapse a fresh optional.
+  if (required && document.getElementById('rmcBody') && document.getElementById('rmcBody').style.display === 'none' && badge.dataset.autoExpanded !== '1'){
+    rmcToggleBody(true); badge.dataset.autoExpanded = '1';
+  }
+}
+function rmcResetForm(){
+  const set = (id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+  set('rmcAircall',''); set('rmcNotes',''); set('rmcPracticeId',''); set('rmcPosted','');
+  RM_STEPS.forEach((s,i)=>{ document.querySelectorAll(`input[name="rmc_${i}"]`).forEach(r=>r.checked=false); });
+  const err=document.getElementById('rmcAircallErr'); if(err) err.style.display='none';
+  const retry=document.getElementById('rmcRetry'); if(retry) retry.style.display='none';
+  const badge=document.getElementById('rmcBadge'); if(badge) badge.dataset.autoExpanded='';
+  rmcToggleBody(false);
+  rmcRenderChecklist();
+  rmcRecalc();
+}
+// Load a saved entry's linked Rainmaker review into the form (edit flow).
+function rmcLoadFromEntry(e){
+  rmcResetForm();
+  const rec = linkedRmReview(e);
+  if (rec){
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
+    set('rmcPracticeId', rec.id);
+    set('rmcPosted', '1');           // a row already exists → future saves PATCH it
+    set('rmcAircall', rec.aircall);
+    set('rmcNotes', rec.notes);
+    rmcSetChecklist(rec.checklist || {});
+  }
+  rmcRecalc();
+  rmcUpdateBadge();
+}
+// Build the Rainmaker Practice record from the in-modal form + the coaching entry.
+function rmcBuildRec(entry, id){
+  const ctx = rmAgentContext(entry.agentName);
+  const linked = linkedRmReview(entry);
+  const nowIso = new Date().toISOString();
+  return {
+    id,
+    coachingEntryId: entry.id,
+    date: (linked && linked.date) || (entry.dateOfCoaching || nowIso.slice(0,10)),
+    wk: entry.wkNumber || (linked && linked.wk) || '',
+    cluster: ctx.cluster || '',
+    agent: entry.agentName || '',
+    teamLead: ctx.teamLead || entry.teamLead || '',
+    aircall: (document.getElementById('rmcAircall').value || '').trim(),
+    checklist: rmcReadChecklist(),
+    notes: (document.getElementById('rmcNotes').value || '').trim(),
+    createdAt: (linked && linked.createdAt) || nowIso,
+    updatedAt: nowIso
+  };
+}
+// Idempotent linked-review save. Returns {ok, error}. NEVER creates a duplicate.
+// The Coaching Entry ID is unique per coaching log, so it is the safe idempotency key:
+//   • brand-new review, first attempt → single POST (happy path = 1 request);
+//   • an existing linked review, OR ANY retry after a prior attempt → PATCH by Coaching
+//     Entry ID, and POST only if that PATCH matched no row (updated:0). A spurious failure
+//     after the row actually landed is healed by the PATCH — never a second row.
+// 0 Coaching Logs writes here.
+async function rmcSaveLinkedReview(entry){
+  const air = (document.getElementById('rmcAircall').value || '').trim();
+  if (!rmValidUrl(air)){ document.getElementById('rmcAircallErr').style.display='block'; return { ok:false, error:'The Aircall link is not a valid URL.' }; }
+  const linked = linkedRmReview(entry);
+  const attempted = (document.getElementById('rmcPosted').value === '1');   // a prior save attempt happened in this modal
+  const id = (linked && linked.id) || document.getElementById('rmcPracticeId').value || crypto.randomUUID();
+  document.getElementById('rmcPracticeId').value = id;       // stable Practice ID
+  document.getElementById('rmcPosted').value = '1';          // mark attempted BEFORE the network call (retry-safe)
+  const rec = rmcBuildRec(entry, id);
+  try {
+    if (linked || attempted){
+      // Row exists, or a prior attempt may have created it → PATCH by the unique Coaching Entry ID.
+      const res = await fetch(sheetRowUrl(RM_SHEET, 'Coaching Entry ID', rec.coachingEntryId), {
+        method:'PATCH', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({ data: buildRmRow(rec) })
+      });
+      if (!res.ok) return { ok:false, error:sheetErrorMessage(res.status) };
+      const j = await res.json().catch(()=>({}));
+      if (j && typeof j.updated !== 'undefined' && j.updated === 0){
+        // No matching row → the prior attempt never landed → POST exactly once.
+        const res2 = await fetch(SHEETDB_API_URL, {
+          method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+          body: JSON.stringify({ data:[buildRmRow(rec)], sheet: RM_SHEET })
+        });
+        if (!res2.ok) return { ok:false, error:sheetErrorMessage(res2.status) };
+      }
+    } else {
+      // Brand-new review, first attempt → single POST.
+      const res = await fetch(SHEETDB_API_URL, {
+        method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({ data:[buildRmRow(rec)], sheet: RM_SHEET })
+      });
+      if (!res.ok) return { ok:false, error:sheetErrorMessage(res.status) };
+    }
+  } catch(err){ return { ok:false, error:'Could not reach the database — the review was not saved. Check your connection and try again.' }; }
+  // confirmed save → update in-memory + localStorage mirror (0 further requests)
+  const idx = rmEntries.findIndex(r => r.id === rec.id);
+  if (idx >= 0) rmEntries[idx] = rec; else rmEntries.push(rec);
+  saveRmEntries();
+  cacheStamp('rainmaker');
+  return { ok:true };
+}
+// Retry ONLY the review after a partial-save failure (coaching already saved).
+async function rmcRetrySave(){
+  const editId = (document.getElementById('editId').value) || '';
+  const entry = entries.find(x => x.id === editId);
+  if (!entry){ return; }
+  const retry = document.getElementById('rmcRetry');
+  const msg = document.getElementById('rmcRetryMsg');
+  const res = await rmcSaveLinkedReview(entry);
+  if (res.ok){
+    if (retry) retry.style.display='none';
+    closeModal('formModal');
+    renderDashboard();
+    renderLogTable();
+  } else if (msg){
+    msg.innerHTML = `The Rainmaker Call Review still did not save: <b>${rmEsc(res.error)}</b>. No duplicate records were created — you can retry again.`;
+  }
+}
+async function saveEntry() {
   const req = ['fDate','fAgent','fTL'];
   for(const id of req){
     if(!document.getElementById(id).value){
@@ -4688,21 +5107,51 @@ function saveEntry() {
     // Grandfathering: preserve the ORIGINAL calc-feature stamp. Never add one on edit — editing a
     // historical (unstamped) log must NOT flip it into the calculator-required rule.
     entry.calcFeatureVersion = ex.calcFeatureVersion || '';
+    // v33: completion-rule version + WK1 CVR snapshot are IMMUTABLE — carry the originals forward so
+    // an edit never re-stamps a legacy row into the new rule and never recomputes the snapshot.
+    entry.completionRuleVersion = ex.completionRuleVersion || '';
+    entry.wk1CvrSnapshot = ex.wk1CvrSnapshot || '';
     entries[idx] = entry;
   } else {
     entry.rainmakerFocus = [];
     entry.wk1CvrManual = ''; entry.wk2CvrManual = ''; entry.wk3CvrManual = ''; entry.wk4CvrManual = ''; entry.avgCvrManual = '';
     // New post-feature log → stamp it so the calculators become required for TL completion.
     entry.calcFeatureVersion = CALC_FEATURE_VERSION;
+    // v33: stamp the new completion rule + snapshot the cured 4-WK WK1 CVR avg AT CREATION (immutable).
+    entry.completionRuleVersion = COMPLETION_RULE_V33;
+    { const _snap = curedWk1CvrAvg(entry.wk1cvr5); entry.wk1CvrSnapshot = (_snap==null) ? '' : _snap.toFixed(2); }
     entries.unshift(entry);
   }
   saveEntries();
   cacheStamp('coaching');   // local cache now current — a reload within TTL shows this save
-  syncToSheets(entry, 'coaching', isEdit);
+  syncToSheets(entry, 'coaching', isEdit);   // fire-and-forget Coaching Logs POST/PATCH (unchanged)
   clearDraft();
-  closeModal('formModal');
   renderDashboard();
   renderLogTable();
+  // ── v33 combined save: persist the linked Rainmaker Call Review ONLY when the TL entered
+  // review data, or an existing linked review needs updating. A required-but-blank review is
+  // NOT written (0 requests) — the entry simply stays TL-incomplete until the TL fills and
+  // saves the review. Idempotent by Coaching Entry ID (PATCH an existing row, POST a new one)
+  // — never a duplicate. On failure the coaching log is already saved; keep the modal open and
+  // offer a review-only retry.
+  const needRm = rmcHasData() || !!linkedRmReview(entry);
+  if (!needRm){ closeModal('formModal'); return; }
+  const retry = document.getElementById('rmcRetry');
+  const msg = document.getElementById('rmcRetryMsg');
+  const res = await rmcSaveLinkedReview(entry);
+  if (res.ok){
+    if (retry) retry.style.display='none';
+    closeModal('formModal');
+    renderDashboard();
+    renderLogTable();
+  } else {
+    // Partial save: coaching saved, review did not. The coaching log now exists — put the modal
+    // into edit mode for it so a retry (and any further edits) target the same row, never a duplicate.
+    document.getElementById('editId').value = entry.id;
+    rmcToggleBody(true);
+    if (msg) msg.innerHTML = `The Coaching Log was saved, but the Rainmaker Call Review did NOT save: <b>${rmEsc(res.error)}</b>. No duplicate records were created — retry saving just the review below.`;
+    if (retry) retry.style.display='block';
+  }
 }
 function viewEntry(id) {
   const e = entries.find(x=>x.id===id);
@@ -6269,21 +6718,24 @@ function openRainmakerTab(){
     rmPopulateWk();
     rmInited = true;
   }
-  // Agents cannot create/edit reviews — hide the Call Review sub-tab for them.
-  const reviewBtn = document.getElementById('rmSubReview');
-  if (reviewBtn) reviewBtn.style.display = rmIsAgent() ? 'none' : 'inline-block';
   rmShowSub('script');   // default landing = Script (0 SheetDB requests)
 }
 function rmShowSub(sub){
-  if (sub === 'review' && rmIsAgent()) sub = 'script';   // hard guard
-  const panes = { script:'rmPaneScript', review:'rmPaneReview', history:'rmPaneHistory' };
+  // v33: the "review" (creation) sub-tab was removed — reviews are created inside the Coaching Log.
+  if (sub === 'review') sub = 'script';
+  const panes = { script:'rmPaneScript', history:'rmPaneHistory' };
   Object.keys(panes).forEach(k => { const el = document.getElementById(panes[k]); if (el) el.style.display = (k===sub)?'block':'none'; });
-  ['rmSubScript','rmSubReview','rmSubHistory'].forEach(id => { const el=document.getElementById(id); if(el) el.style.opacity = '0.6'; });
-  const activeBtn = { script:'rmSubScript', review:'rmSubReview', history:'rmSubHistory' }[sub];
+  ['rmSubScript','rmSubHistory'].forEach(id => { const el=document.getElementById(id); if(el) el.style.opacity = '0.6'; });
+  const activeBtn = { script:'rmSubScript', history:'rmSubHistory' }[sub];
   const ab = document.getElementById(activeBtn); if (ab) ab.style.opacity = '1';
+  // v33 permissions: an Agent sees only their OWN reviews (read-only). Hide the leadership
+  // filter bar (cluster/TL/agent) and show a "My Results & History" note. getVisibleRmEntries()
+  // remains the actual data boundary — the UI hiding is cosmetic, not the security gate.
+  const agent = rmIsAgent();
+  const bar = document.getElementById('rmFilterBar'); if (bar) bar.style.display = agent ? 'none' : 'flex';
+  const own = document.getElementById('rmAgentOwnNote'); if (own) own.style.display = agent ? 'block' : 'none';
   if (sub === 'script') rmRenderScript();                // static, 0 requests
-  if (sub === 'review'){ rmPopulateReviewAgents(); rmRenderChecklist(); rmEnsureLoaded(); }
-  if (sub === 'history'){ rmPopulateFilters(); rmEnsureLoaded(); }
+  if (sub === 'history'){ if(!agent) rmPopulateFilters(); rmEnsureLoaded(); }
 }
 
 // ---- Rainmaker Script (verbatim, static, iframe-isolated, 0 requests) ----
@@ -6310,6 +6762,7 @@ function rmScopeAgents(){
   let list = ROSTER.slice();
   if (currentUser.role === 'TL' && currentUser.tlInfo) list = list.filter(a => a.manager === currentUser.tlInfo.fullName);
   else if (currentUser.role === 'OM' && currentUser.omInfo) list = list.filter(a => a.cluster === currentUser.omInfo.cluster);
+  else if (currentUser.role === 'Agent'){ const nm = (ROSTER.find(a=>a.email===currentUser.email)||{}).name || currentUser.display; list = list.filter(a => a.name === nm); }  // agents: only themselves (defense in depth)
   return list.sort((a,b) => a.name.localeCompare(b.name));
 }
 function rmAgentContext(agentName){
@@ -6543,21 +6996,19 @@ function renderRmHistory(list){
   }).join('');
   body.innerHTML = rows || '<tr><td colspan="9" class="empty-state">No Rainmaker Practice reviews in view.</td></tr>';
 }
+// v33: reviews are edited inside their linked Coaching Log. From Results & History,
+// "Edit" opens the linked coaching entry (which restores the review in-modal). A
+// legacy review with no linked/available coaching entry falls back to read-only.
 function rmLoadForEdit(id){
   if (rmIsAgent()) return;
   const r = rmEntries.find(x => x.id === id); if (!r) return;
-  rmShowSub('review');
-  rmResetReviewForm();
-  document.getElementById('rmEditId').value = r.id;
-  rmPopulateReviewAgents();
-  document.getElementById('rmAgent').value = r.agent;
-  rmOnAgentChange();
-  document.getElementById('rmWK').value = r.wk;
-  if (r.coachingEntryId){ const lk=document.getElementById('rmCoachingLink'); if([...lk.options].some(o=>o.value===r.coachingEntryId)) lk.value=r.coachingEntryId; rmUpdateFocusRef(); }
-  document.getElementById('rmAircall').value = r.aircall||'';
-  document.getElementById('rmNotes').value = r.notes||'';
-  RM_STEPS.forEach((s,i)=>{ const v=r.checklist?r.checklist[s]:''; const sel=document.querySelector(`input[name="rm_${i}"][value="${v}"]`); if(sel) sel.checked=true; });
-  rmRecalc();
+  const linkedEntry = r.coachingEntryId ? (typeof entries!=='undefined'?entries:[]).find(e => e.id === r.coachingEntryId) : null;
+  if (linkedEntry && typeof editEntry === 'function'){
+    showView('log');                 // move to the Coaching Log tab so the modal opens in context
+    editEntry(linkedEntry.id);
+    return;
+  }
+  rmViewReadOnly(id);                 // no editable linked coaching log → read-only view
 }
 function rmViewReadOnly(id){
   const r = rmEntries.find(x => x.id === id); if (!r) return;
