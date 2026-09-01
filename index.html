@@ -409,7 +409,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <thead>
             <tr>
               <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
-              <th>Strength</th><th>Areas of Improvement</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
+              <th>Strength</th><th>Areas For Improvement</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="dashTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
@@ -491,7 +491,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <thead>
             <tr>
               <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
-              <th>Coaching Type</th><th>Areas of Improvement</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
+              <th>Coaching Type</th><th>Areas For Improvement</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="logTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
@@ -707,9 +707,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <textarea id="fuNextBehavior" placeholder="Based on today's review, what specific behavior or action needs to change before the next checkpoint?"></textarea>
           <div style="font-size:.78rem;color:#7a8aa0;margin-top:6px">Record THIS coaching's Action Plan in the existing <b>Action Plan</b> field below; the agent's next commitment goes in the existing ⭐ My Commitment section.</div></div>
 
-        <!-- SECTION 7 — TL SUPPORT -->
-        <div class="form-group" style="grid-column:1/-1"><label>⑦ TL Support <span class="required">*</span></label>
-          <textarea id="fuTlSupport" placeholder="What support will you (the TL) provide before the next checkpoint?"></textarea></div>
+        <!-- SECTION 7 — TL SUPPORT removed from the UI (v34). fuTlSupport is retained as a HIDDEN
+             field so historical values round-trip on edit (never wiped) and the existing Follow-Up
+             Data blob column is preserved. It is no longer a TL-completion gate (see followUpComplete). -->
+        <input type="hidden" id="fuTlSupport"/>
       </div>
       <!-- Focus Area(s) input removed from the form (v15). Historical "Focus Area" data is
            NOT deleted: it is still read by parseSheetRow, carried forward on edit (saveEntry),
@@ -749,7 +750,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               </tbody>
             </table>
           </div>
-          <div class="perf-group">
+          <div class="perf-group" id="perfGroupSalesCVR">
             <div class="perf-group-title">Sales & CVR</div>
             <table class="perf-table">
               <colgroup><col class="pt-week"><col class="pt-val"><col class="pt-pct"></colgroup>
@@ -865,7 +866,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
             </div>
             <div id="leverRamp" style="margin-top:12px;display:none"></div>
             <div style="font-size:.74rem;color:#7a8aa0;margin-top:12px;border-top:1px dashed #d7e3f4;padding-top:8px">
-              Flow: Performance Metrics → <b>Primary Opportunity</b> → <b>Projected Impact</b> → Areas of Improvement → Action Plan → Agent My Commitment
+              Flow: Performance Metrics → <b>Primary Opportunity</b> → <b>Projected Impact</b> → Areas For Improvement → Action Plan → Agent My Commitment
             </div>
           </div>
         </div>
@@ -930,7 +931,7 @@ Brief Explanation: The agent's TCR is below target mainly because of low leads t
             <textarea id="fStrength" placeholder="Agent's strengths observed..."></textarea>
           </div>
           <div class="form-group">
-            <label>Areas of Improvement</label>
+            <label>Areas For Improvement</label>
             <textarea id="fAreas" placeholder="Areas the agent needs to improve..."></textarea>
           </div>
         </div>
@@ -1018,10 +1019,10 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
               <option>Resolved / Closed</option>
             </select>
           </div>
-          <div class="form-group" style="grid-column:1/-1">
-            <label>Additional Remarks / Notes</label>
-            <textarea id="fRemarks" placeholder="Any additional notes or remarks..."></textarea>
-          </div>
+          <!-- v34: "Additional Remarks / Notes" removed from the UI. The field is retained as a
+               HIDDEN input purely so historical values round-trip on edit (never wiped) and the
+               existing SheetDB "Remartks" column is preserved. No new column, no backfill. -->
+          <input type="hidden" id="fRemarks"/>
         </div>
       </div>
       <div class="form-section">
@@ -1271,7 +1272,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-01-rainmaker-completion-PROD-v33";
+const APEX_BUILD = "2026-09-01-coaching-ui-cleanup-PROD-v34";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -3315,7 +3316,7 @@ function dashTLBlockers(e){
     // NEW RULE — the six required TL fields (named individually), + Follow-Up/calculator/Rainmaker.
     if(!isFilled(e.coachingStatus)) out.push('Coaching Status');
     if(!isFilled(e.strength))       out.push('Strength');
-    if(!isFilled(e.areas))          out.push('Areas of Improvement');
+    if(!isFilled(e.areas))          out.push('Areas For Improvement');
     if(!isFilled(e.limiter))        out.push('Primary Limiter');
     if(!isFilled(e.actionPlan))     out.push('Action Plan');
     if(!isFilled(e.followUpDate))   out.push('Follow-up Date');
@@ -3344,7 +3345,7 @@ function dashTLBlockers(e){
 function dashTLAdvisory(e){
   const adv=[];
   if(!isFilled(e.strength))     adv.push('Strength');
-  if(!isFilled(e.areas))        adv.push('Areas of Improvement');
+  if(!isFilled(e.areas))        adv.push('Areas For Improvement');
   if(!isFilled(e.actionPlan))   adv.push('Action Plan');
   if(!isFilled(e.followUpDate)) adv.push('Follow-up Date');
   return adv;
@@ -5183,7 +5184,7 @@ function viewEntry(id) {
         <div class="view-field" style="display:block">${rainmakerResultInnerHtml(e)}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Key Discussion</label><div class="view-field big">${(e.keyDiscussion||'—').replace(/\n/g,'<br>')}</div></div>
       <div class="form-group" style="grid-column:1/-1"><label>Strength Identified</label><div class="view-field big">${(e.strength||'—').replace(/\n/g,'<br>')}</div></div>
-      <div class="form-group" style="grid-column:1/-1"><label>Areas of Improvement</label><div class="view-field big">${(e.areas||'—').replace(/\n/g,'<br>')}</div></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Areas For Improvement</label><div class="view-field big">${(e.areas||'—').replace(/\n/g,'<br>')}</div></div>
     </div>
     <div class="form-section">
       <h4>4-Week Performance</h4>
@@ -5206,7 +5207,6 @@ function viewEntry(id) {
         ${e.callObjLimiter ? `<div class="form-group"><label>Call/Objection Handling Limiter</label><div class="view-field">${e.callObjLimiter}</div></div>` : ''}
         <div class="form-group"><label>Follow-up Date</label><div class="view-field">${e.followUpDate||'—'}</div></div>
         <div class="form-group" style="grid-column:1/-1"><label>Action Plan / Next Steps</label><div class="view-field big">${(e.actionPlan||'—').replace(/\n/g,'<br>')}</div></div>
-        <div class="form-group" style="grid-column:1/-1"><label>Additional Remarks</label><div class="view-field big">${(e.remarks||'—').replace(/\n/g,'<br>')}</div></div>
       </div>
     </div>
     <div class="form-section">
@@ -5636,7 +5636,7 @@ function prevCoachingReviewHtml(prev, root){
   return row('1. Primary Opportunity', escHtml(fuLeverInfo(prev).opp))
     + row('2. Primary Limiter', escHtml(prev.limiter||'—')+(prev.callObjLimiter?(' — '+escHtml(prev.callObjLimiter)):''))
     + row('3. Key Discussion', escHtml(prev.keyDiscussion||'—').replace(/\n/g,'<br>'))
-    + row('4. Areas of Improvement', escHtml(prev.areas||'—').replace(/\n/g,'<br>'))
+    + row('4. Areas For Improvement', escHtml(prev.areas||'—').replace(/\n/g,'<br>'))
     + row('5. Action Plan', escHtml(prev.actionPlan||'—').replace(/\n/g,'<br>'))
     + row("6. Agent's My Commitments", commit)
     + `<div style="margin-bottom:4px"><b>7. Original 4-Week Target Ramp — Progress Reference:</b></div><div style="margin-top:4px">${rampBlock}</div>`;
@@ -5733,8 +5733,9 @@ function followUpComplete(e){
     && isFilled(e.limiter)
     && isFilled(fu.fuRcCategory)
     && isFilled(e.actionPlan)
-    && isFilled(fu.fuNextBehavior)
-    && isFilled(fu.fuTlSupport);
+    && isFilled(fu.fuNextBehavior);
+  // v34: the TL Support field was removed from the UI and is NO LONGER a completion requirement.
+  // Its stored value is preserved for historical records but is not checked here.
 }
 // Read-only Follow-Up render — SHARED by TL/OM viewEntry() and Agent openCommitmentView().
 function followUpAnswersHtml(e){
@@ -5746,7 +5747,6 @@ function followUpAnswersHtml(e){
     + row('Limiter still primary?', fu.fuLimiterStill) + row('Evidence', fu.fuLimiterEvidence)
     + row('Root cause', fu.fuRcCategory) + row('Root-cause evidence', fu.fuRcEvidence)
     + row("This week's adjustment", fu.fuNextBehavior)
-    + row('TL Support', fu.fuTlSupport)
     + `</div>`;
 }
 function followUpReviewHtml(e){
@@ -5795,7 +5795,7 @@ function openCommitmentView(entryId) {
         <div class="cd-val">${(e.strengths||e.strength||'—').replace(/\n/g,'<br>')}</div>
       </div>
       <div class="coaching-detail-item">
-        <div class="cd-label">📈 Areas for Improvement</div>
+        <div class="cd-label">📈 Areas For Improvement</div>
         <div class="cd-val">${(e.areas||'—').replace(/\n/g,'<br>')}</div>
       </div>
       <div class="coaching-detail-item full">
@@ -5813,10 +5813,6 @@ function openCommitmentView(entryId) {
       ${e.followUpDate ? `<div class="coaching-detail-item" style="background:#e3f2fd">
         <div class="cd-label">📅 Follow-up Date</div>
         <div class="cd-val">${e.followUpDate}</div>
-      </div>` : ''}
-      ${e.remarks ? `<div class="coaching-detail-item full">
-        <div class="cd-label">📝 Remarks</div>
-        <div class="cd-val">${(e.remarks||'—').replace(/\n/g,'<br>')}</div>
       </div>` : ''}
     </div>
     ${perfRows ? `
