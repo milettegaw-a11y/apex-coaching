@@ -326,6 +326,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div class="user-badge" id="userBadge"></div>
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
+      <button id="btnRecovery" class="btn-burger" onclick="openRecoveryDiagnostic()" style="display:none" title="Read-only: check which of your cached Coaching Logs are Synced / Not Synced">🛟 Recovery</button>
       <button id="btnMigrate" class="btn-burger" onclick="migrateUsersToFirestore()" style="display:none" title="One-time (SOM only): migrate the SEED roster into users/{email} documents">⬆️ Migrate roster</button>
       <!-- "Sync Local → SheetDB" (backfillToSheets) button removed: no normal UI path may trigger the old bulk sync.
            backfillToSheets() is retained as a dormant emergency/recovery utility only (not wired to any control). -->
@@ -1071,6 +1072,13 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
         </div>
       </div>
     </div>
+    <!-- v36: coaching save/sync failure banner — the record is saved locally with its original
+         Entry ID; the TL is told their work is safe and can retry (retry reuses the same Entry ID). -->
+    <div id="saveSyncErr" style="display:none;margin:0 20px 12px;background:#fff3e0;border:1.5px solid #ef6c00;border-radius:8px;padding:12px 14px;font-size:.86rem;color:#7a3b12">
+      <div style="font-weight:800;margin-bottom:4px">⚠️ Not Synced — saved locally only</div>
+      <div id="saveSyncErrMsg" style="margin-bottom:8px">Coaching Log was saved locally but could not sync to the server. Your work is safe. Please retry syncing.</div>
+      <button class="btn-primary" style="width:auto;padding:8px 22px" onclick="retrySaveSync()">Retry syncing</button>
+    </div>
     <div class="modal-footer">
       <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeFormModal()">Cancel</button>
       <button class="btn-primary" id="saveEntryBtn" style="width:auto" onclick="saveEntry()">Save Coaching Log</button>
@@ -1086,6 +1094,26 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
     <div class="modal-body" id="viewModalBody"></div>
     <div class="modal-footer">
       <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('viewModal')">Close</button>
+    </div>
+  </div>
+</div>
+<!-- v36: read-only Recovery Diagnostic. Classifies cached Coaching Logs vs the last authoritative
+     scope fetch. NEVER POSTs/PATCHes/DELETEs; adds no SheetDB requests (reuses already-fetched data). -->
+<div class="modal-overlay" id="recoveryModal">
+  <div class="modal" style="max-width:1100px">
+    <div class="modal-header">
+      <h3>🛟 Coaching Log Recovery Diagnostic <span style="font-weight:500;font-size:.8rem;color:#888">— read-only</span></h3>
+      <button class="modal-close" onclick="closeModal('recoveryModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="recoverySummary" style="font-size:.9rem;margin-bottom:12px"></div>
+      <div class="table-wrap" style="max-height:60vh;overflow:auto"><table class="proj-table"><thead><tr class="proj-row-header">
+        <th style="text-align:left">Status</th><th style="text-align:left">Agent</th><th>WK</th><th style="text-align:left">Team Lead</th><th>Date</th><th style="text-align:left">Type</th><th>Updated At</th><th style="text-align:left">Logged By</th><th>Agent Status</th><th>On Server</th><th>Full Obj</th><th>KD Cached</th><th>KD Recoverable</th><th>Rainmaker</th><th style="text-align:left">Entry ID</th>
+      </tr></thead><tbody id="recoveryBody"><tr><td colspan="15" class="empty-state">No cached coaching logs in scope.</td></tr></tbody></table></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" style="width:auto" onclick="copyRecoveryReport()">📋 Copy recovery report (JSON)</button>
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('recoveryModal')">Close</button>
     </div>
   </div>
 </div>
@@ -1272,7 +1300,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-01-coaching-ui-cleanup-PROD-v34";
+const APEX_BUILD = "2026-09-02-save-sync-recovery-PROD-v36";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -1285,11 +1313,16 @@ try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 //   'janedoe@homeaglowsales.com': {display:'TL Jane', fullName:'Jane Doe', cluster:'Kendryck'},
 // ============================================================================
 const SEED_TL_EMAILS = {
-  'errollim@homeaglowsales.com':           {display:'TL Arielle', fullName:'Mark Errol Lim',         cluster:'Jubee'},
+  // v35: TL Arielle promoted to OM (see SEED_OM_EMAILS). TL RB replaces her Jubee TL slot; her
+  // former team is reassigned to RB below. Historical logs keep "TL Arielle" (never rewritten).
+  'rafaelmanansala@homeaglowsales.com':    {display:'TL RB',      fullName:'Rafael Bernard Manansala',cluster:'Jubee'},
   'kailelaquindanum@homeaglowsalestwo.com':{display:'TL Kaii',    fullName:'Kaile Laquindanum',      cluster:'Jubee'},
   'leoniedeonaga@homeaglowsalesone.com':   {display:'TL Lei',     fullName:'Leonie Deonaga',         cluster:'Jubee'},
   'kennethhistoriador@homeaglowsales.com': {display:'TL Kenneth', fullName:'Kenneth Historiador Jr.',cluster:'Jubee'},
-  'angelomararac@homeaglowsalestwo.com':   {display:'TL Angelo',  fullName:'Angelo Mararac',         cluster:'Jubee'},
+  // v35: TL Angelo terminated (deactivate his Firestore users/ doc — active:false). TL Krizelle
+  // replaces his Jubee TL slot; his former team is reassigned to Krizelle below. Historical logs
+  // keep "TL Angelo" (never rewritten). Krizelle was previously an Agent under TL Lei (promoted).
+  'krizelletaino@homeaglowsalesone.com':   {display:'TL Krizelle',fullName:'Krizelle Taiño',         cluster:'Jubee'},
   'euniceolaguer@homeaglowsalestwo.com':   {display:'TL Eunice',  fullName:'Eunice Olaguer',         cluster:'Jubee'},
   // TL Anna — mapping is live (agents map to her), but her LOGIN email is NOT yet confirmed.
   // The key below is a flagged placeholder, NOT a real credential: it can never match a typed
@@ -1312,7 +1345,11 @@ const SEED_TL_EMAILS = {
 const SEED_OM_EMAILS = {
   'jubee@homeaglowsales.com':          {display:'OM Jubee',    cluster:'Jubee'},
   'kendryck@homeaglowsales.com':       {display:'OM Kendryck', cluster:'Kendryck'},
-  'princesssimbahan@homeaglowsalesone.com':{display:'OM Princess',cluster:'Princess'},
+  // v35: OM Arielle replaces OM Princess as the current OM of the Princess cluster. The cluster
+  // identifier stays "Princess" (never renamed). OM Princess (princesssimbahan@) is removed from
+  // active OM ownership — deactivate her Firestore users/ doc (active:false); her historical
+  // records are preserved and never rewritten.
+  'errollim@homeaglowsales.com':       {display:'OM Arielle',  cluster:'Princess'},
 };
 const SEED_ADMIN_EMAILS = ['milettegaw@homeaglowsales.com','milettegaw@homeaglowsalestwo.com','milettegaw@homeaglowsalesone.com','clayton@homeaglowsales.com'];
 // ── Department-wide reporting accounts ───────────────────────────────────────
@@ -1340,7 +1377,7 @@ function canRunBackfill(u){ u = u || (typeof currentUser !== 'undefined' ? curre
 // ============================================================================
 const SEED_AGENTS = [
   // ---- Added 2026-08-18 (login-fix roster additions) ----
-  {email:'arronegallego@homeaglowsalesone.com',     name:'Arrone Gallego',                   manager:'Mark Errol Lim',            cluster:'Jubee'},
+  {email:'arronegallego@homeaglowsalesone.com',     name:'Arrone Gallego',                   manager:'Rafael Bernard Manansala',            cluster:'Jubee'},
   {email:'angelaarnaiz@homeaglowsales.com',         name:'Angela Arnaiz',                    manager:'Kenneth Historiador Jr.',   cluster:'Jubee'},
   {email:'christinefortuna@homeaglowsales.com',     name:'Christine Mae Cor Fortuna',        manager:'Kenneth Historiador Jr.',   cluster:'Jubee'},
   // ---- TL Nikka's team (Cluster Kendryck), confirmed 2026-08-18 ----
@@ -1354,7 +1391,7 @@ const SEED_AGENTS = [
   {email:'alvindoroy@homeaglowsales.com',           name:'Alvin Doroy',                      manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2024-08-12'},
   {email:'jessicasiya@homeaglowsales.com',          name:'Jessica Romm Siya',                manager:'May Claveron',              cluster:'Kendryck', start:'2024-08-26'},
   {email:'girliecorrales@homeaglowsales.com',       name:'Girlie Corrales',                  manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2024-09-09'},
-  {email:'jisellesantos@homeaglowsales.com',        name:'Jiselle Cayabyab-Santos',          manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2024-10-07'},
+  {email:'jisellesantos@homeaglowsales.com',        name:'Jiselle Cayabyab-Santos',          manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2024-10-07'},
   {email:'jimmybarnachea@homeaglowsales.com',       name:'Jimmy Barnachea',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2024-10-07'},
   {email:'dulcejimenez@homeaglowsales.com',         name:'Dulce Jimenez',                    manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2024-10-21'},
   {email:'rosevallespin@homeaglowsalesone.com',     name:'Rose Marie Vallespin',             manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2024-10-21'},
@@ -1366,18 +1403,18 @@ const SEED_AGENTS = [
   {email:'rosetejedor@homeaglowsales.com',          name:'Rose Ann Tejedor',                 manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-01-06'},
   {email:'vanessainocencio@homeaglowsalesone.com',  name:'Vanessa Sarah Inocencio',          manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-01-20'},
   {email:'rinagalang@homeaglowsalestwo.com',        name:'Rina Galang',                      manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-04-07'},
-  {email:'arahsacro@homeaglowsales.com',            name:'Arah Mae Sacro',                   manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-02-10'},
+  {email:'arahsacro@homeaglowsales.com',            name:'Arah Mae Sacro',                   manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-02-10'},
   {email:'carlynordona@homeaglowsales.com',         name:'Carlyn Ordona',                    manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-02-10'},
   {email:'allanchuajr@homeaglowsales.com',          name:'Allan Chua Jr.',                   manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-02-10'},
-  {email:'trixiarobles@homeaglowsales.com',         name:'Trixia Marie Robles',              manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-02-24'},
+  {email:'trixiarobles@homeaglowsales.com',         name:'Trixia Marie Robles',              manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-02-24'},
   {email:'noemigalon@homeaglowsalestwo.com',        name:'Noemi Galon',                      manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-02-24'},
   {email:'joanestarez@homeaglowsalestwo.com',       name:'Joan Elizabeth Zendivina Estarez', manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-02-24'},
   {email:'johnbabila@homeaglowsalestwo.com',        name:'John Anthony Babila',              manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-03-10'},
   {email:'maryopena@homeaglowsalestwo.com',         name:'Mary Angelique Emeline Opeña',     manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-03-10'},
-  {email:'bernadetteespinas@homeaglowsalestwo.com', name:'Bernadette Espinas',               manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-03-17'},
-  {email:'michaelaleta@homeaglowsales.com',         name:'Michael Aleta',                    manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-03-24'},
+  {email:'bernadetteespinas@homeaglowsalestwo.com', name:'Bernadette Espinas',               manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-03-17'},
+  {email:'michaelaleta@homeaglowsales.com',         name:'Michael Aleta',                    manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-03-24'},
   {email:'aceamantiad@homeaglowsalesone.com',       name:'Ace York Amantiad',                manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2025-03-31'},
-  {email:'princessmamandis@homeaglowsalestwo.com',  name:'Princess Lorraine Mamandis',       manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-04-07'},
+  {email:'princessmamandis@homeaglowsalestwo.com',  name:'Princess Lorraine Mamandis',       manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-04-07'},
   {email:'janellecasabuena@homeaglowsales.com',     name:'Janelle Adriana Casabuena',        manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-04-07'},
   {email:'jovelyntomilloso@homeaglowsalestwo.com',  name:'Jovelyn Tomilloso',                manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-07-28'},
   {email:'michaelsantiago@homeaglowsales.com',      name:'Michael Angelo Santiago',          manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-04-07'},
@@ -1387,7 +1424,7 @@ const SEED_AGENTS = [
   {email:'aarontuico@homeaglowsales.com',           name:'Aaron Louise Tuico',               manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-05-05'},
   {email:'jenalynnpaya@homeaglowsales.com',         name:'Jenalynn Paya',                    manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2025-05-05'},
   {email:'mervenpanganiban@homeaglowsales.com',     name:'Merven Panganiban',                manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-05-13'},
-  {email:'jennifertrinidad@homeaglowsalestwo.com',  name:'Jennifer M. Trinidad',             manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-05-19'},
+  {email:'jennifertrinidad@homeaglowsalestwo.com',  name:'Jennifer M. Trinidad',             manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-05-19'},
   {email:'jondellemiranda@homeaglowsalestwo.com',   name:'Jondelle Miranda',                 manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-05-19'},
   {email:'melougynsaliot@homeaglowsalestwo.com',    name:'Melougyn Saliot',                  manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-05-19'},
   {email:'odiroseamuyot@homeaglowsalestwo.com',     name:'Odirose Q. Amuyot',               manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-05-19'},
@@ -1402,23 +1439,22 @@ const SEED_AGENTS = [
   {email:'lynnvillahermosa@homeaglowsalestwo.com',  name:'Lynn Villahermosa',                manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2025-06-02'},
   {email:'irenevirgo@homeaglowsales.com',           name:'Irene Joy Virgo',                  manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-02'},
   {email:'roxannebalcita@homeaglowsalestwo.com',    name:'Roxanne Balcita',                  manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-06-02'},
-  {email:'virnadaclan@homeaglowsales.com',          name:'Virna Daclan',                     manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-16'},
+  {email:'virnadaclan@homeaglowsales.com',          name:'Virna Daclan',                     manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-06-16'},
   {email:'patriciajaniola@homeaglowsalesone.com',   name:'Patricia Rose Janiola',            manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-16'},
   {email:'larahongayo@homeaglowsales.com',          name:'Ma. Lara Hongayo',                 manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-16'},
-  {email:'romeosandovaljr@homeaglowsalestwo.com',   name:'Romeo Jr Sandoval',                manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-16'},
+  {email:'romeosandovaljr@homeaglowsalestwo.com',   name:'Romeo Jr Sandoval',                manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-06-16'},
   {email:'kathrinatabaquin@homeaglowsalestwo.com',  name:'Kathrina Christine Tabaquin',      manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-16'},
   {email:'angelicalorenzana@homeaglowsalestwo.com', name:'Angelica Joyce Lorenzana',         manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-16'},
-  {email:'krizelletaino@homeaglowsalesone.com',     name:'Krizelle Taiño',                   manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-06-23'},
   {email:'michaeldometita@homeaglowsalestwo.com',   name:'Michael Dometita',                 manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-30'},
-  {email:'princesspunzalan@homeaglowsales.com',     name:'Princess May Punzalan',            manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-30'},
+  {email:'princesspunzalan@homeaglowsales.com',     name:'Princess May Punzalan',            manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-06-30'},
   {email:'chrisantilegando@homeaglowsalestwo.com',  name:'Chris Antilegando',                manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2025-07-07'},
   {email:'irisneri@homeaglowsalestwo.com',          name:'Iris Mariel Neri',                 manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-05-13'},
   {email:'christophercampion@homeaglowsalestwo.com',name:'Christopher A. Campion',           manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-07-21'},
   {email:'alvinreyes@homeaglowsalesone.com',        name:'Alvin Reyes',                      manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-07-14'},
   {email:'neranelsapelino@homeaglowsalestwo.com',   name:'Neranel Sapelino',                 manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-07-28'},
   {email:'suneilgilay@homeaglowsalestwo.com',       name:'Suneil Anthony Tarpin Gilay',      manager:'May Claveron',              cluster:'Kendryck', start:'2025-07-28'},
-  {email:'marylim@homeaglowsalestwo.com',           name:'Mary Joy Lim',                     manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-07-28'},
-  {email:'billygali@homeaglowsales.com',            name:'Billy Ray Ocay Gali',              manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-07-28'},
+  {email:'marylim@homeaglowsalestwo.com',           name:'Mary Joy Lim',                     manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-07-28'},
+  {email:'billygali@homeaglowsales.com',            name:'Billy Ray Ocay Gali',              manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-07-28'},
   {email:'jemymorong@homeaglowsalestwo.com',        name:'Jemy Morong',                      manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-06-30'},
   {email:'jessabalsamo@homeaglowsalesone.com',      name:'Jessa Balsamo',                    manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-09-01'},
   {email:'abdallahdilna@homeaglowsalesone.com',     name:'Abdallah R. Dilna',               manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-09-01'},
@@ -1468,21 +1504,21 @@ const SEED_AGENTS = [
   {email:'jocelynalcoran@homeaglowsalesone.com',    name:'Jocelyn S. Alcoran',               manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2026-03-02'},
   {email:'darielmacasambat@homeaglowsalesone.com',  name:'Dariel Macasambat',                manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2026-03-02'},
   {email:'abbigailvillanueva@homeaglowsalestwo.com',name:'Abbigail Villanueva',              manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-03-09'},
-  {email:'doendoronila@homeaglowsalestwo.com',      name:'Doen Doronila',                    manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'doendoronila@homeaglowsalestwo.com',      name:'Doen Doronila',                    manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-03-09'},
   {email:'rickdula@homeaglowsalestwo.com',          name:'Rick Allen Dula',                  manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-03-09'},
-  {email:'christserveza@homeaglowsalestwo.com',     name:'Christ John Serveza',              manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'christserveza@homeaglowsalestwo.com',     name:'Christ John Serveza',              manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-03-09'},
   {email:'elisaarenas@homeaglowsalestwo.com',       name:'Elisa Arenas',                     manager:'Basil Llamedo',             cluster:'Kendryck', start:'2026-03-09'},
-  {email:'danicadionela@homeaglowsalestwo.com',     name:'Danica Dionela',                   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'danicadionela@homeaglowsalestwo.com',     name:'Danica Dionela',                   manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-03-09'},
   {email:'mariejoeupalan@homeaglowsalestwo.com',    name:'Marie Jo Eupalan',                 manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-03-09'},
   {email:'jersonatillaga@homeaglowsalesone.com',    name:'Jerson Atillaga',                  manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-03-16'},
   {email:'joannaluganao@homeaglowsalestwo.com',     name:'Joanna Ynez Luganao',              manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-03-16'},
   {email:'shienabagunoc@homeaglowsales.com',        name:'Shiena Mae Bagunoc',               manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-03-23'},
-  {email:'jessielynmarin@homeaglowsales.com',       name:'Jessielyn Marin',                  manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-23'},
+  {email:'jessielynmarin@homeaglowsales.com',       name:'Jessielyn Marin',                  manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-03-23'},
   {email:'jeaninebuendia@homeaglowsales.com',       name:'Jeanine Buendia',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
   {email:'michaeldelacruz@homeaglowsales.com',      name:'John Michael Dela Cruz',           manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
   {email:'manuelitocabillo@homeaglowsales.com',     name:'Manuelito Cabillo',                manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
   {email:'monicaobrero@homeaglowsalestwo.com',      name:'Monica Obrero',                    manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-03-30'},
-  {email:'josefagela@homeaglowsales.com',           name:'Jose Marou Karl Laynesa Fagela',   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-04-06'},
+  {email:'josefagela@homeaglowsales.com',           name:'Jose Marou Karl Laynesa Fagela',   manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-04-06'},
   {email:'donitaamaquin@homeaglowsalestwo.com',     name:'Donita Amaquin',                   manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-04-06'},
   {email:'conradolaudenorio@homeaglowsalestwo.com', name:'Conrado Laudenorio Jr',            manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-04-20'},
   {email:'josephdeasis@homeaglowsalestwo.com',      name:'Joseph Christ De Asis',            manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-04-20'},
@@ -1513,7 +1549,7 @@ const SEED_AGENTS = [
   {email:'excelmalabago@homeaglowsalesone.com',     name:'Excel Lawrence Malabago',          manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-06-01'},
   {email:'angelamigullas@homeaglowsalesone.com',    name:'Angela Migullas',                  manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-06-01'},
   {email:'danahmicayabas@homeaglowsalesone.com',    name:'Danah Carol Micayabas',            manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-06-01'},
-  {email:'deancastro@homeaglowsalesone.com',        name:'Dean Rowell Castro',               manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-01'},
+  {email:'deancastro@homeaglowsalesone.com',        name:'Dean Rowell Castro',               manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-06-01'},
   {email:'angeliqueubungen@homeaglowsalestwo.com',  name:'Angelique Ubungen',                manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
   {email:'czarinamitra@homeaglowsalestwo.com',      name:'Czarina Mae Mitra',                manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
   {email:'erickaperez@homeaglowsalestwo.com',       name:'Ericka Mae Perez',                 manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
@@ -1523,8 +1559,8 @@ const SEED_AGENTS = [
   {email:'raymondbalaga@homeaglowsalesone.com',     name:'Raymond Balaga',                   manager:'Jaydi Miranda',             cluster:'Princess', start:'2026-06-08'},
   {email:'hannaibanez@homeaglowsalesone.com',       name:'Hanna Alexie Ibanez',              manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-06-08'},
   {email:'jesusapaso@homeaglowsales.com',           name:'Jesus Apaso III',                  manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2026-06-08'},
-  {email:'marygallentes@homeaglowsales.com',        name:'Mary Rose Gallentes',              manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
-  {email:'eunicesanchez@homeaglowsales.com',        name:'Eunice Sanchez',                   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
+  {email:'marygallentes@homeaglowsales.com',        name:'Mary Rose Gallentes',              manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-06-08'},
+  {email:'eunicesanchez@homeaglowsales.com',        name:'Eunice Sanchez',                   manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-06-08'},
   {email:'johncea@homeaglowsales.com',              name:'John Harvey Giva Cea',             manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-06-08'},
   {email:'jaylamosao@homeaglowsales.com',           name:'Jayla Mosao',                      manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-06-08'},
   {email:'rainierperalta@homeaglowsales.com',       name:'Rainier Peralta',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-06-08'},
@@ -1838,10 +1874,34 @@ function loadEntries() {
   try { entries = JSON.parse(localStorage.getItem('apexCoachingLogs') || '[]'); } catch(e){ entries=[]; }
   loadDeletedIds();
   loadCustomTLs();
+  loadSyncMeta();
+  loadServerIds();
+  loadKdRecoverable();
 }
 function saveEntries() {
   localStorage.setItem('apexCoachingLogs', JSON.stringify(entries));
 }
+// ── v36: per-Entry-ID sync metadata — CLIENT-ONLY (never a SheetDB column; we just found a
+// schema-drift bug, so we deliberately do NOT add another client-written sheet field). Records
+// whether each locally-known coaching log has been confirmed persisted to SheetDB.
+//   state: 'synced' (server confirmed) | 'pending' (save in flight) | 'failed' (save/sync failed)
+let syncMeta = {};
+function loadSyncMeta(){ try { syncMeta = JSON.parse(localStorage.getItem('apexSyncMeta')||'{}') || {}; } catch(e){ syncMeta = {}; } }
+function saveSyncMeta(){ try { localStorage.setItem('apexSyncMeta', JSON.stringify(syncMeta)); } catch(e){} }
+function setSyncState(id, state, error){ if(!id) return; syncMeta[id] = { state, error: error||'', at: new Date().toISOString() }; saveSyncMeta(); }
+function getSyncState(id){ return (syncMeta[id] && syncMeta[id].state) || null; }
+// ── v36: authoritative server Entry-ID set captured from the LAST successful scope fetch. Used by
+// the read-only Recovery Diagnostic to classify cached logs as Synced vs Local-Only WITHOUT any
+// extra SheetDB requests. Persisted so a cache-hit reload still has the last authoritative set.
+let serverEntryIds = new Set();
+function loadServerIds(){ try { serverEntryIds = new Set(JSON.parse(localStorage.getItem('apexServerIds')||'[]')); } catch(e){ serverEntryIds = new Set(); } }
+function saveServerIds(){ try { localStorage.setItem('apexServerIds', JSON.stringify([...serverEntryIds])); } catch(e){} }
+// ── v36: Key Discussion recovery overlay — when a fresh server row for an EXISTING id carries a
+// blank Key Discussion but the cached copy had content (the schema-drift symptom), we keep the
+// cached text available for later targeted restoration instead of letting the merge wipe it.
+let kdRecoverable = {};
+function loadKdRecoverable(){ try { kdRecoverable = JSON.parse(localStorage.getItem('apexKdRecoverable')||'{}') || {}; } catch(e){ kdRecoverable = {}; } }
+function saveKdRecoverable(){ try { localStorage.setItem('apexKdRecoverable', JSON.stringify(kdRecoverable)); } catch(e){} }
 function loadDeletedIds() {
   try { deletedIds = new Set(JSON.parse(localStorage.getItem('apexDeletedIds') || '[]')); } catch(e){ deletedIds = new Set(); }
 }
@@ -2036,7 +2096,9 @@ function applyRosterLocalMods(){
 const ROSTER_OM_EMAILS = [
   'jubee@homeaglowsales.com',
   'kendryck@homeaglowsales.com',
-  'princesssimbahan@homeaglowsalesone.com'
+  // v35: OM Arielle (errollim@) replaces OM Princess (princesssimbahan@) as the Princess-cluster
+  // OM, so she carries OM roster-management permission and Princess no longer does.
+  'errollim@homeaglowsales.com'
 ];
 function canManageRoster() {
   if (!currentUser) return false;
@@ -2526,6 +2588,7 @@ function initApp() {
   document.getElementById('btnAddCoaching').style.display = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
+  { const br=document.getElementById('btnRecovery'); if(br) br.style.display = canManageEntries() ? 'inline-block' : 'none'; }  // v36: TL + leadership
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
   // Migration button: SOM-only (production permission).
   const bm=document.getElementById('btnMigrate');
@@ -3567,7 +3630,7 @@ function renderTable(tbodyId, list, showType=false) {
     return `<tr>
       <td>${dateStr}</td>
       <td>${e.wkNumber||'—'}</td>
-      <td title="${esc(e.agentName||'')}"><a href="#" onclick="openCommitmentView('${e.id}');return false;" style="color:#1565c0;text-decoration:underline;font-weight:600;cursor:pointer">${truncate(e.agentName||'—',22)}</a></td>
+      <td title="${esc(e.agentName||'')}"><a href="#" onclick="openCommitmentView('${e.id}');return false;" style="color:#1565c0;text-decoration:underline;font-weight:600;cursor:pointer">${truncate(e.agentName||'—',22)}</a>${getSyncState(e.id)==='failed' ? ' <span class="badge badge-red" style="font-size:.62rem" title="Saved locally but not synced to the server — open Recovery to retry">⚠ Not Synced</span>' : ''}</td>
       <td>${e.teamLead||'—'}</td>
       <td title="${esc(col5)}">${truncate(col5,28)}</td>
       <td title="${esc(col6)}">${col6}</td>
@@ -4343,6 +4406,55 @@ function cacheFresh(key){
 }
 function cacheStamp(key){ const now = Date.now(), k = __ckey(key); __memCacheTs[k] = now; try { localStorage.setItem(k, String(now)); } catch(e){} }
 function cacheInvalidate(key){ const k = __ckey(key); delete __memCacheTs[k]; try { localStorage.removeItem(k); } catch(e){} }
+// ── v36: AWAITABLE, CONFIRMED Coaching-Logs persistence (replaces fire-and-forget for coaching).
+// Returns {ok, status?, error?}. A coaching log is only treated as synced when this resolves ok.
+async function syncCoachingToSheet(entry, isEdit){
+  if (!SHEETDB_API_URL) return { ok:false, error:'No database endpoint configured.' };
+  const data = buildCoachingRow(entry);
+  try {
+    let res;
+    if (isEdit){
+      res = await fetch(sheetRowUrl('Coaching Logs', 'Entry ID', entry.id), {
+        method:'PATCH', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({ data })
+      });
+      if (!res.ok) return { ok:false, status:res.status, error:sheetErrorMessage(res.status) };
+      const j = await res.json().catch(()=>({}));
+      if (j && typeof j.updated !== 'undefined' && j.updated === 0) return { ok:false, status:200, error:'No matching row to update on the server (updated:0).' };
+      return { ok:true };
+    } else {
+      res = await fetch(SHEETDB_API_URL, {
+        method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({ data:[data], sheet:'Coaching Logs' })
+      });
+      if (!res.ok) return { ok:false, status:res.status, error:sheetErrorMessage(res.status) };
+      return { ok:true };
+    }
+  } catch(err){ return { ok:false, error:'Could not reach the database — your coaching log is saved locally but not yet on the server.' }; }
+}
+// ── v36: ambiguous-failure-safe retry. A network timeout is ambiguous (SheetDB may have accepted
+// the POST). So on retry we FIRST check whether the Entry ID already exists (1 GET, retry-only):
+//   • exactly one row  → already synced, DO NOT POST again
+//   • zero rows        → POST once with the SAME original Entry ID
+//   • multiple rows    → STOP and surface the duplicate conflict (never create another)
+async function retryCoachingSync(id){
+  const entry = entries.find(x=>x.id===id);
+  if (!entry) return { ok:false, error:'Record not found in local cache.' };
+  setSyncState(id, 'pending');
+  try {
+    const chk = await fetch(sheetRowUrl('Coaching Logs', 'Entry ID', id), { headers:{ 'Accept':'application/json' } });
+    if (chk.ok){
+      const found = await chk.json().catch(()=>[]);
+      const n = Array.isArray(found) ? found.length : 0;
+      if (n === 1){ setSyncState(id,'synced'); serverEntryIds.add(id); saveServerIds(); return { ok:true, already:true }; }
+      if (n > 1){ setSyncState(id,'failed','DUPLICATE: '+n+' rows share this Entry ID — manual conflict resolution required.'); return { ok:false, duplicate:n, error:'Duplicate Entry IDs on the server ('+n+'). Not creating another record — please resolve the conflict.' }; }
+    }
+  } catch(e){ /* existence check failed → fall through and attempt a single POST */ }
+  const res = await syncCoachingToSheet(entry, false);   // absent → POST with the SAME Entry ID
+  if (res.ok){ setSyncState(id,'synced'); serverEntryIds.add(id); saveServerIds(); }
+  else setSyncState(id,'failed', res.error);
+  return res;
+}
 function syncToSheets(entry, type, isEdit = false) {
   if (!SHEETDB_API_URL) return;
   const data    = type === 'nte' ? buildNTERow(entry) : buildCoachingRow(entry);
@@ -4561,14 +4673,21 @@ async function fetchFromSheets(force) {
   }
   try {
     let url;
+    // v36: inScope(e) marks which cached entries THIS fetch is authoritative over. A search-scoped
+    // fetch (TL/Agent) is complete only for its own scope, so the failed/local-only sweep must not
+    // touch out-of-scope rows. The whole-sheet fetch (dept-wide/OM) is authoritative for everything.
+    let inScope = () => true;
     if (currentUser.role === 'TL' && currentUser.tlInfo) {
       const tlDisplay = encodeURIComponent(currentUser.tlInfo.display);
       url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Team%20Lead=${tlDisplay}`;
+      inScope = e => (e.teamLead||'') === currentUser.tlInfo.display;
     } else if (isDeptWide(currentUser) || currentUser.role === 'OM') {
       url = `${SHEETDB_API_URL}?sheet=Coaching%20Logs`;
+      inScope = () => true;   // whole sheet — authoritative for all cached rows
     } else if (currentUser.role === 'Agent') {
       const agentName = ROSTER.find(a => a.email === currentUser.email)?.name || currentUser.display;
       url = `${SHEETDB_API_URL}/search?sheet=Coaching%20Logs&Agent=${encodeURIComponent(agentName)}`;
+      inScope = e => (e.agentName||'') === agentName;
     } else {
       return;
     }
@@ -4578,10 +4697,34 @@ async function fetchFromSheets(force) {
     if (!Array.isArray(rows) || rows.length === 0) return;
     const merged = {};
     entries.forEach(e => { if (e.id) merged[e.id] = e; });
+    // v36: capture the authoritative server Entry-ID set from THIS scope fetch (for the Recovery
+    // Diagnostic + sync-state reconciliation). This response is complete for the fetched scope.
+    const freshServerIds = new Set();
     rows.forEach(row => {
       const parsed = parseSheetRow(row);
-      if (parsed.id && !deletedIds.has(parsed.id)) merged[parsed.id] = parsed;
+      if (!parsed.id || deletedIds.has(parsed.id)) return;
+      freshServerIds.add(parsed.id);
+      const cached = merged[parsed.id];
+      // v36 Key Discussion recovery: if the server row's Key Discussion is blank but the cached copy
+      // had content (the schema-drift symptom), DON'T let the merge wipe it — preserve the cached
+      // text on the entry and record it as recoverable for later targeted restoration.
+      if (cached && isFilled(cached.keyDiscussion) && !isFilled(parsed.keyDiscussion)) {
+        kdRecoverable[parsed.id] = cached.keyDiscussion;
+        parsed.keyDiscussion = cached.keyDiscussion;
+      }
+      merged[parsed.id] = parsed;
+      setSyncState(parsed.id, 'synced');   // server-confirmed
     });
+    // v36: a record CREATED on this browser but absent from a complete scope response is NOT pruned
+    // (valid unsynced work must never vanish). Mark it 'failed' if it isn't already 'pending', so the
+    // Recovery Diagnostic surfaces it. deletedIds still authoritatively suppresses real deletions.
+    Object.keys(merged).forEach(id => {
+      const e = merged[id];
+      if (inScope(e) && !freshServerIds.has(id) && !deletedIds.has(id) && getSyncState(id) !== 'pending') {
+        setSyncState(id, 'failed', 'Absent from authoritative server response');
+      }
+    });
+    serverEntryIds = freshServerIds; saveServerIds(); saveKdRecoverable();
     entries = Object.values(merged).sort((a, b) => {
       const da = a.updatedAt || a.dateOfCoaching || '';
       const db = b.updatedAt || b.dateOfCoaching || '';
@@ -5027,7 +5170,80 @@ async function rmcRetrySave(){
     msg.innerHTML = `The Rainmaker Call Review still did not save: <b>${rmEsc(res.error)}</b>. No duplicate records were created — you can retry again.`;
   }
 }
+// ── v36: READ-ONLY Recovery Diagnostic. Classifies cached Coaching Logs in the user's scope
+// against the last authoritative scope fetch (serverEntryIds). Never writes; adds no SheetDB
+// requests (reuses already-fetched data + local metadata).
+function classifyCached(e){
+  if (deletedIds.has(e.id)) return 'Deleted / Suppressed';
+  if (serverEntryIds.has(e.id)) return 'Synced';
+  return 'Local Only / Missing From Server';
+}
+function buildRecoveryReport(){
+  return getVisibleEntries().map(e => ({
+    status: classifyCached(e),
+    syncState: getSyncState(e.id) || (serverEntryIds.has(e.id) ? 'synced' : 'unknown'),
+    entryId: e.id||'', agent: e.agentName||'', wk: e.wkNumber||'', teamLead: e.teamLead||'',
+    date: e.dateOfCoaching||'', coachingType: e.coachingType||'', updatedAt: e.updatedAt||'',
+    loggedBy: e.loggedBy||'', agentStatus: agentStatusCoaching(e),
+    onServer: serverEntryIds.has(e.id),
+    fullObjectAvailable: !!(e.id && e.agentName && e.teamLead && e.wkNumber),
+    keyDiscussionCached: isFilled(e.keyDiscussion) || isFilled(kdRecoverable[e.id]),
+    keyDiscussionRecoverable: !!kdRecoverable[e.id],
+    rainmakerLinked: !!linkedRmReview(e)
+  }));
+}
+function openRecoveryDiagnostic(){
+  const rows = buildRecoveryReport();
+  const cnt = { synced:0, local:0, deleted:0 };
+  rows.forEach(r => { if(r.status==='Synced') cnt.synced++; else if(r.status.indexOf('Local')===0) cnt.local++; else cnt.deleted++; });
+  const kdRec = rows.filter(r=>r.keyDiscussionRecoverable).length;
+  const sum = document.getElementById('recoverySummary');
+  if (sum) sum.innerHTML =
+    '<b>'+rows.length+'</b> cached logs in your scope · <b style="color:#2e7d32">'+cnt.synced+'</b> Synced · '
+    + '<b style="color:#c62828">'+cnt.local+'</b> Local Only / Missing From Server · <b>'+cnt.deleted+'</b> Deleted/Suppressed'
+    + ' · <b style="color:#ef6c00">'+kdRec+'</b> Key Discussion Recoverable.'
+    + '<div style="color:#888;margin-top:4px">Read-only. Classified against the last authoritative load — no server requests made. Use “Copy recovery report” to send us the details.</div>';
+  const body = document.getElementById('recoveryBody');
+  const badge = s => s==='Synced' ? '<span class="badge badge-green">Synced</span>'
+    : (s.indexOf('Local')===0 ? '<span class="badge badge-red">Local Only</span>' : '<span class="badge badge-gray">Suppressed</span>');
+  body.innerHTML = rows.length ? rows.map(r =>
+    '<tr>'
+    + '<td style="text-align:left">'+badge(r.status)+'</td>'
+    + '<td style="text-align:left">'+escHtml(r.agent)+'</td><td>'+escHtml(r.wk)+'</td>'
+    + '<td style="text-align:left">'+escHtml(r.teamLead)+'</td><td>'+escHtml(r.date)+'</td>'
+    + '<td style="text-align:left">'+escHtml(r.coachingType)+'</td><td>'+escHtml(r.updatedAt)+'</td>'
+    + '<td style="text-align:left">'+escHtml(r.loggedBy)+'</td><td>'+escHtml(r.agentStatus)+'</td>'
+    + '<td>'+(r.onServer?'Yes':'No')+'</td><td>'+(r.fullObjectAvailable?'Yes':'No')+'</td>'
+    + '<td>'+(r.keyDiscussionCached?'Yes':'No')+'</td><td>'+(r.keyDiscussionRecoverable?'<b style="color:#ef6c00">Yes</b>':'No')+'</td>'
+    + '<td>'+(r.rainmakerLinked?'Yes':'No')+'</td><td style="text-align:left;font-family:monospace;font-size:.72rem">'+escHtml(r.entryId)+'</td>'
+    + '</tr>').join('') : '<tr><td colspan="15" class="empty-state">No cached coaching logs in scope.</td></tr>';
+  openModal('recoveryModal');
+}
+function copyRecoveryReport(){
+  const payload = { generatedAt:new Date().toISOString(),
+    user: (currentUser&&currentUser.email)||'', role:(currentUser&&currentUser.role)||'',
+    scopeCount: getVisibleEntries().length, deletedSuppressed: deletedIds.size,
+    records: buildRecoveryReport() };
+  const text = JSON.stringify(payload, null, 2);
+  const done = ()=>{ const b=document.querySelector('#recoveryModal .btn-primary'); if(b){ const t=b.textContent; b.textContent='✓ Copied'; setTimeout(()=>b.textContent=t,1500); } };
+  try { navigator.clipboard.writeText(text).then(done, ()=>fallbackCopy(text,done)); } catch(e){ fallbackCopy(text, done); }
+}
+function fallbackCopy(text, cb){ try { const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb&&cb(); } catch(e){ console.warn('copy failed', e); } }
+// ── v36: coaching save/sync failure banner controls ──
+function showSaveSyncError(id, error){
+  const box=document.getElementById('saveSyncErr'); const msg=document.getElementById('saveSyncErrMsg');
+  if(msg) msg.innerHTML = 'Coaching Log was saved locally but could not sync to the server: <b>'+escHtml(error||'unknown error')+'</b>. Your work is safe (Entry ID '+escHtml(id)+'). Please retry syncing.';
+  if(box) box.style.display='block';
+}
+function hideSaveSyncError(){ const box=document.getElementById('saveSyncErr'); if(box) box.style.display='none'; }
+async function retrySaveSync(){
+  const id=(document.getElementById('editId')||{}).value; if(!id) return;
+  const res=await retryCoachingSync(id);
+  if(res.ok){ hideSaveSyncError(); renderDashboard(); renderLogTable(); closeModal('formModal'); }
+  else { showSaveSyncError(id, res.error); renderLogTable(); }
+}
 async function saveEntry() {
+  hideSaveSyncError();
   const req = ['fDate','fAgent','fTL'];
   for(const id of req){
     if(!document.getElementById(id).value){
@@ -5125,10 +5341,23 @@ async function saveEntry() {
   }
   saveEntries();
   cacheStamp('coaching');   // local cache now current — a reload within TTL shows this save
-  syncToSheets(entry, 'coaching', isEdit);   // fire-and-forget Coaching Logs POST/PATCH (unchanged)
   clearDraft();
   renderDashboard();
   renderLogTable();
+  // ── v36: CONFIRMED save. Await the SheetDB write; a coaching log is only "synced" once the
+  // server confirms. On failure the complete record + original Entry ID stay in localStorage,
+  // it's marked Not Synced, and the TL gets a clear, retryable message — never silently dropped.
+  setSyncState(entry.id, 'pending');
+  const coRes = await syncCoachingToSheet(entry, isEdit);
+  if (coRes.ok){
+    setSyncState(entry.id, 'synced'); serverEntryIds.add(entry.id); saveServerIds();
+  } else {
+    setSyncState(entry.id, 'failed', coRes.error);
+    document.getElementById('editId').value = entry.id;   // keep modal in edit mode → retry hits same Entry ID
+    renderLogTable();
+    showSaveSyncError(entry.id, coRes.error);              // clear message + Retry button; modal stays open
+    return;                                                // do NOT attempt the Rainmaker write — coaching itself isn't on the server
+  }
   // ── v33 combined save: persist the linked Rainmaker Call Review ONLY when the TL entered
   // review data, or an existing linked review needs updating. A required-but-blank review is
   // NOT written (0 requests) — the entry simply stays TL-incomplete until the TL fills and
