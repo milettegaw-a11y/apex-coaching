@@ -327,6 +327,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <button id="btnTLMenu" class="btn-burger" onclick="openTLManager()" style="display:none" title="Manage Team Leads">👥 TLs</button>
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
       <button id="btnRecovery" class="btn-burger" onclick="openRecoveryDiagnostic()" style="display:none" title="Read-only: check which of your cached Coaching Logs are Synced / Not Synced">🛟 Recovery</button>
+      <button id="btnRecoveryCenter" class="btn-burger" onclick="openRecoveryCenter()" style="display:none" title="Centralized Recovery Center — review/restore missing coaching logs (Firestore-backed; 0 SheetDB to view)">🧭 Recovery Center</button>
       <button id="btnMigrate" class="btn-burger" onclick="migrateUsersToFirestore()" style="display:none" title="One-time (SOM only): migrate the SEED roster into users/{email} documents">⬆️ Migrate roster</button>
       <!-- "Sync Local → SheetDB" (backfillToSheets) button removed: no normal UI path may trigger the old bulk sync.
            backfillToSheets() is retained as a dormant emergency/recovery utility only (not wired to any control). -->
@@ -1117,6 +1118,47 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
     </div>
   </div>
 </div>
+<!-- v38: CENTRALIZED RECOVERY CENTER (SOM/Director restore; OM view-only own-cluster). Reads recovery
+     candidates from Firestore ONLY — 0 SheetDB requests to open/refresh/review. SheetDB is used only on
+     an explicit Restore Selected (batch: 1 count GET + N POST + 1 verify GET). -->
+<div class="modal-overlay" id="recoveryCenterModal">
+  <div class="modal" style="max-width:1200px">
+    <div class="modal-header">
+      <h3>🧭 Recovery Center <span style="font-weight:500;font-size:.8rem;color:#888">— Firestore-backed · 0 SheetDB to view</span></h3>
+      <button class="modal-close" onclick="closeModal('recoveryCenterModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="rcSummary" style="font-size:.9rem;margin-bottom:10px"></div>
+      <div id="rcEstimate" style="font-size:.82rem;color:#ef6c00;margin-bottom:6px"></div>
+      <div id="rcResult" style="font-size:.85rem;color:#2e7d32;margin-bottom:8px"></div>
+      <div class="table-wrap" style="max-height:58vh;overflow:auto"><table class="proj-table"><thead><tr class="proj-row-header">
+        <th id="rcSelectHead">Select</th><th style="text-align:left">Team Lead</th><th style="text-align:left">Agent</th><th>Week</th><th>Date</th><th style="text-align:left">Coaching Type</th><th style="text-align:left">Entry ID</th><th>Recovery Status</th><th>Key Discussion</th><th>Rainmaker</th><th>Last Detected</th><th>Action</th>
+      </tr></thead><tbody id="rcBody" onchange="updateRcEstimate()"><tr><td colspan="12" class="empty-state">No recovery candidates.</td></tr></tbody></table></div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnRestoreSelected" class="btn-primary" style="width:auto" onclick="restoreSelectedRecoveries()">♻️ Restore Selected</button>
+      <button class="btn-burger" onclick="refreshRecoveryData()" title="Re-query Firestore only — 0 SheetDB requests">🔄 Refresh Recovery Data</button>
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('recoveryCenterModal')">Close</button>
+    </div>
+  </div>
+</div>
+<!-- v38: Recovery Review — readable view of the full cached coaching object (with a secondary View Raw). -->
+<div class="modal-overlay" id="recoveryReviewModal">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-header">
+      <h3>🔍 Recovery Candidate — full cached coaching object</h3>
+      <button class="modal-close" onclick="closeModal('recoveryReviewModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="rcReviewReadable"></div>
+      <pre id="rcReviewRaw" style="display:none;white-space:pre-wrap;background:#f7f7f7;border-radius:6px;padding:10px;font-size:.72rem;max-height:40vh;overflow:auto"></pre>
+    </div>
+    <div class="modal-footer">
+      <button id="rcRawToggle" class="btn-burger" onclick="toggleRecoveryRaw()">View Raw</button>
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('recoveryReviewModal')">Close</button>
+    </div>
+  </div>
+</div>
 <div class="roster-overlay" id="rosterOverlay">
   <div class="roster-panel">
     <div class="roster-header">
@@ -1300,7 +1342,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-02-recovery-export-v34-baseline-PROD-v37";
+const APEX_BUILD = "2026-09-03-centralized-recovery-PROD-v38";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2579,6 +2621,7 @@ function initApp() {
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
   { const br=document.getElementById('btnRecovery'); if(br) br.style.display = canManageEntries() ? 'inline-block' : 'none'; }  // v36: TL + leadership
+  { const rc=document.getElementById('btnRecoveryCenter'); if(rc) rc.style.display = (isDeptWide(currentUser) || (currentUser && currentUser.role==='OM')) ? 'inline-block' : 'none'; }  // v38: SOM/Director restore + OM view-only
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
   // Migration button: SOM-only (production permission).
   const bm=document.getElementById('btnMigrate');
@@ -4715,6 +4758,10 @@ async function fetchFromSheets(force) {
       }
     });
     serverEntryIds = freshServerIds; saveServerIds(); saveKdRecoverable();
+    // v38: silent, NON-BLOCKING central recovery backup of any Local-Only records this scope proves
+    // are missing from the server. Uses ONLY the in-memory merged/entries + serverEntryIds just
+    // computed — 0 additional SheetDB requests. Fire-and-forget: never blocks load or TL work.
+    try { backupLocalOnlyRecoveries(); } catch(e){ /* non-blocking */ }
     entries = Object.values(merged).sort((a, b) => {
       const da = a.updatedAt || a.dateOfCoaching || '';
       const db = b.updatedAt || b.dateOfCoaching || '';
@@ -5254,6 +5301,217 @@ function copyRecoveryReport(){
   try { navigator.clipboard.writeText(text).then(done, ()=>fallbackCopy(text,done)); } catch(e){ fallbackCopy(text, done); }
 }
 function fallbackCopy(text, cb){ try { const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb&&cb(); } catch(e){ console.warn('copy failed', e); } }
+// ============================================================================
+// v38: CENTRALIZED RECOVERY (Firestore-backed). SheetDB-request budget: NORMAL USE = 0 SheetDB.
+//   • Automatic silent backup of Local-Only coaching records → Firestore coachingRecovery/{entryId}
+//     (uses ONLY in-memory data already loaded by the normal coaching fetch — 0 extra SheetDB GET).
+//   • SOM/Director Recovery Center reads candidates from Firestore only (0 SheetDB) and can restore.
+//   • OM: view-only, own cluster. TL: silent backup of own data only, no central restore. Agent: none.
+//   • SheetDB requests occur ONLY on an explicit Restore Selected: 1 count GET + N POST + 1 verify GET.
+// Firestore operations do NOT count against the SheetDB 10k/mo allowance.
+// ============================================================================
+const RECOVERY_COL = 'coachingRecovery';
+let   RECOVERY_DOCS = {};                 // entryId -> firestore recovery doc (current Recovery Center view)
+let   recoverySheetReqs = 0;              // session-only counter of SheetDB requests initiated BY recovery
+let   recoveryBackedUp = {};              // localStorage fingerprint map: entryId -> fingerprint (dedup, 0 Firestore reads)
+function loadRecoveryBackedUp(){ try { recoveryBackedUp = JSON.parse(localStorage.getItem('apexRecoveryBackup')||'{}') || {}; } catch(e){ recoveryBackedUp = {}; } }
+function saveRecoveryBackedUp(){ try { localStorage.setItem('apexRecoveryBackup', JSON.stringify(recoveryBackedUp)); } catch(e){} }
+// A cached object is usable for recovery only when it carries the identifying fields a coaching row needs.
+function hasUsableCachedObject(e){ return !!(e && e.id && e.agentName && e.teamLead && e.wkNumber); }
+// Restore-readiness: a candidate may be auto-POSTed only when it has complete-enough metadata. Anything
+// missing a core field (e.g. an old WK### record with incomplete historical metadata) → Needs Review.
+function recoveryReadiness(obj){
+  if (!obj) return 'needs_review';
+  const ok = isFilled(obj.id) && isFilled(obj.agentName) && isFilled(obj.teamLead) && isFilled(obj.wkNumber) && isFilled(obj.dateOfCoaching) && isFilled(obj.coachingType);
+  return ok ? 'ready' : 'needs_review';
+}
+function recoveryClusterFor(e){ return (Object.values(TL_EMAILS).find(t=>t.display===(e&&e.teamLead))||{}).cluster || ''; }
+function recoveryFingerprint(e){ return String((e&&e.updatedAt)||'') + '|' + String((e&&e.keyDiscussion)||'').length + '|' + String((e&&e.dateOfCoaching)||''); }
+function buildRecoveryDoc(e){
+  const now = new Date().toISOString();
+  let cached; try { cached = JSON.parse(JSON.stringify(e)); } catch(_) { cached = Object.assign({}, e); }
+  if (!isFilled(cached.keyDiscussion) && isFilled(kdRecoverable[e.id])) cached.keyDiscussion = kdRecoverable[e.id]; // faithful cached KD
+  return {
+    entryId: e.id||'', cachedObject: cached,
+    teamLead: e.teamLead||'', agentName: e.agentName||'', wkNumber: e.wkNumber||'',
+    dateOfCoaching: e.dateOfCoaching||'', coachingType: e.coachingType||'',
+    loggedBy: e.loggedBy||'', updatedAt: e.updatedAt||'',
+    cluster: recoveryClusterFor(e),
+    recoveryDetectedAt: now, sourceUserEmail: (currentUser&&currentUser.email)||'', sourceBuild: (typeof APEX_BUILD!=='undefined'?APEX_BUILD:''),
+    onServerAtDetection: false, syncState: getSyncState(e.id)||'failed',
+    keyDiscussionCached: isFilled(e.keyDiscussion) || isFilled(kdRecoverable[e.id]),
+    rainmakerLinked: rmLinkState(e),
+    recoveryStatus: 'pending_review', restoredAt: '', restoredBy: '', lastVerifiedAt: now
+  };
+}
+// AUTOMATIC, SILENT, NON-BLOCKING backup. Iterates ONLY the already-loaded `entries`; makes 0 SheetDB
+// requests. Only TL/OM/SOM/Director (canManageEntries) back up, and only their OWN local coaching data.
+async function backupLocalOnlyRecoveries(){
+  if (!FB_DB || !currentUser || !canManageEntries(currentUser)) return;
+  loadRecoveryBackedUp();
+  const jobs = [];
+  entries.forEach(e => {
+    if (!e || !e.id) return;
+    if (deletedIds.has(e.id)) return;            // never back up Deleted/Suppressed
+    if (serverEntryIds.has(e.id)) return;        // synced → not a recovery candidate
+    if (!hasUsableCachedObject(e)) return;       // incomplete placeholder → skip
+    const fp = recoveryFingerprint(e);
+    if (recoveryBackedUp[e.id] === fp) return;   // this version already backed up (avoid duplicate writes)
+    jobs.push({ e, fp });
+  });
+  for (const { e, fp } of jobs){
+    try { await FB_DB.collection(RECOVERY_COL).doc(e.id).set(buildRecoveryDoc(e), { merge:true });
+          recoveryBackedUp[e.id] = fp; saveRecoveryBackedUp(); }
+    catch(err){ /* silent + non-blocking: coachingRecovery rules may not be deployed yet */ }
+  }
+}
+// Update one recovery doc's status (Firestore only — 0 SheetDB).
+async function setRecoveryDocStatus(id, status, extra){
+  if (!FB_DB) return;
+  const patch = Object.assign({ recoveryStatus: status, lastVerifiedAt: new Date().toISOString() }, extra||{});
+  try { await FB_DB.collection(RECOVERY_COL).doc(id).set(patch, { merge:true }); } catch(e){}
+}
+// ── Recovery Center (SOM/Director restore; OM view-only own-cluster). Firestore-only reads → 0 SheetDB.
+async function openRecoveryCenter(){ openModal('recoveryCenterModal'); await refreshRecoveryData(); }
+async function refreshRecoveryData(){
+  if (!FB_DB || !currentUser){ return; }
+  const sum=document.getElementById('rcSummary'); if(sum) sum.textContent='Loading recovery candidates from Firestore…';
+  let docs=[];
+  // v38: the query MUST match the Firestore read rule or Firestore denies the whole collection read.
+  // SOM/Director (rosterAdmin) may read all → unfiltered get. OM may read ONLY their cluster → issue a
+  // cluster-scoped where() so the query provably satisfies the rule (an unfiltered get would be denied).
+  const omCluster = (currentUser.role==='OM') ? ((currentUser.omInfo&&currentUser.omInfo.cluster)||'') : null;
+  try {
+    let q = FB_DB.collection(RECOVERY_COL);
+    if (omCluster !== null) q = q.where('cluster','==',omCluster);
+    const snap = await q.get(); snap.forEach(d=>{ const o=d.data()||{}; o.entryId=o.entryId||d.id; docs.push(o); });
+  }
+  catch(err){ if(sum) sum.textContent='Could not load recovery data: '+((err&&err.message)||err); return; }
+  if (omCluster !== null){ docs=docs.filter(d=>(d.cluster||'')===omCluster); } // OM: own cluster only (belt-and-suspenders)
+  RECOVERY_DOCS={}; docs.forEach(d=>{ RECOVERY_DOCS[d.entryId]=d; });
+  renderRecoveryCenter(docs);
+}
+function rcStatusBadge(s){
+  s=s||'pending_review';
+  const map={restored:'badge-green', already_exists:'badge-green', pending_review:'badge-gray', needs_review:'badge-red', failed:'badge-red'};
+  return '<span class="badge '+(map[s]||'badge-gray')+'">'+escHtml(s.replace(/_/g,' '))+'</span>';
+}
+function renderRecoveryCenter(docs){
+  const canRestore = isDeptWide(currentUser);
+  const sum=document.getElementById('rcSummary');
+  const byTL={}; docs.forEach(d=>{ const t=d.teamLead||'(unknown TL)'; byTL[t]=(byTL[t]||0)+1; });
+  const groups=Object.keys(byTL).sort().map(t=>escHtml(t)+' — <b>'+byTL[t]+'</b> Recovery Candidate'+(byTL[t]===1?'':'s')).join(' · ');
+  if (sum) sum.innerHTML = '<b>'+docs.length+'</b> recovery candidate'+(docs.length===1?'':'s')+' across '+Object.keys(byTL).length+' Team Lead'+(Object.keys(byTL).length===1?'':'s')
+    + (docs.length? ('<div style="margin-top:6px">'+groups+'</div>'):'')
+    + '<div style="color:#888;margin-top:6px">Firestore-backed · reading this list made <b>0</b> SheetDB requests. '
+    + (canRestore?'Select records and Restore Selected (SheetDB used only on restore).':'View-only for your role.')
+    + ' Recovery SheetDB requests this session: <b id="rcSessionReqs">'+recoverySheetReqs+'</b>.</div>';
+  const body=document.getElementById('rcBody');
+  const selCol = canRestore ? '<th>Select</th>' : '';
+  const rows = docs.slice().sort((a,b)=>String(a.teamLead||'').localeCompare(String(b.teamLead||''))).map(d=>{
+    const kd = d.keyDiscussionCached ? 'Yes' : 'No';
+    const rm = d.rainmakerLinked===true?'true':(d.rainmakerLinked===false?'false':'unknown');
+    const selectable = canRestore && !deletedIds.has(d.entryId) && (d.recoveryStatus!=='restored');
+    const sel = canRestore ? ('<td>'+(selectable?'<input type="checkbox" class="rc-sel" value="'+escHtml(d.entryId)+'">':'')+'</td>') : '';
+    return '<tr>'+sel
+      + '<td style="text-align:left">'+escHtml(d.teamLead||'')+'</td>'
+      + '<td style="text-align:left">'+escHtml(d.agentName||'')+'</td>'
+      + '<td>'+escHtml(d.wkNumber||'')+'</td><td>'+escHtml(d.dateOfCoaching||'')+'</td>'
+      + '<td style="text-align:left">'+escHtml(d.coachingType||'')+'</td>'
+      + '<td style="text-align:left;font-family:monospace;font-size:.72rem">'+escHtml(d.entryId||'')+'</td>'
+      + '<td>'+rcStatusBadge(d.recoveryStatus)+'</td>'
+      + '<td>'+kd+'</td><td>'+rm+'</td>'
+      + '<td style="font-size:.72rem">'+escHtml((d.recoveryDetectedAt||'').slice(0,19).replace('T',' '))+'</td>'
+      + '<td><button class="btn-burger" style="padding:3px 8px" onclick="reviewRecoveryRecord(\''+escHtml(d.entryId)+'\')">Review</button></td>'
+      + '</tr>';
+  }).join('');
+  const colspan = canRestore ? 12 : 11;
+  body.innerHTML = docs.length ? rows : '<tr><td colspan="'+colspan+'" class="empty-state">No recovery candidates.</td></tr>';
+  // toggle restore button by permission
+  const rb=document.getElementById('btnRestoreSelected'); if(rb) rb.style.display = canRestore ? 'inline-block' : 'none';
+  const head=document.getElementById('rcSelectHead'); if(head) head.style.display = canRestore ? '' : 'none';
+}
+function reviewRecoveryRecord(id){
+  const d=RECOVERY_DOCS[id]; if(!d) return;
+  const o=d.cachedObject||{};
+  const row=(label,val)=>'<tr><td style="text-align:left;font-weight:600;padding:4px 10px;vertical-align:top;white-space:nowrap">'+escHtml(label)+'</td><td style="text-align:left;padding:4px 10px">'+escHtml(val==null?'':String(val))+'</td></tr>';
+  const fu = o.followUp ? JSON.stringify(o.followUp) : '';
+  const star = o.star ? [['Situation',o.star.situation],['Task',o.star.task],['Action',o.star.action],['Result',o.star.result],['Timeline',o.star.timeline],['Status',o.star.status]].map(x=>row('STAR · '+x[0],x[1])).join('') : '';
+  const perf = Array.isArray(o.perfData) ? row('Performance data', JSON.stringify(o.perfData)) : '';
+  const readable = '<table class="proj-table" style="width:100%">'
+    + row('Entry ID', o.id) + row('Agent', o.agentName) + row('Team Lead', o.teamLead) + row('Week', o.wkNumber)
+    + row('Date of Coaching', o.dateOfCoaching) + row('Coaching Type', o.coachingType) + row('Coaching Status', o.coachingStatus)
+    + row('Key Discussion', o.keyDiscussion) + row('Strength', o.strength) + row('Areas', o.areas)
+    + row('Primary Limiter', o.limiter) + row('Action Plan', o.actionPlan) + row('Follow-up Date', o.followUpDate) + row('Follow-Up Data', fu)
+    + perf + star + row('Completion Rule Version', o.completionRuleVersion) + row('WK1 CVR Snapshot', o.wk1CvrSnapshot)
+    + row('Logged By', o.loggedBy) + row('Updated At', o.updatedAt)
+    + '</table>';
+  document.getElementById('rcReviewReadable').innerHTML = readable;
+  document.getElementById('rcReviewRaw').textContent = JSON.stringify(d, null, 2);
+  document.getElementById('rcReviewRaw').style.display='none';
+  const rb=document.getElementById('rcRawToggle'); if(rb) rb.textContent='View Raw';
+  openModal('recoveryReviewModal');
+}
+function toggleRecoveryRaw(){ const el=document.getElementById('rcReviewRaw'); const b=document.getElementById('rcRawToggle'); if(!el) return; const show=el.style.display==='none'; el.style.display=show?'block':'none'; if(b) b.textContent=show?'Hide Raw':'View Raw'; }
+function rcSelectedIds(){ return [...document.querySelectorAll('.rc-sel:checked')].map(c=>c.value); }
+function estimateRestoreRequests(n){ return n>0 ? (n + 2) : 0; }   // 1 count GET + N POST + 1 verify GET
+function updateRcEstimate(){ const n=rcSelectedIds().length; const el=document.getElementById('rcEstimate'); if(el) el.textContent = n? ('Estimated SheetDB requests: '+estimateRestoreRequests(n)+(n>=10?'  — this recovery will use approximately '+estimateRestoreRequests(n)+' SheetDB requests.':'')) : ''; }
+// BATCH RESTORE — SOM/Director only. Target ≈ N+2 SheetDB requests (1 count GET + N POST + 1 verify GET),
+// NOT N×(GET+POST+GET). Never sacrifices duplicate protection to save a request.
+async function restoreSelectedRecoveries(){
+  if (!isDeptWide(currentUser)){ alert('Only SOM/Director can restore recovery candidates.'); return; }
+  const ids = rcSelectedIds();
+  if (!ids.length){ alert('Select at least one recovery candidate to restore.'); return; }
+  const est = estimateRestoreRequests(ids.length);
+  if (!confirm('This recovery will use approximately '+est+' SheetDB request'+(est===1?'':'s')+'. Continue?')) return;
+  let used = 0; const results = {};
+  // 1) ONE authoritative whole-sheet read → per-Entry-ID count map (dept-wide caller).
+  const countMap = {};
+  try { const r = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers:{ 'Accept':'application/json' } }); used++;
+        if (r.ok){ const rows = await r.json().catch(()=>[]); (rows||[]).forEach(row=>{ const id=row['Entry ID']||''; if(id) countMap[id]=(countMap[id]||0)+1; }); } }
+  catch(e){ /* if the count read fails, we still guard each POST individually below via countMap=0 → treat as unknown */ }
+  // 2/3/4/5) classify + POST-once for confirmed-absent, ready candidates.
+  const posted = [];
+  for (const id of ids){
+    const d = RECOVERY_DOCS[id];
+    if (!d || !d.cachedObject){ results[id]='Failed'; await setRecoveryDocStatus(id,'failed',{}); continue; }
+    if (deletedIds.has(id)){ results[id]='Skipped (suppressed)'; continue; }            // never restore suppressed
+    const cnt = countMap[id]||0;
+    if (cnt === 1){ results[id]='Already Exists'; serverEntryIds.add(id); await setRecoveryDocStatus(id,'already_exists',{}); continue; } // exists → no POST
+    if (cnt > 1){ results[id]='Needs Review'; await setRecoveryDocStatus(id,'needs_review',{ note:'multiple server rows share this Entry ID' }); continue; } // STOP, no POST
+    if (recoveryReadiness(d.cachedObject) !== 'ready'){ results[id]='Needs Review'; await setRecoveryDocStatus(id,'needs_review',{ note:'incomplete historical metadata' }); continue; }
+    // zero rows + ready → POST exactly once with the ORIGINAL Entry ID
+    try { const row = buildCoachingRow(d.cachedObject);
+          const pr = await fetch(SHEETDB_API_URL, { method:'POST', headers:{ 'Content-Type':'application/json','Accept':'application/json' }, body: JSON.stringify({ data:[row], sheet:'Coaching Logs' }) }); used++;
+          if (pr.ok){ results[id]='PostedPending'; posted.push(id); } else { results[id]='Failed'; await setRecoveryDocStatus(id,'failed',{}); } }
+    catch(e){ results[id]='Failed'; await setRecoveryDocStatus(id,'failed',{}); }
+  }
+  // 6/7) ONE final authoritative verify read; confirm each posted id exists exactly once.
+  if (posted.length){
+    const verify = {};
+    try { const r = await fetch(`${SHEETDB_API_URL}?sheet=Coaching%20Logs`, { headers:{ 'Accept':'application/json' } }); used++;
+          if (r.ok){ const rows = await r.json().catch(()=>[]); (rows||[]).forEach(row=>{ const id=row['Entry ID']||''; if(id) verify[id]=(verify[id]||0)+1; }); } }
+    catch(e){ /* verification read failed */ }
+    const now=new Date().toISOString(), by=(currentUser&&currentUser.email)||'';
+    for (const id of posted){
+      const c = verify[id]||0;
+      if (c === 1){ results[id]='Restored'; serverEntryIds.add(id); setSyncState(id,'synced'); await setRecoveryDocStatus(id,'restored',{ restoredAt:now, restoredBy:by }); }
+      else if (c > 1){ results[id]='Needs Review'; await setRecoveryDocStatus(id,'needs_review',{ note:'multiple rows after POST' }); }
+      else { results[id]='Failed'; await setRecoveryDocStatus(id,'failed',{}); }   // keeps Firestore backup + local copy
+    }
+    saveServerIds();
+  }
+  recoverySheetReqs += used;
+  const line = document.getElementById('rcResult');
+  if (line){
+    const counts={}; Object.values(results).forEach(v=>counts[v]=(counts[v]||0)+1);
+    line.innerHTML = 'Restore complete — ' + Object.keys(counts).map(k=>'<b>'+counts[k]+'</b> '+escHtml(k)).join(' · ')
+      + '.<br><b>SheetDB requests used for this recovery: '+used+'</b> · Recovery SheetDB requests this session: '+recoverySheetReqs+'.';
+  }
+  await refreshRecoveryData();   // Firestore-only re-read (0 SheetDB) to reflect new statuses
+  const sr=document.getElementById('rcResult'); // refreshRecoveryData rebuilds summary; keep the result line visible
+  if (sr && line) sr.innerHTML = line.innerHTML;
+}
 // ── v36: coaching save/sync failure banner controls ──
 function showSaveSyncError(id, error){
   const box=document.getElementById('saveSyncErr'); const msg=document.getElementById('saveSyncErrMsg');
