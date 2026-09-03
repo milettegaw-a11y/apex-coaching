@@ -1345,7 +1345,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-03-cluster-arielle-PROD-v40";
+const APEX_BUILD = "2026-09-03-arielle-roster-reconcile-PROD-v41";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -1476,7 +1476,6 @@ const SEED_AGENTS = [
   {email:'irenevirgo@homeaglowsales.com',           name:'Irene Joy Virgo',                  manager:'Jovan Philip Jalandoni',    cluster:'Arielle', start:'2025-06-02'},
   {email:'roxannebalcita@homeaglowsalestwo.com',    name:'Roxanne Balcita',                  manager:'Maria Glaiza Sy',           cluster:'Arielle', start:'2025-06-02'},
   {email:'virnadaclan@homeaglowsales.com',          name:'Virna Daclan',                     manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-06-16'},
-  {email:'patriciajaniola@homeaglowsalesone.com',   name:'Patricia Rose Janiola',            manager:'Jovan Philip Jalandoni',    cluster:'Arielle', start:'2025-06-16'},
   {email:'larahongayo@homeaglowsales.com',          name:'Ma. Lara Hongayo',                 manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-16'},
   {email:'romeosandovaljr@homeaglowsalestwo.com',   name:'Romeo Jr Sandoval',                manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-06-16'},
   {email:'kathrinatabaquin@homeaglowsalestwo.com',  name:'Kathrina Christine Tabaquin',      manager:'Jovan Philip Jalandoni',    cluster:'Arielle', start:'2025-06-16'},
@@ -1498,7 +1497,6 @@ const SEED_AGENTS = [
   {email:'anneignacio@homeaglowsalestwo.com',       name:'Anne Lorraine Ignacio',            manager:'Jaydi Miranda',             cluster:'Arielle', start:'2025-09-01'},
   {email:'kimvitorillo@homeaglowsalesone.com',      name:'Kim Joy Vitorillo',                manager:'Catherine Dela Fuente',     cluster:'Arielle', start:'2025-09-01'},
   {email:'appledomanico@homeaglowsalesone.com',     name:'Apple Domanico',                   manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-09-01'},
-  {email:'alexandrajaylo@homeaglowsalestwo.com',    name:'Alexandra Dennise Jaylo',          manager:'Maria Glaiza Sy',           cluster:'Arielle', start:'2025-09-29'},
   {email:'penaramos@homeaglowsalestwo.com',         name:'Peña Rafaela Ramos',              manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2025-09-29'},
   {email:'camilleelpedes@homeaglowsalestwo.com',    name:'Camille Jean Elpedes',             manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2025-11-10'},
   {email:'scherujzbaid@homeaglowsalestwo.com',      name:'Scherujz Baid',                    manager:'Jovan Philip Jalandoni',    cluster:'Arielle', start:'2025-11-10'},
@@ -1518,7 +1516,6 @@ const SEED_AGENTS = [
   {email:'charoagustin@homeaglowsalestwo.com',      name:'Charo Agustin',                    manager:'May Claveron',              cluster:'Kendryck', start:'2026-01-05'},
   {email:'angelicaaviles@homeaglowsalestwo.com',    name:'Angelica Mae Aviles',              manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2026-01-05'},
   {email:'jeroshuarabasano@homeaglowsalestwo.com',  name:'Jeroshua Gabunada Rabasano',       manager:'Kimberly Rose Sabandal',    cluster:'Arielle', start:'2026-01-05'},
-  {email:'joeiroyo@homeaglowsalestwo.com',          name:'Joei Anne Royo',                   manager:'Catherine Dela Fuente',     cluster:'Arielle', start:'2026-01-05'},
   {email:'mheldssierte@homeaglowsalestwo.com',      name:'Mhelds Sierte',                    manager:'May Claveron',              cluster:'Kendryck', start:'2026-01-05'},
   {email:'ramonamanalo@homeaglowsalesone.com',      name:'Ramona Manalo',                    manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-01-19'},
   {email:'noelanacor@homeaglowsalesone.com',        name:'Noela Nacor',                      manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-01-19'},
@@ -1571,7 +1568,6 @@ const SEED_AGENTS = [
   {email:'helenmejico@homeaglowsales.com',          name:'Helen Mejico',                     manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-04-27'},
   {email:'paulvillaroman@homeaglowsales.com',       name:'Paul Deo Villaroman',              manager:'Basil Llamedo',             cluster:'Kendryck', start:'2026-04-27'},
   {email:'cyrilalpajaro@homeaglowsales.com',        name:'Cyril Alpajaro',                   manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-04-27'},
-  {email:'charliegalendez@homeaglowsalestwo.com',   name:'Charlie Galendez',                 manager:'Catherine Dela Fuente',     cluster:'Arielle', start:'2026-04-27'},
   {email:'ceahnsalinas@homeaglowsales.com',         name:'Ceahn Kylle Salinas',              manager:'Jovan Philip Jalandoni',    cluster:'Arielle', start:'2026-05-04'},
   {email:'adrianellanto@homeaglowsales.com',        name:'Gb Adriane Llanto',                manager:'May Claveron',              cluster:'Kendryck', start:'2026-05-04'},
   {email:'criezlpagunsan@homeaglowsales.com',       name:'Criezl Mae Pagunsan',              manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-05-04'},
@@ -1606,6 +1602,18 @@ const SEED_AGENTS = [
   {email:'edwinpatino@homeaglowsalestwo.com',       name:'Edwin Patino',                     manager:'Anna Pascual',              cluster:'Jubee',    start:'2026-05-25'},
   {email:'jesterdeocampo@homeaglowsalestwo.com',    name:'Jester Deocampo',                  manager:'Anna Pascual',              cluster:'Jubee',    start:'2026-05-25'},
   {email:'krystalnovelozo@homeaglowsalesone.com',   name:'Krystal Novelozo',                 manager:'Anna Pascual',              cluster:'Jubee',    start:'2026-06-01'},
+  // v41: 11 verified live-active Arielle agents added from the reconciliation audit (were missing from v40 seed).
+  {email:'alexagohayon@homeaglowsalestwo.com', name:'Alex Agohayon', manager:'Jhone Anog', cluster:'Arielle', start:'2026-07-27'},
+  {email:'arlfredespinosa@homeaglowsales.com', name:'Arlfred Espinosa', manager:'Jhone Anog', cluster:'Arielle', start:'2026-06-08'},
+  {email:'arvinpiao@homeaglowsalestwo.com', name:'Arvin Piao', manager:'Jaydi Miranda', cluster:'Arielle', start:'2026-07-27'},
+  {email:'gianpelayo@homeaglowsalestwo.com', name:'Gian Pelayo', manager:'Jhone Anog', cluster:'Arielle', start:'2026-06-01'},
+  {email:'jaysonrombaoa@homeaglowsalestwo.com', name:'Jayson Rombaoa', manager:'Jovan Philip Jalandoni', cluster:'Arielle', start:'2026-07-27'},
+  {email:'jontorlao@homeaglowsalestwo.com', name:'Jon Bernard Torlao', manager:'Jhone Anog', cluster:'Arielle', start:'2026-07-27'},
+  {email:'kathleenrivera@homeaglowsales.com', name:'Kathleen Rivera', manager:'Jovan Philip Jalandoni', cluster:'Arielle', start:'2026-06-06'},
+  {email:'mariacrebillo@homeaglowsales.com', name:'Maria Betchie Crebillo', manager:'Jhone Anog', cluster:'Arielle', start:'2026-05-18'},
+  {email:'ralfcalibo@homeaglowsalestwo.com', name:'Ralf Calibo', manager:'Jhone Anog', cluster:'Arielle', start:'2026-06-01'},
+  {email:'sharlyntapao@homeaglowsales.com', name:'Sharlyn Tapao', manager:'Jovan Philip Jalandoni', cluster:'Arielle', start:'2026-06-08'},
+  {email:'vonrimes@homeaglowsalestwo.com', name:'Von Rio RImes', manager:'Jhone Anog', cluster:'Arielle', start:'2026-05-25'},
 ];
 // ============================================================================
 // RUNTIME ROSTER HOLDERS — populated FROM FIRESTORE at login; empty until then.
