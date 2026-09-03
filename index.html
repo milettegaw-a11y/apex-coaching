@@ -1345,7 +1345,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-03-arielle-roster-reconcile-PROD-v41";
+const APEX_BUILD = "2026-09-03-hide-tl-recovery-PROD-v42";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2624,7 +2624,7 @@ function initApp() {
   document.getElementById('btnAddCoaching').style.display = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnAddNTE').style.display      = canCreate ? 'inline-block' : 'none';
   document.getElementById('btnRosterMenu').style.display  = canManageRoster() ? 'inline-block' : 'none';
-  { const br=document.getElementById('btnRecovery'); if(br) br.style.display = canManageEntries() ? 'inline-block' : 'none'; }  // v36: TL + leadership
+  { const br=document.getElementById('btnRecovery'); if(br) br.style.display = 'none'; }  // v42: standalone Recovery diagnostic HIDDEN for ALL roles in production; automatic backupLocalOnlyRecoveries() unchanged.
   { const rc=document.getElementById('btnRecoveryCenter'); if(rc) rc.style.display = (isDeptWide(currentUser) || (currentUser && currentUser.role==='OM')) ? 'inline-block' : 'none'; }  // v38: SOM/Director restore + OM view-only
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
   // v39: legacy bulk "Migrate roster" button is removed and hard-disabled. Never show it, even if a
