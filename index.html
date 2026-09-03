@@ -1345,7 +1345,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-03-hide-tl-recovery-PROD-v42";
+const APEX_BUILD = "2026-09-03-today-only-coaching-date-PROD-v43";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -3786,10 +3786,26 @@ function agentStatusBadge(label){
 function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s}
 function esc(s){return (s||'').replace(/"/g,'&quot;')}
 function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+// v43: today's LOCAL calendar date as YYYY-MM-DD (from the browser's local clock, NOT UTC — so it
+// reflects the user's own calendar day and never shifts across midnight). Used both as the date
+// input's min/max/default for a NEW log and as the authoritative save-time comparison basis.
+function todayLocalISO(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
 function openAddModal() {
   document.getElementById('formModalTitle').textContent = 'New Coaching Log';
   document.getElementById('editId').value = '';
   clearForm();
+  // v43: a NEW coaching log may only use TODAY (no past, no future). Lock the picker to today
+  // (min == max == today), default the field to today, and derive the WK# for today so the form
+  // opens complete. This is UX only — saveEntry() enforces the today-only rule authoritatively.
+  { const fd = document.getElementById('fDate');
+    if (fd) { const t = todayLocalISO(); fd.min = t; fd.max = t; fd.value = t;
+      if (typeof onCoachingDateChange === 'function') onCoachingDateChange(); } }
   if (currentUser.role === 'TL') {
     document.getElementById('fCluster').value = currentUser.tlInfo.cluster;
   } else if (currentUser.role === 'OM') {
@@ -3825,6 +3841,9 @@ function editEntry(id) {
   clearForm();
   // FIX: set editId AFTER clearForm (clearForm wipes it) so saveEntry updates instead of creating a duplicate
   document.getElementById('editId').value = id;
+  // v43: editing an EXISTING log must NOT be constrained by the new-log today-only rule. Clear any
+  // min/max so a historical OR future coaching date stays valid, editable, and is never rewritten.
+  { const fd = document.getElementById('fDate'); if (fd) { fd.removeAttribute('min'); fd.removeAttribute('max'); } }
   const tlEntry = Object.values(TL_EMAILS).find(t => t.display === e.teamLead);
   if (tlEntry) document.getElementById('fCluster').value = tlEntry.cluster;
   populateFormTLs(document.getElementById('fCluster').value);
@@ -5536,6 +5555,21 @@ async function saveEntry() {
   for(const id of req){
     if(!document.getElementById(id).value){
       alert('Please fill in all required fields (Date, Agent Name, Team Lead).'); return;
+    }
+  }
+  // v43: a NEW coaching log may only be created for TODAY's local date. NEW = no editId (editing an
+  // existing record is exempt — its historical/future date stays valid and is never rewritten).
+  // Compare selected date and today as normalized LOCAL YYYY-MM-DD strings (never raw UTC), and
+  // require exact equality. Returns BEFORE building the entry, any setSyncState, any SheetDB request,
+  // and any recovery/local write → a blocked save touches nothing.
+  {
+    const isNew = !((document.getElementById('editId')||{}).value || '');
+    if (isNew) {
+      const selDate = document.getElementById('fDate').value;   // date input → already YYYY-MM-DD
+      if (selDate !== todayLocalISO()) {
+        alert("New coaching logs can only be created for today's date.");
+        return;
+      }
     }
   }
   const perfData = [];
