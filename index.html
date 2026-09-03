@@ -328,7 +328,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <button id="btnRosterMenu" class="btn-burger" onclick="openRosterManager()" style="display:none" title="Manage Agent Roster">☰</button>
       <button id="btnRecovery" class="btn-burger" onclick="openRecoveryDiagnostic()" style="display:none" title="Read-only: check which of your cached Coaching Logs are Synced / Not Synced">🛟 Recovery</button>
       <button id="btnRecoveryCenter" class="btn-burger" onclick="openRecoveryCenter()" style="display:none" title="Centralized Recovery Center — review/restore missing coaching logs (Firestore-backed; 0 SheetDB to view)">🧭 Recovery Center</button>
-      <button id="btnMigrate" class="btn-burger" onclick="migrateUsersToFirestore()" style="display:none" title="One-time (SOM only): migrate the SEED roster into users/{email} documents">⬆️ Migrate roster</button>
+      <!-- v39: legacy "Migrate roster" bulk seed→Firestore button REMOVED. Firestore users is the runtime
+           source of truth; the completed roster migration is protected in PRESERVE_USER_IDS, and the bulk
+           migrateUsersToFirestore() path is hard-disabled below. Individual roster add/edit (persistUserDoc)
+           is unaffected. -->
       <!-- "Sync Local → SheetDB" (backfillToSheets) button removed: no normal UI path may trigger the old bulk sync.
            backfillToSheets() is retained as a dormant emergency/recovery utility only (not wired to any control). -->
       <button class="btn-logout" onclick="doLogout()">Logout</button>
@@ -1342,7 +1345,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-03-centralized-recovery-PROD-v38";
+const APEX_BUILD = "2026-09-03-roster-sync-PROD-v39";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -1355,11 +1358,11 @@ try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 //   'janedoe@homeaglowsales.com': {display:'TL Jane', fullName:'Jane Doe', cluster:'Kendryck'},
 // ============================================================================
 const SEED_TL_EMAILS = {
-  'errollim@homeaglowsales.com':           {display:'TL Arielle', fullName:'Mark Errol Lim',         cluster:'Jubee'},
+  'rafaelmanansala@homeaglowsales.com':    {display:'TL RB',      fullName:'Rafael Bernard Manansala',cluster:'Jubee'},
   'kailelaquindanum@homeaglowsalestwo.com':{display:'TL Kaii',    fullName:'Kaile Laquindanum',      cluster:'Jubee'},
   'leoniedeonaga@homeaglowsalesone.com':   {display:'TL Lei',     fullName:'Leonie Deonaga',         cluster:'Jubee'},
   'kennethhistoriador@homeaglowsales.com': {display:'TL Kenneth', fullName:'Kenneth Historiador Jr.',cluster:'Jubee'},
-  'angelomararac@homeaglowsalestwo.com':   {display:'TL Angelo',  fullName:'Angelo Mararac',         cluster:'Jubee'},
+  'krizelletaino@homeaglowsalesone.com':   {display:'TL Krizelle',fullName:'Krizelle Taiño',         cluster:'Jubee'},
   'euniceolaguer@homeaglowsalestwo.com':   {display:'TL Eunice',  fullName:'Eunice Olaguer',         cluster:'Jubee'},
   // TL Anna — mapping is live (agents map to her), but her LOGIN email is NOT yet confirmed.
   // The key below is a flagged placeholder, NOT a real credential: it can never match a typed
@@ -1382,7 +1385,7 @@ const SEED_TL_EMAILS = {
 const SEED_OM_EMAILS = {
   'jubee@homeaglowsales.com':          {display:'OM Jubee',    cluster:'Jubee'},
   'kendryck@homeaglowsales.com':       {display:'OM Kendryck', cluster:'Kendryck'},
-  'princesssimbahan@homeaglowsalesone.com':{display:'OM Princess',cluster:'Princess'},
+  'errollim@homeaglowsales.com':           {display:'OM Arielle', cluster:'Princess'},
 };
 const SEED_ADMIN_EMAILS = ['milettegaw@homeaglowsales.com','milettegaw@homeaglowsalestwo.com','milettegaw@homeaglowsalesone.com','clayton@homeaglowsales.com'];
 // ── Department-wide reporting accounts ───────────────────────────────────────
@@ -1410,7 +1413,7 @@ function canRunBackfill(u){ u = u || (typeof currentUser !== 'undefined' ? curre
 // ============================================================================
 const SEED_AGENTS = [
   // ---- Added 2026-08-18 (login-fix roster additions) ----
-  {email:'arronegallego@homeaglowsalesone.com',     name:'Arrone Gallego',                   manager:'Mark Errol Lim',            cluster:'Jubee'},
+  {email:'arronegallego@homeaglowsalesone.com',     name:'Arrone Gallego',                   manager:'Rafael Bernard Manansala',            cluster:'Jubee'},
   {email:'angelaarnaiz@homeaglowsales.com',         name:'Angela Arnaiz',                    manager:'Kenneth Historiador Jr.',   cluster:'Jubee'},
   {email:'christinefortuna@homeaglowsales.com',     name:'Christine Mae Cor Fortuna',        manager:'Kenneth Historiador Jr.',   cluster:'Jubee'},
   // ---- TL Nikka's team (Cluster Kendryck), confirmed 2026-08-18 ----
@@ -1424,7 +1427,7 @@ const SEED_AGENTS = [
   {email:'alvindoroy@homeaglowsales.com',           name:'Alvin Doroy',                      manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2024-08-12'},
   {email:'jessicasiya@homeaglowsales.com',          name:'Jessica Romm Siya',                manager:'May Claveron',              cluster:'Kendryck', start:'2024-08-26'},
   {email:'girliecorrales@homeaglowsales.com',       name:'Girlie Corrales',                  manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2024-09-09'},
-  {email:'jisellesantos@homeaglowsales.com',        name:'Jiselle Cayabyab-Santos',          manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2024-10-07'},
+  {email:'jisellesantos@homeaglowsales.com',        name:'Jiselle Cayabyab-Santos',          manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2024-10-07'},
   {email:'jimmybarnachea@homeaglowsales.com',       name:'Jimmy Barnachea',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2024-10-07'},
   {email:'dulcejimenez@homeaglowsales.com',         name:'Dulce Jimenez',                    manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2024-10-21'},
   {email:'rosevallespin@homeaglowsalesone.com',     name:'Rose Marie Vallespin',             manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2024-10-21'},
@@ -1436,18 +1439,18 @@ const SEED_AGENTS = [
   {email:'rosetejedor@homeaglowsales.com',          name:'Rose Ann Tejedor',                 manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-01-06'},
   {email:'vanessainocencio@homeaglowsalesone.com',  name:'Vanessa Sarah Inocencio',          manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-01-20'},
   {email:'rinagalang@homeaglowsalestwo.com',        name:'Rina Galang',                      manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-04-07'},
-  {email:'arahsacro@homeaglowsales.com',            name:'Arah Mae Sacro',                   manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-02-10'},
+  {email:'arahsacro@homeaglowsales.com',            name:'Arah Mae Sacro',                   manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-02-10'},
   {email:'carlynordona@homeaglowsales.com',         name:'Carlyn Ordona',                    manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-02-10'},
   {email:'allanchuajr@homeaglowsales.com',          name:'Allan Chua Jr.',                   manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-02-10'},
-  {email:'trixiarobles@homeaglowsales.com',         name:'Trixia Marie Robles',              manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-02-24'},
+  {email:'trixiarobles@homeaglowsales.com',         name:'Trixia Marie Robles',              manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-02-24'},
   {email:'noemigalon@homeaglowsalestwo.com',        name:'Noemi Galon',                      manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-02-24'},
   {email:'joanestarez@homeaglowsalestwo.com',       name:'Joan Elizabeth Zendivina Estarez', manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-02-24'},
   {email:'johnbabila@homeaglowsalestwo.com',        name:'John Anthony Babila',              manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-03-10'},
   {email:'maryopena@homeaglowsalestwo.com',         name:'Mary Angelique Emeline Opeña',     manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-03-10'},
-  {email:'bernadetteespinas@homeaglowsalestwo.com', name:'Bernadette Espinas',               manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-03-17'},
-  {email:'michaelaleta@homeaglowsales.com',         name:'Michael Aleta',                    manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-03-24'},
+  {email:'bernadetteespinas@homeaglowsalestwo.com', name:'Bernadette Espinas',               manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-03-17'},
+  {email:'michaelaleta@homeaglowsales.com',         name:'Michael Aleta',                    manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-03-24'},
   {email:'aceamantiad@homeaglowsalesone.com',       name:'Ace York Amantiad',                manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2025-03-31'},
-  {email:'princessmamandis@homeaglowsalestwo.com',  name:'Princess Lorraine Mamandis',       manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-04-07'},
+  {email:'princessmamandis@homeaglowsalestwo.com',  name:'Princess Lorraine Mamandis',       manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-04-07'},
   {email:'janellecasabuena@homeaglowsales.com',     name:'Janelle Adriana Casabuena',        manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-04-07'},
   {email:'jovelyntomilloso@homeaglowsalestwo.com',  name:'Jovelyn Tomilloso',                manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-07-28'},
   {email:'michaelsantiago@homeaglowsales.com',      name:'Michael Angelo Santiago',          manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-04-07'},
@@ -1457,7 +1460,7 @@ const SEED_AGENTS = [
   {email:'aarontuico@homeaglowsales.com',           name:'Aaron Louise Tuico',               manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-05-05'},
   {email:'jenalynnpaya@homeaglowsales.com',         name:'Jenalynn Paya',                    manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2025-05-05'},
   {email:'mervenpanganiban@homeaglowsales.com',     name:'Merven Panganiban',                manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-05-13'},
-  {email:'jennifertrinidad@homeaglowsalestwo.com',  name:'Jennifer M. Trinidad',             manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-05-19'},
+  {email:'jennifertrinidad@homeaglowsalestwo.com',  name:'Jennifer M. Trinidad',             manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-05-19'},
   {email:'jondellemiranda@homeaglowsalestwo.com',   name:'Jondelle Miranda',                 manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-05-19'},
   {email:'melougynsaliot@homeaglowsalestwo.com',    name:'Melougyn Saliot',                  manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2025-05-19'},
   {email:'odiroseamuyot@homeaglowsalestwo.com',     name:'Odirose Q. Amuyot',               manager:'Jaydi Miranda',             cluster:'Princess', start:'2025-05-19'},
@@ -1472,23 +1475,22 @@ const SEED_AGENTS = [
   {email:'lynnvillahermosa@homeaglowsalestwo.com',  name:'Lynn Villahermosa',                manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2025-06-02'},
   {email:'irenevirgo@homeaglowsales.com',           name:'Irene Joy Virgo',                  manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-02'},
   {email:'roxannebalcita@homeaglowsalestwo.com',    name:'Roxanne Balcita',                  manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-06-02'},
-  {email:'virnadaclan@homeaglowsales.com',          name:'Virna Daclan',                     manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-16'},
+  {email:'virnadaclan@homeaglowsales.com',          name:'Virna Daclan',                     manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-06-16'},
   {email:'patriciajaniola@homeaglowsalesone.com',   name:'Patricia Rose Janiola',            manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-16'},
   {email:'larahongayo@homeaglowsales.com',          name:'Ma. Lara Hongayo',                 manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-16'},
-  {email:'romeosandovaljr@homeaglowsalestwo.com',   name:'Romeo Jr Sandoval',                manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-16'},
+  {email:'romeosandovaljr@homeaglowsalestwo.com',   name:'Romeo Jr Sandoval',                manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-06-16'},
   {email:'kathrinatabaquin@homeaglowsalestwo.com',  name:'Kathrina Christine Tabaquin',      manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-06-16'},
   {email:'angelicalorenzana@homeaglowsalestwo.com', name:'Angelica Joyce Lorenzana',         manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-16'},
-  {email:'krizelletaino@homeaglowsalesone.com',     name:'Krizelle Taiño',                   manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2025-06-23'},
   {email:'michaeldometita@homeaglowsalestwo.com',   name:'Michael Dometita',                 manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-06-30'},
-  {email:'princesspunzalan@homeaglowsales.com',     name:'Princess May Punzalan',            manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-06-30'},
+  {email:'princesspunzalan@homeaglowsales.com',     name:'Princess May Punzalan',            manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-06-30'},
   {email:'chrisantilegando@homeaglowsalestwo.com',  name:'Chris Antilegando',                manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2025-07-07'},
   {email:'irisneri@homeaglowsalestwo.com',          name:'Iris Mariel Neri',                 manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-05-13'},
   {email:'christophercampion@homeaglowsalestwo.com',name:'Christopher A. Campion',           manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2025-07-21'},
   {email:'alvinreyes@homeaglowsalesone.com',        name:'Alvin Reyes',                      manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2025-07-14'},
   {email:'neranelsapelino@homeaglowsalestwo.com',   name:'Neranel Sapelino',                 manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-07-28'},
   {email:'suneilgilay@homeaglowsalestwo.com',       name:'Suneil Anthony Tarpin Gilay',      manager:'May Claveron',              cluster:'Kendryck', start:'2025-07-28'},
-  {email:'marylim@homeaglowsalestwo.com',           name:'Mary Joy Lim',                     manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-07-28'},
-  {email:'billygali@homeaglowsales.com',            name:'Billy Ray Ocay Gali',              manager:'Mark Errol Lim',            cluster:'Jubee',    start:'2025-07-28'},
+  {email:'marylim@homeaglowsalestwo.com',           name:'Mary Joy Lim',                     manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-07-28'},
+  {email:'billygali@homeaglowsales.com',            name:'Billy Ray Ocay Gali',              manager:'Rafael Bernard Manansala',            cluster:'Jubee',    start:'2025-07-28'},
   {email:'jemymorong@homeaglowsalestwo.com',        name:'Jemy Morong',                      manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2025-06-30'},
   {email:'jessabalsamo@homeaglowsalesone.com',      name:'Jessa Balsamo',                    manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-09-01'},
   {email:'abdallahdilna@homeaglowsalesone.com',     name:'Abdallah R. Dilna',               manager:'Basil Llamedo',             cluster:'Kendryck', start:'2025-09-01'},
@@ -1538,21 +1540,21 @@ const SEED_AGENTS = [
   {email:'jocelynalcoran@homeaglowsalesone.com',    name:'Jocelyn S. Alcoran',               manager:'Jovan Philip Jalandoni',    cluster:'Princess', start:'2026-03-02'},
   {email:'darielmacasambat@homeaglowsalesone.com',  name:'Dariel Macasambat',                manager:'Asher Jessica Faith Balway',cluster:'Kendryck', start:'2026-03-02'},
   {email:'abbigailvillanueva@homeaglowsalestwo.com',name:'Abbigail Villanueva',              manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-03-09'},
-  {email:'doendoronila@homeaglowsalestwo.com',      name:'Doen Doronila',                    manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'doendoronila@homeaglowsalestwo.com',      name:'Doen Doronila',                    manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-03-09'},
   {email:'rickdula@homeaglowsalestwo.com',          name:'Rick Allen Dula',                  manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-03-09'},
-  {email:'christserveza@homeaglowsalestwo.com',     name:'Christ John Serveza',              manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'christserveza@homeaglowsalestwo.com',     name:'Christ John Serveza',              manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-03-09'},
   {email:'elisaarenas@homeaglowsalestwo.com',       name:'Elisa Arenas',                     manager:'Basil Llamedo',             cluster:'Kendryck', start:'2026-03-09'},
-  {email:'danicadionela@homeaglowsalestwo.com',     name:'Danica Dionela',                   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-09'},
+  {email:'danicadionela@homeaglowsalestwo.com',     name:'Danica Dionela',                   manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-03-09'},
   {email:'mariejoeupalan@homeaglowsalestwo.com',    name:'Marie Jo Eupalan',                 manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-03-09'},
   {email:'jersonatillaga@homeaglowsalesone.com',    name:'Jerson Atillaga',                  manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-03-16'},
   {email:'joannaluganao@homeaglowsalestwo.com',     name:'Joanna Ynez Luganao',              manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-03-16'},
   {email:'shienabagunoc@homeaglowsales.com',        name:'Shiena Mae Bagunoc',               manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-03-23'},
-  {email:'jessielynmarin@homeaglowsales.com',       name:'Jessielyn Marin',                  manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-03-23'},
+  {email:'jessielynmarin@homeaglowsales.com',       name:'Jessielyn Marin',                  manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-03-23'},
   {email:'jeaninebuendia@homeaglowsales.com',       name:'Jeanine Buendia',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
   {email:'michaeldelacruz@homeaglowsales.com',      name:'John Michael Dela Cruz',           manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
   {email:'manuelitocabillo@homeaglowsales.com',     name:'Manuelito Cabillo',                manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-03-23'},
   {email:'monicaobrero@homeaglowsalestwo.com',      name:'Monica Obrero',                    manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-03-30'},
-  {email:'josefagela@homeaglowsales.com',           name:'Jose Marou Karl Laynesa Fagela',   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-04-06'},
+  {email:'josefagela@homeaglowsales.com',           name:'Jose Marou Karl Laynesa Fagela',   manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-04-06'},
   {email:'donitaamaquin@homeaglowsalestwo.com',     name:'Donita Amaquin',                   manager:'Karlo Miccolai Valencia',   cluster:'Kendryck', start:'2026-04-06'},
   {email:'conradolaudenorio@homeaglowsalestwo.com', name:'Conrado Laudenorio Jr',            manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-04-20'},
   {email:'josephdeasis@homeaglowsalestwo.com',      name:'Joseph Christ De Asis',            manager:'Henrielyn Makiling',        cluster:'Kendryck', start:'2026-04-20'},
@@ -1583,7 +1585,7 @@ const SEED_AGENTS = [
   {email:'excelmalabago@homeaglowsalesone.com',     name:'Excel Lawrence Malabago',          manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-06-01'},
   {email:'angelamigullas@homeaglowsalesone.com',    name:'Angela Migullas',                  manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-06-01'},
   {email:'danahmicayabas@homeaglowsalesone.com',    name:'Danah Carol Micayabas',            manager:'Kenneth Historiador Jr.',   cluster:'Jubee',    start:'2026-06-01'},
-  {email:'deancastro@homeaglowsalesone.com',        name:'Dean Rowell Castro',               manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-01'},
+  {email:'deancastro@homeaglowsalesone.com',        name:'Dean Rowell Castro',               manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-06-01'},
   {email:'angeliqueubungen@homeaglowsalestwo.com',  name:'Angelique Ubungen',                manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
   {email:'czarinamitra@homeaglowsalestwo.com',      name:'Czarina Mae Mitra',                manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
   {email:'erickaperez@homeaglowsalestwo.com',       name:'Ericka Mae Perez',                 manager:'Eunice Olaguer',            cluster:'Jubee',    start:'2026-06-01'},
@@ -1593,8 +1595,8 @@ const SEED_AGENTS = [
   {email:'raymondbalaga@homeaglowsalesone.com',     name:'Raymond Balaga',                   manager:'Jaydi Miranda',             cluster:'Princess', start:'2026-06-08'},
   {email:'hannaibanez@homeaglowsalesone.com',       name:'Hanna Alexie Ibanez',              manager:'Kimberly Rose Sabandal',    cluster:'Princess', start:'2026-06-08'},
   {email:'jesusapaso@homeaglowsales.com',           name:'Jesus Apaso III',                  manager:'Maria Glaiza Sy',           cluster:'Princess', start:'2026-06-08'},
-  {email:'marygallentes@homeaglowsales.com',        name:'Mary Rose Gallentes',              manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
-  {email:'eunicesanchez@homeaglowsales.com',        name:'Eunice Sanchez',                   manager:'Angelo Mararac',            cluster:'Jubee',    start:'2026-06-08'},
+  {email:'marygallentes@homeaglowsales.com',        name:'Mary Rose Gallentes',              manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-06-08'},
+  {email:'eunicesanchez@homeaglowsales.com',        name:'Eunice Sanchez',                   manager:'Krizelle Taiño',            cluster:'Jubee',    start:'2026-06-08'},
   {email:'johncea@homeaglowsales.com',              name:'John Harvey Giva Cea',             manager:'Catherine Dela Fuente',     cluster:'Princess', start:'2026-06-08'},
   {email:'jaylamosao@homeaglowsales.com',           name:'Jayla Mosao',                      manager:'Leonie Deonaga',            cluster:'Jubee',    start:'2026-06-08'},
   {email:'rainierperalta@homeaglowsales.com',       name:'Rainier Peralta',                  manager:'Kaile Laquindanum',         cluster:'Jubee',    start:'2026-06-08'},
@@ -1833,7 +1835,18 @@ async function handleFirebaseUser(user){
 // Builds one user document per SEED entry; audits duplicates + blank/missing emails
 // FIRST; never invents an email; preserves the already-published users/jubee doc;
 // idempotent (set with merge:true); 0 SheetDB requests.
-const PRESERVE_USER_IDS = ['jubee@homeaglowsales.com'];
+const PRESERVE_USER_IDS = ['jubee@homeaglowsales.com',
+  // v39: the 26 records finalized by the completed live Firestore roster migration — the SOM-only
+  // migrate button must NEVER overwrite these from seed data (Firestore stays source of truth).
+  'errollim@homeaglowsales.com','rafaelmanansala@homeaglowsales.com','krizelletaino@homeaglowsalesone.com',
+  'angelomararac@homeaglowsalestwo.com','princesssimbahan@homeaglowsalesone.com',
+  'arronegallego@homeaglowsalesone.com','jisellesantos@homeaglowsales.com','arahsacro@homeaglowsales.com',
+  'trixiarobles@homeaglowsales.com','bernadetteespinas@homeaglowsalestwo.com','michaelaleta@homeaglowsales.com',
+  'princessmamandis@homeaglowsalestwo.com','jennifertrinidad@homeaglowsalestwo.com','virnadaclan@homeaglowsales.com',
+  'romeosandovaljr@homeaglowsalestwo.com','princesspunzalan@homeaglowsales.com','marylim@homeaglowsalestwo.com',
+  'billygali@homeaglowsales.com','doendoronila@homeaglowsalestwo.com','christserveza@homeaglowsalestwo.com',
+  'danicadionela@homeaglowsalestwo.com','jessielynmarin@homeaglowsales.com','josefagela@homeaglowsales.com',
+  'deancastro@homeaglowsalesone.com','marygallentes@homeaglowsales.com','eunicesanchez@homeaglowsales.com'];
 function buildSeedUserDocs(){
   const byEmail = {};   // normalizedEmail -> doc
   const blanks = [];    // entries skipped for missing email (never invented)
@@ -1859,27 +1872,10 @@ function buildSeedUserDocs(){
   return { docs: byEmail, blanks, dupes };
 }
 async function migrateUsersToFirestore(){
-  if(!initFirebase()){ alert('Firebase not loaded.'); return; }
-  if(!FB_AUTH.currentUser){ alert('Sign in with Google first.'); return; }
-  if(!currentUser || currentUser.role!=='SOM'){ alert('Migration is SOM-only.'); return; }
-  const { docs, blanks, dupes } = buildSeedUserDocs();
-  const emails = Object.keys(docs);
-  const audit = 'MIGRATION AUDIT (users/{email})\n\n'
-    + '• user documents to write: ' + emails.length + '\n'
-    + '• duplicate emails resolved (higher role kept): ' + dupes.length + (dupes.length ? ('\n    ' + dupes.slice(0,6).map(d=>d.email+' ['+d.kept+' over '+d.dropped+']').join('\n    ')) : '') + '\n'
-    + '• blank/missing-email entries SKIPPED (never invented): ' + blanks.length + (blanks.length ? (' — ' + blanks.slice(0,8).map(b=>b.name||'?').join(', ')) : '') + '\n'
-    + '• preserved (never overwritten): ' + PRESERVE_USER_IDS.join(', ') + '\n\n'
-    + 'Proceed with the one-time migration?';
-  if(!confirm(audit)) return;
-  let written=0, preserved=0, failed=0;
-  for(const k of emails){
-    if(PRESERVE_USER_IDS.includes(k)){ preserved++; continue; }        // preserve the published record
-    try { await FB_DB.collection(USERS_COL).doc(k).set(docs[k], { merge:true }); written++; }
-    catch(err){ failed++; console.warn('[APEX] migrate write failed for', k, err); }
-  }
-  alert('Migration complete.\n• written/updated: '+written+'\n• preserved: '+preserved+'\n• skipped (blank email): '+blanks.length+'\n• failed: '+failed);
-  await loadUsersFromFirestore();
-  if(currentUser){ loadRoster(); initApp(); }
+  // v39: bulk seed-to-Firestore roster migration is permanently retired. Firestore users is the runtime
+  // source of truth; the completed migration is protected in PRESERVE_USER_IDS. This function never writes.
+  // Individual roster add/edit via the roster manager (persistUserDoc) is unaffected.
+  try { alert('Bulk roster migration is disabled. Firestore is the source of truth. Use the roster manager to add or edit individual TLs or agents.'); } catch(e){}
 }
 // Roster Manager write-through to users/{email} (merge). Add/Edit -> set fields; Remove -> active:false.
 async function persistUserDoc(doc){
@@ -2130,7 +2126,7 @@ function applyRosterLocalMods(){
 const ROSTER_OM_EMAILS = [
   'jubee@homeaglowsales.com',
   'kendryck@homeaglowsales.com',
-  'princesssimbahan@homeaglowsalesone.com'
+  'errollim@homeaglowsales.com'
 ];
 function canManageRoster() {
   if (!currentUser) return false;
@@ -2623,9 +2619,10 @@ function initApp() {
   { const br=document.getElementById('btnRecovery'); if(br) br.style.display = canManageEntries() ? 'inline-block' : 'none'; }  // v36: TL + leadership
   { const rc=document.getElementById('btnRecoveryCenter'); if(rc) rc.style.display = (isDeptWide(currentUser) || (currentUser && currentUser.role==='OM')) ? 'inline-block' : 'none'; }  // v38: SOM/Director restore + OM view-only
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
-  // Migration button: SOM-only (production permission).
+  // v39: legacy bulk "Migrate roster" button is removed and hard-disabled. Never show it, even if a
+  // stale element is present in a cached DOM.
   const bm=document.getElementById('btnMigrate');
-  if(bm) bm.style.display = (currentUser && currentUser.role==='SOM') ? 'inline-block' : 'none';
+  if(bm) bm.style.display = 'none';
   // (Sync Local → SheetDB button removed — no visibility toggle needed.)
   populateWKOptions();
   populateFilterTLs();
