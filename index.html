@@ -343,6 +343,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <button id="navRainmaker" onclick="showView('rainmaker')">🎯 Rainmaker Practice</button>
     <button id="navDailyCompletion" onclick="showView('dailycompletion')" style="display:none">🗓️ Daily Coaching Completion</button>
     <button id="navSomHealth" onclick="showView('somhealth')" style="display:none">🩺 SOM Health Check</button>
+    <button id="navStorageUsage" onclick="showView('storageusage')" style="display:none">📦 Storage & Usage</button>
     <!-- NTE top-level tab removed from the UI (data + functions retained/dormant; NTE Logs sheet untouched). -->
   </nav>
   <main>
@@ -474,6 +475,22 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div id="shMsg" style="display:none;margin-top:12px;background:#e7f3ec;border:1px solid #b7d8c4;border-radius:8px;padding:10px 14px;color:#2f6f43;font-weight:700"></div>
       <div id="shTableWrap" style="margin-top:18px"></div>
       <div id="shNote" style="font-size:.72rem;color:#7a8aa0;margin-top:12px"></div>
+    </div>
+    <!-- ══ v46 STORAGE & USAGE — SOM-only diagnostic; 100% passive from in-memory data; 0 SheetDB, 0 Firestore ══ -->
+    <div id="viewStorageUsage" style="display:none">
+      <div class="section-header"><h2>📦 Storage &amp; Usage</h2></div>
+      <div style="font-size:.78rem;color:#7a8aa0;margin:-4px 0 14px">A high-level, read-only look at what drives Firebase and SheetDB usage. Computed from data already loaded this session — opening or filtering this tab makes 0 SheetDB requests and 0 Firestore reads/writes. Nothing is stored.</div>
+      <div style="font-weight:800;font-size:.9rem;color:#1a3353;margin:6px 0 6px">🔥 Firebase / Firestore</div>
+      <div id="suFbCards" class="cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
+      <div id="suFbTable" style="margin-top:14px"></div>
+      <div style="font-weight:800;font-size:.9rem;color:#2f6f43;margin:22px 0 6px;border-top:3px solid #b7d8c4;padding-top:12px">📄 SheetDB</div>
+      <div id="suSdCards" class="cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
+      <div id="suSdTable" style="margin-top:14px"></div>
+      <div style="font-weight:800;font-size:.9rem;color:#1a3353;margin:22px 0 6px">📊 Likely Usage Drivers</div>
+      <div id="suDrivers"></div>
+      <div style="font-weight:800;font-size:.9rem;color:#b8860b;margin:22px 0 6px">⚠️ Growth &amp; Retention Warnings</div>
+      <div id="suWarnings"></div>
+      <div id="suNote" style="font-size:.72rem;color:#7a8aa0;margin-top:14px"></div>
     </div>
     <div id="viewLog" style="display:none">
       <!-- ══ COACHING PROGRESS DASHBOARD (v27) — analytics only; 100% in-memory from entries + ROSTER ══ -->
@@ -1416,7 +1433,33 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-05-som-health-check-correct-PROD-v45";
+const APEX_BUILD = "2026-09-05-storage-usage-PROD-v46";
+// ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
+// wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
+// straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
+// guarded so a counting error can never affect a real request. Firestore uses the SDK transport, so
+// it is not counted here; account-level totals require Cloud Monitoring and are shown as unavailable.
+var SU_SESSION = { sheetGET:0, sheetPOST:0, sheetPATCH:0, sheetDELETE:0, sheetOther:0, sheetTotal:0, since: Date.now() };
+(function(){
+  try {
+    if (typeof window==='undefined' || window.__suFetchWrapped) return;
+    const _f = window.fetch ? window.fetch.bind(window) : null; if(!_f) return;
+    window.fetch = function(input, init){
+      try {
+        const u = String((input && input.url) || input || '');
+        if (u.indexOf('sheetdb.io') >= 0) {
+          const m = (((init && init.method) || (input && input.method) || 'GET') + '').toUpperCase();
+          SU_SESSION.sheetTotal++;
+          if (m==='GET') SU_SESSION.sheetGET++; else if (m==='POST') SU_SESSION.sheetPOST++;
+          else if (m==='PATCH') SU_SESSION.sheetPATCH++; else if (m==='DELETE') SU_SESSION.sheetDELETE++;
+          else SU_SESSION.sheetOther++;
+        }
+      } catch(e){}
+      return _f(input, init);
+    };
+    window.__suFetchWrapped = true;
+  } catch(e){}
+})();
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -2707,6 +2750,8 @@ function initApp() {
   { const nb=document.getElementById('navDailyCompletion'); if(nb) nb.style.display = dcCanAccess(currentUser) ? 'inline-block' : 'none'; }
   // v45: SOM Health Check tab — SOM ONLY (Agent/TL/OM/Director/Admin hidden).
   { const sh=document.getElementById('navSomHealth'); if(sh) sh.style.display = somCanAccess(currentUser) ? 'inline-block' : 'none'; }
+  // v46: Storage & Usage tab — SOM ONLY (Director/OM/TL/Agent/Admin hidden).
+  { const su=document.getElementById('navStorageUsage'); if(su) su.style.display = suCanAccess(currentUser) ? 'inline-block' : 'none'; }
   // v39: legacy bulk "Migrate roster" button is removed and hard-disabled. Never show it, even if a
   // stale element is present in a cached DOM.
   const bm=document.getElementById('btnMigrate');
@@ -2797,12 +2842,14 @@ function showView(view) {
   setDisp('viewRainmaker', view==='rainmaker');
   setDisp('viewDailyCompletion', view==='dailycompletion');   // v44
   setDisp('viewSomHealth', view==='somhealth');               // v45
+  setDisp('viewStorageUsage', view==='storageusage');         // v46
   setAct('navDashboard', view==='dashboard');
   setAct('navLog',       view==='log');
   setAct('navNTE',       view==='nte');              // guarded — button removed from UI
   setAct('navRainmaker', view==='rainmaker');
   setAct('navDailyCompletion', view==='dailycompletion');     // v44
   setAct('navSomHealth', view==='somhealth');                 // v45
+  setAct('navStorageUsage', view==='storageusage');           // v46
   if (view==='nte' && typeof renderNTETable==='function') renderNTETable();  // dormant path
   if (view==='rainmaker') openRainmakerTab();
   if (view==='log' && typeof renderCoachingProgress==='function') renderCoachingProgress();  // v27 analytics (in-memory)
@@ -2810,6 +2857,8 @@ function showView(view) {
   if (view==='dailycompletion' && typeof openDailyCompletionTab==='function') openDailyCompletionTab();
   // v45: SOM Health Check (SOM only). Guard + render from in-memory data.
   if (view==='somhealth' && typeof openSomHealthTab==='function') openSomHealthTab();
+  // v46: Storage & Usage (SOM only). Passive render from in-memory data.
+  if (view==='storageusage' && typeof renderStorageUsage==='function') renderStorageUsage();
 }
 function onClusterChange() {
   const cluster = document.getElementById('filterCluster').value;
@@ -3924,6 +3973,105 @@ async function shConfirmCorrection(){
   renderSomHealth();
   const msg=document.getElementById('shMsg');
   if(msg){ msg.style.display='block'; msg.innerHTML = '✅ Corrected '+escHtml(agent)+' — cluster set to '+escHtml(to)+'.'; }
+}
+// ═══════════════════════════════════════════════════════════════════════════
+// v46 — STORAGE & USAGE (SOM-only, passive/read-only diagnostic)
+// Renders entirely from data ALREADY in memory this session (LAST_USERS_DOCS, entries, ROSTER,
+// nteEntries, rmEntries, TL_EMAILS/OM_EMAILS, SU_SESSION session counter). Opening/rendering makes
+// 0 SheetDB requests and 0 Firestore reads/writes. Privileged metrics (real byte storage, account
+// read/write totals, SheetDB account usage) require Cloud Monitoring / SheetDB-account APIs + client
+// credentials, so they are NOT fetched — shown as "Not available without additional API access".
+// ═══════════════════════════════════════════════════════════════════════════
+function suCanAccess(u){ u = u || (typeof currentUser!=='undefined'?currentUser:null); return !!u && u.role==='SOM'; }
+function suFmtBytes(n){ n=n||0; return n>=1048576 ? (n/1048576).toFixed(1)+' MB' : n>=1024 ? Math.round(n/1024)+' KB' : n+' B'; }
+function suApproxBytes(x){ try{ return JSON.stringify(x==null?[]:x).length; }catch(e){ return 0; } }
+function suCard(label, valueHtml, sub, accent){
+  return `<div style="background:#fff;border:1px solid #e3e8ef;border-radius:10px;padding:12px 14px">`+
+    `<div style="font-size:.72rem;color:#7a8aa0;font-weight:700;text-transform:uppercase;letter-spacing:.03em">${escHtml(label)}</div>`+
+    `<div style="font-size:1.55rem;font-weight:800;color:${accent||'#1a3353'};line-height:1.15;margin-top:2px">${valueHtml}</div>`+
+    (sub?`<div style="font-size:.7rem;color:#7a8aa0;margin-top:2px">${escHtml(sub)}</div>`:'')+`</div>`;
+}
+const SU_NA = '<span style="color:#7a8aa0;font-weight:700;font-size:.82rem">Not available without additional API access</span>';
+function suTable(head, rows){
+  return `<div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">`+
+    head.map((h,i)=>`<th style="text-align:${i===0?'left':'left'}">${escHtml(h)}</th>`).join('')+`</tr></thead><tbody>`+
+    rows.map(r=>`<tr>`+r.map((c,i)=>`<td style="text-align:left;font-size:.82rem"${i===0?' class="proj-label"':''}>${c}</td>`).join('')+`</tr>`).join('')+
+    `</tbody></table></div>`;
+}
+function suRisk(level){ const c=level==='High'?'#b23b3b':level==='Medium'?'#b8860b':'#2f6f43', bg=level==='High'?'#f7e6e6':level==='Medium'?'#fbf3df':'#e7f3ec';
+  return `<span style="display:inline-block;padding:1px 8px;border-radius:9px;font-size:.72rem;font-weight:800;color:${c};background:${bg}">${level}</span>`; }
+function renderStorageUsage(){
+  if(!suCanAccess(currentUser)){
+    ['suFbCards','suSdCards','suFbTable','suSdTable','suDrivers','suWarnings','suNote'].forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML='';});
+    const w=document.getElementById('suFbTable'); if(w) w.innerHTML='<div class="cp-empty">You do not have access to this report.</div>';
+    return;
+  }
+  // ── REAL in-memory counts (0 extra reads) ──
+  const usersLoaded  = (typeof LAST_USERS_DOCS!=='undefined'?LAST_USERS_DOCS:[]).length;
+  const coachingRows = (typeof entries!=='undefined'?entries:[]).length;
+  const nteRows      = (typeof nteEntries!=='undefined'?nteEntries:[]).length;
+  const rmRows       = (typeof rmEntries!=='undefined'?rmEntries:[]).length;
+  const rosterN      = (typeof ROSTER!=='undefined'?ROSTER:[]).length;
+  const coachingBytes= suApproxBytes(typeof entries!=='undefined'?entries:[]);
+  const S = (typeof SU_SESSION!=='undefined')?SU_SESSION:{sheetTotal:0,sheetGET:0,sheetPOST:0,sheetPATCH:0,sheetDELETE:0};
+
+  // ── FIREBASE cards ──
+  document.getElementById('suFbCards').innerHTML =
+    suCard('Firestore Reads', SU_NA, 'account totals need Cloud Monitoring') +
+    suCard('Firestore Writes', SU_NA, 'account totals need Cloud Monitoring') +
+    suCard('Stored Documents', String(usersLoaded), 'users docs loaded this session (real)') +
+    suCard('Largest Data Area', 'users', 'by loaded document count');
+  // ── FIREBASE footprint table (real collection names only) ──
+  document.getElementById('suFbTable').innerHTML = suTable(
+    ['Collection','Documents / Records','Read Pattern','Write Pattern','Growth Risk','Notes'],
+    [
+      ['users', String(usersLoaded)+' <span style="color:#7a8aa0">(loaded)</span>', 'Login (1 collection read)', 'Roster add / edit / Correct / deactivate', suRisk('Low'), 'One doc per person; bounded by headcount.'],
+      ['coachingRecovery', '<span style="color:#7a8aa0">On demand — not loaded</span>', 'Recovery Center only (1 query)', 'Auto failed-sync backup + restore', suRisk('Medium'), 'One doc per problem entry (deduped by Entry ID); <b>never deleted — accumulates</b>.'],
+    ]);
+
+  // ── SHEETDB cards ──
+  document.getElementById('suSdCards').innerHTML =
+    suCard('Requests', String(S.sheetTotal), 'this session (GET '+S.sheetGET+' · POST '+S.sheetPOST+' · PATCH '+S.sheetPATCH+(S.sheetDELETE?' · DEL '+S.sheetDELETE:'')+')') +
+    suCard('Cached Requests Avoided', SU_NA, '60s memory+local cache reduces refetches; not separately counted') +
+    suCard('Loaded Rows', String(coachingRows), 'Coaching Logs rows in memory (~'+suFmtBytes(coachingBytes)+' client payload)') +
+    suCard('Largest Data Set', 'Coaching Logs', 'by loaded rows');
+  // ── SHEETDB usage table (real request paths) ──
+  document.getElementById('suSdTable').innerHTML = suTable(
+    ['Area','Method','Trigger','Cached?','Request Risk'],
+    [
+      ['Coaching load', 'GET', 'Login / dashboard refresh', 'Yes (60s)', suRisk('Medium')+' full sheet for SOM/Director/OM; scoped search for TL/Agent'],
+      ['Save coaching', 'POST', 'User save (new)', 'No', suRisk('Low')+' expected'],
+      ['Edit coaching', 'PATCH', 'User edit', 'No', suRisk('Low')+' expected'],
+      ['Delete coaching', 'DELETE', 'User delete', 'No', suRisk('Low')+' rare'],
+      ['NTE logs', 'GET / POST / PATCH', 'NTE view / save', 'GET Yes (60s)', suRisk('Low')],
+      ['Rainmaker Practice', 'GET / POST / PATCH', '1× preload / save', 'GET Yes', suRisk('Low')],
+      ['Custom TLs', 'GET / POST / PATCH / DELETE', 'TL admin actions', 'Partial', suRisk('Low')],
+      ['Recovery restore', 'POST ×N', 'SOM/Director restore', 'No', suRisk('Medium')+' batch (N + verify)'],
+    ]);
+
+  // ── Likely Usage Drivers (ranked; each supported by code) ──
+  const driver=(rank,label,tag,tagColor)=>`<div style="display:flex;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px solid #f0f2f5">`+
+    `<div style="font-weight:800;color:#1a3353;width:18px">${rank}.</div><div style="flex:1">${escHtml(label)}</div>`+
+    `<span style="font-size:.68rem;font-weight:800;color:#fff;background:${tagColor};border-radius:8px;padding:1px 7px">${tag}</span></div>`;
+  document.getElementById('suDrivers').innerHTML =
+    driver(1,'Coaching Logs full-sheet GET (whole sheet for SOM/Director/OM on each refresh outside the 60s cache).','SheetDB read','#1565c0')+
+    driver(2,'coachingRecovery documents accumulate — one per failed-sync entry, never deleted.','Firestore storage','#7a4fb0')+
+    driver(3,'Historical Coaching Logs grow over time, making each full-sheet load heavier.','SheetDB storage','#1565c0')+
+    driver(4,'Repeated dashboard refreshes (mitigated by the 60s cache; refreshers past the window repeat the GET).','SheetDB request','#1565c0')+
+    driver(5,'Roster writes to users on add / edit / one-click Correct / deactivate.','Firestore write','#2f6f43');
+
+  // ── Warnings (read-only; actionable growth/retention only) ──
+  const warn=(t)=>`<div style="background:#fbf6e6;border:1px solid #ecd9a0;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:.82rem;color:#6b5b1e">⚠️ ${t}</div>`;
+  document.getElementById('suWarnings').innerHTML =
+    warn('<b>coachingRecovery has no retention/cleanup.</b> Failed-sync backups remain indefinitely — the collection grows forever. (Deduped by Entry ID, so one doc per problem entry, not unbounded duplicates.)')+
+    warn('<b>Full Coaching Logs sheet is fetched for SOM/Director/OM.</b> Payload grows with historical rows; TL/Agent use a scoped search instead.')+
+    warn('<b>Cache window is short (60s).</b> Frequent refreshers can repeat the same GET once the window lapses.')+
+    warn('Approx. Coaching Logs client payload in memory: <b>~'+suFmtBytes(coachingBytes)+'</b> ('+coachingRows+' rows). This is the loaded client payload, <b>not</b> Firebase billing storage.');
+
+  document.getElementById('suNote').innerHTML =
+    'Real Firestore byte-storage and account-level read/write totals require Google Cloud Monitoring / the Firebase console (privileged) — not shown here because that would need admin credentials in the browser, which this tab never uses. '+
+    'Exact document counts for on-demand collections (coachingRecovery) would require a one-time query; that could be added later as an opt-in “Run Detailed Audit” with a cost confirmation. '+
+    'This tab is read-only and diagnostic: 0 SheetDB requests, 0 Firestore reads/writes, no new storage, no polling.';
 }
 // Completion stats. `expected` = required coaching logs for the window (1/agent/week).
 // TL% and Fully% are measured against `expected`; Agent% is measured against logs that
