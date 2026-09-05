@@ -466,11 +466,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <div class="form-group" style="margin:0">
           <label style="font-size:.72rem;color:#7a8aa0">Issue Type</label><br/>
           <select id="shType" onchange="renderSomHealth()">
-            <option value="">All</option><option value="access">Access</option><option value="roster">Roster</option><option value="leader">Leader</option>
+            <option value="">All</option><option value="roster">Roster</option><option value="leader">Leader</option>
           </select>
         </div>
       </div>
-      <div id="shCards" class="cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+      <div id="shCards" class="cards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:640px"></div>
       <div id="shMsg" style="display:none;margin-top:12px;background:#e7f3ec;border:1px solid #b7d8c4;border-radius:8px;padding:10px 14px;color:#2f6f43;font-weight:700"></div>
       <div id="shTableWrap" style="margin-top:18px"></div>
       <div id="shNote" style="font-size:.72rem;color:#7a8aa0;margin-top:12px"></div>
@@ -1178,20 +1178,20 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 <!-- v38: CENTRALIZED RECOVERY CENTER (SOM/Director restore; OM view-only own-cluster). Reads recovery
      candidates from Firestore ONLY — 0 SheetDB requests to open/refresh/review. SheetDB is used only on
      an explicit Restore Selected (batch: 1 count GET + N POST + 1 verify GET). -->
-<!-- v45: SOM/Director one-click reactivation confirmation. No data re-entry; shows the exact change. -->
-<div class="modal-overlay" id="reactivateModal">
+<!-- v45: SOM/Director one-click safe correction confirmation. No data re-entry; shows the exact change. -->
+<div class="modal-overlay" id="correctModal">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
-      <h3>♻️ Confirm Reactivation</h3>
-      <button class="modal-close" onclick="closeModal('reactivateModal')">✕</button>
+      <h3>🛠️ Confirm Correction</h3>
+      <button class="modal-close" onclick="closeModal('correctModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div id="shReactBody"></div>
-      <div id="shReactError" style="display:none;margin-top:10px;background:#f7e6e6;border:1px solid #e2b6b6;border-radius:8px;padding:9px 12px;color:#b23b3b;font-size:.84rem"></div>
+      <div id="shCorrectBody"></div>
+      <div id="shCorrectError" style="display:none;margin-top:10px;background:#f7e6e6;border:1px solid #e2b6b6;border-radius:8px;padding:9px 12px;color:#b23b3b;font-size:.84rem"></div>
     </div>
     <div class="modal-footer">
-      <button id="shConfirmBtn" class="btn-primary" style="width:auto;background:#2f6f43" onclick="shConfirmReactivation()">Confirm Reactivation</button>
-      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('reactivateModal')">Cancel</button>
+      <button id="shCorrectBtn" class="btn-primary" style="width:auto;background:#2f6f43" onclick="shConfirmCorrection()">Confirm Correction</button>
+      <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('correctModal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -1416,7 +1416,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-05-som-health-check-reactivate-PROD-v45";
+const APEX_BUILD = "2026-09-05-som-health-check-correct-PROD-v45";
 try { console.log('[APEX] build =', APEX_BUILD); } catch(e) {}
 // ============================================================================
 // STATIC TL ROSTER — authoritative source of truth for TL authentication + team mapping.
@@ -3706,147 +3706,100 @@ function renderDailyCompletion(){
 // are OMITTED in v45 because coachingRecovery loads on-demand only (openRecoveryCenter) — evaluating
 // it would need a new Firestore read per open, which the spec asks us to avoid.
 // ═══════════════════════════════════════════════════════════════════════════
-// v45 revise: SOM + Director (both are Firestore rosterAdmin — the only roles authorized to update
-// another user's users/ doc). Admin is deliberately EXCLUDED: rosterAdmin() in the rules is SOM/Director
-// only, so an Admin Reactivate would be denied by Firestore — the tab (and the write) stay SOM/Director.
+// v45 (noise-reduction + safe Correct): SOM + Director (both are Firestore rosterAdmin — the only roles
+// authorized to update another user's users/ doc). Admin EXCLUDED (rosterAdmin() = SOM/Director only).
 function somCanAccess(u){ u = u || (typeof currentUser!=='undefined'?currentUser:null); return !!u && (u.role==='SOM' || u.role==='Director'); }
-// Valid current production clusters — a reactivation destination must be one of these.
 function shValidClusters(){ return new Set(['Jubee','Arielle','Kendryck']); }
-// Reactivation eligibility (§7): returns {ok, tl, cluster} only when the destination is unambiguous
-// and safe; otherwise {ok:false, reason}. Never guesses. Read-only — no writes here.
-function shReactivationPlan(d){
-  if(!d) return {ok:false, reason:'no doc'};
-  if(isActive(d)) return {ok:false, reason:'already active'};
-  if(normRole(d.role)!=='Agent') return {ok:false, reason:'not an Agent'};
-  const fn = d.teamLeadFullName || d.manager || '';
-  const disp = d.teamLead || '';
-  if(!fn && !disp) return {ok:false, reason:'no TL identity on record'};
-  const all = Object.entries(TL_EMAILS);   // TL_EMAILS holds only ACTIVE TLs (+ unprovisioned seed)
-  let matches = fn ? all.filter(([k,t])=>normKey(t.fullName)===normKey(fn)) : [];
-  if(!matches.length && disp) matches = all.filter(([k,t])=>normKey(t.display)===normKey(disp));
-  if(matches.length!==1) return {ok:false, reason:'TL unresolved or ambiguous'};
-  const [tlKey, tl] = matches[0];
-  // If BOTH fullName and display are present they must point to the SAME resolved TL.
-  if(fn && disp){
-    const byDisp = all.filter(([k,t])=>normKey(t.display)===normKey(disp));
-    if(byDisp.length && !(byDisp.length===1 && byDisp[0][0]===tlKey)) return {ok:false, reason:'TL identity conflict'};
-  }
-  if(!isProvisionedTLKey(tlKey)) return {ok:false, reason:'TL is not a provisioned active TL'};
-  if(!tl.cluster) return {ok:false, reason:'TL has no cluster'};
-  if(!shValidClusters().has(tl.cluster)) return {ok:false, reason:'destination cluster invalid'};
-  const k = normEmail(d.email);
-  const conflict = (LAST_USERS_DOCS||[]).some(x=> x!==d && normEmail(x.email)===k && isActive(x));
-  if(conflict) return {ok:false, reason:'conflicting active account for this email'};
-  return {ok:true, tl, tlKey, cluster:tl.cluster};
-}
-// The ONLY reactivation write: an awaited MERGE update of the existing users/{email} doc. Returns
-// {ok} / {ok:false,error}. Isolated from persistUserDoc()/Add Agent (unchanged). Authorized by the
-// existing rosterAdmin() rule (SOM/Director). No optimistic success — the caller awaits this.
-async function shReactivateWrite(email, patch){
+// Resolve a TL by fullName against the ACTIVE runtime TL set. Returns the TL object or null.
+function shTLByFullName(fn){ if(!fn) return null; const k=normKey(fn); return Object.values(TL_EMAILS).find(t=>normKey(t.fullName)===k) || null; }
+// ATL = Assistant Team Lead. Not a distinct normalized role (normRole doesn't know 'ATL'); in production
+// these are TL-bucket users whose DISPLAY or NAME is prefixed "ATL" as a whole word. An ATL legitimately
+// owns 0 agents, so the "TL has no active agents" (and OM-requirement) detectors must exclude them.
+// AUTHORITATIVE RULE (business-confirmed): a TL-bucket user is an ATL iff `display` OR `name` starts with
+// "ATL" as a whole-word prefix, case-insensitive ("ATL Camille" / "atl Camille" match; "TL Camille",
+// "Agent Camille", or a name merely containing the letters ATL do NOT). Matches BOTH fields, not display-only.
+function shIsATLLabel(s){ return /^\s*ATL\b/i.test(String(s||'')); }
+function shIsATL(display, name){ return shIsATLLabel(display) || shIsATLLabel(name); }
+// The ONLY Health-Check write: an awaited MERGE of the smallest field set into the existing users/{email}
+// doc. Authorized by the existing rosterAdmin() rule (SOM/Director). No optimistic success — caller awaits.
+async function shCorrectWrite(email, patch){
   if(!FB_READY||!FB_AUTH||!FB_AUTH.currentUser) return {ok:false, error:'Not signed in to Firestore.'};
   const k=normEmail(email); if(!k) return {ok:false, error:'Invalid email.'};
   try { await FB_DB.collection(USERS_COL).doc(k).set(patch, { merge:true }); return {ok:true}; }
   catch(err){ return {ok:false, error:(err&&err.message)||String(err)}; }
 }
-let shPendingReactivation = null;
-// Resolve a TL by fullName against the ACTIVE runtime TL set (TL_EMAILS is built from active docs +
-// unprovisioned seed TLs the app treats as active). Returns the TL object or null.
-function shTLByFullName(fn){ if(!fn) return null; const k=normKey(fn); return Object.values(TL_EMAILS).find(t=>normKey(t.fullName)===k) || null; }
-// Clusters that currently have an active OM (from OM_EMAILS, built from active OM docs).
-function shActiveOMClusters(){ return new Set(Object.values(OM_EMAILS).map(o=>o.cluster).filter(Boolean)); }
-// Compute all issues from in-memory data. Returns [{sev,cat,issue,person,cluster,current,expected,action}].
-// For an inactive Agent that is NOT safely reactivatable, classify WHY (short Review reason) and the
-// TL label to show. Read-only; never guesses a destination. Distinguishes inactive vs missing vs
-// ambiguous vs unprovisioned vs stale-cluster.
-function shReviewInfo(d){
-  const fn = d.teamLeadFullName || d.manager || '';
-  const disp = d.teamLead || '';
-  const ident = disp || fn;
-  if(!ident) return { tlLabel:'Unknown TL', expected:'Needs assignment review' };
-  const all = Object.entries(TL_EMAILS);
-  const byFn = fn ? all.filter(([k,t])=>normKey(t.fullName)===normKey(fn)) : [];
-  const byDisp = disp ? all.filter(([k,t])=>normKey(t.display)===normKey(disp)) : [];
-  const matches = byFn.length ? byFn : byDisp;
-  if(matches.length>1) return { tlLabel:ident, expected:'Ambiguous TL — review' };
-  if(matches.length===1){
-    const [k,t]=matches[0];
-    if(!isProvisionedTLKey(k)) return { tlLabel:t.display, expected:'TL not provisioned — review' };
-    if(!t.cluster || !shValidClusters().has(t.cluster)) return { tlLabel:t.display, expected:'Stale/invalid cluster — review' };
-    return { tlLabel:t.display, expected:'Conflicting account — review' };
-  }
-  // No ACTIVE TL match → the referenced TL is inactive (known) or missing.
-  const inactiveKnown = INACTIVE_NAME_KEYS.has(normKey(fn)) || INACTIVE_NAME_KEYS.has(normKey(disp));
-  return inactiveKnown ? { tlLabel:ident, expected:'TL inactive — review' }
-                       : { tlLabel:ident, expected:'Needs assignment review' };
-}
+let shPendingCorrection = null;
+// Compute all issues from in-memory data only. NO inactive-Agent detector (an inactive Agent is a normal
+// terminated/promoted state, not a blocker). Returns [{sev,cat,issue,person,cluster,current,expected,action,...}].
 function somHealthIssues(){
   const out = [];
-  const docs = LAST_USERS_DOCS || [];
-  // ── A. ANY inactive Agent → CRITICAL · access. Reactivate only when the strict 10-point gate
-  // passes; otherwise Review with a short reason. Never guesses a destination.
-  docs.forEach(d=>{
-    if(normRole(d.role)!=='Agent') return;
-    if(isActive(d)) return;                               // any inactive Agent qualifies
-    const plan = shReactivationPlan(d);                  // strict safe-destination resolution (§7)
-    let cluster, current, expected;
-    if(plan.ok){
-      // Safe: file under the resolved active TL's current cluster; offer Reactivate.
-      cluster = plan.cluster;
-      current = 'Inactive · '+(d.cluster||'—')+' · '+plan.tl.display;
-      expected = 'Active · '+plan.cluster+' · '+plan.tl.display;
-    } else {
-      // Not safe → Review. Cluster filing: TL cluster unavailable → stored cluster if it is a current
-      // valid cluster, else '' → visible under All Clusters only.
-      const ri = shReviewInfo(d);
-      cluster = (d.cluster && shValidClusters().has(d.cluster)) ? d.cluster : '';
-      current = 'Inactive · '+(d.cluster||'—')+' · '+ri.tlLabel;
-      expected = ri.expected;
-    }
-    out.push({ sev:'Critical', cat:'access', issue:'Inactive agent',
-      person: d.name || d.display || d.email, cluster, email: normEmail(d.email),
-      current, expected,
-      canReactivate: plan.ok,                             // true → Reactivate button; else → Review
-      action: 'Review' });
-  });
-  // ── B / C over ACTIVE agents (ROSTER = live active runtime agents).
+  // ATL email set — computed from the RAW users docs so BOTH `display` and `name` are checked (the TL
+  // bucket only retains display/fullName). A TL-bucket user whose display OR name starts with "ATL"
+  // (whole-word, case-insensitive) is an ATL and is excluded from the TL-owns-agents detectors.
+  const atlEmails = new Set((LAST_USERS_DOCS||[])
+    .filter(d=>normRole(d.role)==='TL' && shIsATL(d.display, d.name))
+    .map(d=>normEmail(d.email)).filter(Boolean));
+  const shKeyIsATL = (key,t)=> atlEmails.has(normEmail(key)) || shIsATL(t&&t.display, t&&t.fullName);
+  // ── B / C over ACTIVE agents (ROSTER = live active runtime agents). C supports one-click Correct.
   ROSTER.forEach(a=>{
-    const tl = shTLByFullName(a.manager||'');
-    if(!tl){
-      // B. Active agent whose TL cannot be resolved to an active TL. CRITICAL · roster.
+    const fn = a.manager || '';
+    const matches = fn ? Object.values(TL_EMAILS).filter(t=>normKey(t.fullName)===normKey(fn)) : [];
+    if(!fn || matches.length===0){
+      // B. Active agent whose TL cannot be resolved to an active TL. CRITICAL · roster · Review.
       out.push({ sev:'Critical', cat:'roster', issue:'Invalid TL assignment',
         person:a.name, cluster:a.cluster||'',
-        current:'Active · '+(a.cluster||'—')+' · TL '+(a.manager||'(none)'),
-        expected:'Assigned to an active TL',
-        action:'Review TL assignment' });
-    } else if((a.cluster||'') !== (tl.cluster||'')){
-      // C. Agent cluster ≠ assigned TL cluster. WARNING · roster.
+        current:'Active · '+(a.cluster||'—')+' · TL '+(fn||'(none)'),
+        expected:'Assigned to an active TL', action:'Review TL assignment' });
+      return;
+    }
+    if(matches.length>1){
+      // Ambiguous TL identity → Review (never auto-correct).
       out.push({ sev:'Warning', cat:'roster', issue:'Cluster mismatch',
         person:a.name, cluster:a.cluster||'',
+        current:'Agent: '+(a.cluster||'—')+' | TL identity ambiguous',
+        expected:'Resolve duplicate TL identity', action:'Review assignment' });
+      return;
+    }
+    const tl = matches[0];
+    // C. Agent cluster ≠ assigned TL cluster (case/whitespace-insensitive → no false positives).
+    if(normKey(a.cluster||'') !== normKey(tl.cluster||'')){
+      // Deterministic correction exists iff the TL's cluster is a current valid production cluster:
+      // an agent's cluster follows its TL, so agent.cluster := TL.cluster is the single safe fix.
+      const canCorrect = !!tl.cluster && shValidClusters().has(tl.cluster);
+      out.push({ sev:'Warning', cat:'roster', issue:'Cluster mismatch',
+        person:a.name, cluster: (a.cluster && shValidClusters().has(a.cluster)) ? a.cluster : (shValidClusters().has(tl.cluster)?tl.cluster:''),
+        email: normEmail(a.email),
         current:'Agent: '+(a.cluster||'—')+' | TL: '+(tl.cluster||'—'),
-        expected:'Agent cluster = TL cluster ('+(tl.cluster||'—')+')',
+        expected:'Agent cluster = '+(tl.cluster||'—')+' (TL '+tl.display+')',
+        canCorrect, correctFrom:(a.cluster||'—'), correctTo:(tl.cluster||''), tlDisplay:tl.display,
         action:'Review assignment' });
     }
   });
-  // ── D / E over ACTIVE, PROVISIONED TLs (skip unprovisioned seed-only TLs to avoid false positives).
-  const omClusters = shActiveOMClusters();
+  // ── D. Clusters with active roster-owning TLs but NO active OM. ONE issue per CLUSTER (not per TL),
+  // case/whitespace-insensitive OM match — kills the per-TL noise + mis-cased-OM false positives.
+  const omKeys = new Set(Object.values(OM_EMAILS).map(o=>normKey(o.cluster)).filter(Boolean));
+  const tlClusterCount = {};   // canonical cluster string → count of active non-ATL provisioned TLs
   Object.entries(TL_EMAILS).forEach(([key,t])=>{
-    if(!isProvisionedTLKey(key)) return;
-    // D. TL cluster has no active OM. WARNING · leader.
-    if(t.cluster && !omClusters.has(t.cluster)){
-      out.push({ sev:'Warning', cat:'leader', issue:'TL / OM cluster mismatch',
-        person:t.display, cluster:t.cluster,
-        current:'TL cluster: '+t.cluster+' | no active OM',
-        expected:'Active OM for cluster '+t.cluster,
+    if(!isProvisionedTLKey(key) || shKeyIsATL(key,t) || !t.cluster) return;
+    tlClusterCount[t.cluster] = (tlClusterCount[t.cluster]||0)+1;
+  });
+  Object.keys(tlClusterCount).forEach(cl=>{
+    if(!omKeys.has(normKey(cl))){
+      out.push({ sev:'Warning', cat:'leader', issue:'Cluster has no active OM',
+        person:'Cluster '+cl, cluster: shValidClusters().has(cl)?cl:'',
+        current: tlClusterCount[cl]+' active TL'+(tlClusterCount[cl]===1?'':'s')+' · no active OM',
+        expected:'One active OM assigned to '+cl,
         action:'Review leader mapping' });
     }
-    // E. Active TL with zero active agents. WARNING · leader.
+  });
+  // ── E. Active provisioned ROSTER-OWNING TL (excluding ATLs) with zero active agents. WARNING · Review.
+  Object.entries(TL_EMAILS).forEach(([key,t])=>{
+    if(!isProvisionedTLKey(key) || shKeyIsATL(key,t)) return;
     const n = ROSTER.filter(a=>normKey(a.manager)===normKey(t.fullName)).length;
     if(n===0){
       out.push({ sev:'Warning', cat:'leader', issue:'TL has no active agents',
         person:t.display, cluster:t.cluster||'',
-        current:'0 active agents',
-        expected:'≥1 active agent',
-        action:'Review roster' });
+        current:'0 active agents', expected:'≥1 active agent', action:'Review roster' });
     }
   });
   // Critical first, then Warning; stable by person within.
@@ -3876,13 +3829,12 @@ function renderSomHealth(){
   const clusterF = document.getElementById('shCluster')?.value || '';
   const typeF    = document.getElementById('shType')?.value || '';
   const all = somHealthIssues();
-  // Cards count the FULL (unfiltered-by-type) set, respecting the cluster filter only.
+  // Cards count the FULL (unfiltered-by-type) set, respecting the cluster filter only. Two cards only —
+  // the Access category was removed (no legitimate access detector remains after dropping inactive-Agent).
   const byCluster = clusterF ? all.filter(i=>i.cluster===clusterF) : all;
-  const access = byCluster.filter(i=>i.cat==='access').length;
   const roster = byCluster.filter(i=>i.cat==='roster').length;
   const leader = byCluster.filter(i=>i.cat==='leader').length;
   document.getElementById('shCards').innerHTML =
-    shCard('Access Issues', access, access?'#b23b3b':'#1a3353') +
     shCard('Roster Mismatches', roster, roster?'#b8860b':'#1a3353') +
     shCard('Leader Issues', leader, leader?'#b8860b':'#1a3353');
   // Table respects BOTH filters.
@@ -3894,13 +3846,11 @@ function renderSomHealth(){
   } else {
     const head = `<tr class="proj-row-header"><th>Severity</th><th style="text-align:left">Issue</th><th style="text-align:left">Person</th><th style="text-align:left">Current State</th><th style="text-align:left">Expected State</th><th style="text-align:left">Action</th></tr>`;
     const body = rows.map(i=>{
-      // Action cell: a clickable Reactivate ONLY for an inactive-agent issue whose destination is
-      // unambiguously safe (§7/§15). Every other case is non-destructive Review text.
+      // Action cell: a clickable Correct ONLY when a single deterministic fix exists (C cluster mismatch
+      // with a valid TL cluster). Everything else is non-destructive Review text.
       let actionCell;
-      if(i.cat==='access' && i.issue==='Inactive agent' && i.canReactivate && i.email){
-        actionCell = `<button onclick="shOnReactivateClick('${escHtml(i.email)}')" style="background:#2f6f43;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-weight:800;font-size:.78rem;cursor:pointer">Reactivate</button>`;
-      } else if(i.cat==='access' && i.issue==='Inactive agent'){
-        actionCell = `<span style="color:#7a8aa0;font-size:.82rem">Review</span>`;
+      if(i.canCorrect && i.email){
+        actionCell = `<button onclick="shOnCorrectClick('${escHtml(i.email)}')" style="background:#2f6f43;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-weight:800;font-size:.78rem;cursor:pointer">Correct</button>`;
       } else {
         actionCell = `<span style="color:#1a3353;font-size:.82rem">${escHtml(i.action||'Review')}</span>`;
       }
@@ -3917,44 +3867,37 @@ function renderSomHealth(){
   }
   document.getElementById('shNote').innerHTML =
     'Read-only detection from the roster already loaded at sign-in — 0 SheetDB requests, 0 extra Firestore reads/writes on view. '+
-    'Reactivate updates the existing users/{email} document only (1 Firestore write, SOM/Director) after you confirm. Recovery is handled in the Recovery Center.';
+    'Correct updates one field on the existing users/{email} document (1 Firestore write, SOM/Director) after you confirm. Inactive users are not flagged; Recovery is handled in the Recovery Center.';
 }
-// ── Reactivation click → build + open the confirmation modal (no write yet). ──
-function shOnReactivateClick(email){
-  if(!somCanAccess(currentUser)){ alert('Only SOM/Director can reactivate.'); return; }
-  const d = (LAST_USERS_DOCS||[]).find(x=>normEmail(x.email)===normEmail(email));
-  if(!d){ alert('User not found in the loaded roster.'); return; }
-  const plan = shReactivationPlan(d);
-  if(!plan.ok){ alert('This agent cannot be reactivated automatically ('+(plan.reason||'unresolved')+'). Please review manually.'); return; }
-  const agent = d.name || d.display || d.email;
-  const curCluster = d.cluster || '—';
-  shPendingReactivation = { email:normEmail(d.email), agent, curCluster, destCluster:plan.cluster,
-    tlDisplay:plan.tl.display, tlFullName:plan.tl.fullName,
-    patch:{ active:true, role:'Agent', cluster:plan.cluster, teamLead:plan.tl.display, teamLeadFullName:plan.tl.fullName } };
-  const clusterLine = (curCluster!==plan.cluster)
-    ? `<div style="font-weight:800;color:#b8860b;margin-top:4px">Cluster: ${escHtml(curCluster)} → ${escHtml(plan.cluster)}</div>` : '';
-  document.getElementById('shReactBody').innerHTML =
-    `<div style="font-size:1rem;font-weight:800;margin-bottom:8px">Reactivate ${escHtml(agent)}?</div>`+
+// ── Correct click → build + open the confirmation modal (no write yet). Only for a deterministic C. ──
+function shOnCorrectClick(email){
+  if(!somCanAccess(currentUser)){ alert('Only SOM/Director can correct roster data.'); return; }
+  const issue = somHealthIssues().find(i=>i.canCorrect && i.email===normEmail(email));
+  if(!issue){ alert('This item can no longer be safely auto-corrected. Please review manually.'); return; }
+  shPendingCorrection = { email:issue.email, agent:issue.person, from:issue.correctFrom, to:issue.correctTo,
+    tlDisplay:issue.tlDisplay, patch:{ cluster:issue.correctTo } };   // smallest field set: cluster only
+  document.getElementById('shCorrectBody').innerHTML =
+    `<div style="font-size:1rem;font-weight:800;margin-bottom:8px">Correct cluster mismatch?</div>`+
     `<div style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem">`+
-      `<div style="color:#7a8aa0">Agent</div><div>${escHtml(agent)}</div>`+
-      `<div style="color:#7a8aa0">Current</div><div>Inactive · ${escHtml(curCluster)} · ${escHtml(plan.tl.display)}</div>`+
-      `<div style="color:#7a8aa0">Resolved TL</div><div>${escHtml(plan.tl.display)} (${escHtml(plan.tl.fullName)})</div>`+
-      `<div style="color:#7a8aa0">Will become</div><div style="font-weight:700;color:#2f6f43">Active · ${escHtml(plan.cluster)} · ${escHtml(plan.tl.display)}</div>`+
-    `</div>`+clusterLine+
-    `<div style="font-size:.76rem;color:#7a8aa0;margin-top:8px">Writes only: active, role, cluster, teamLead, teamLeadFullName — to the existing users/${escHtml(normEmail(d.email))} document. Name, email and start date are preserved.</div>`;
-  const err=document.getElementById('shReactError'); if(err){ err.style.display='none'; err.textContent=''; }
-  const btn=document.getElementById('shConfirmBtn'); if(btn){ btn.disabled=false; btn.textContent='Confirm Reactivation'; }
-  openModal('reactivateModal');
+      `<div style="color:#7a8aa0">Agent</div><div>${escHtml(issue.person)}</div>`+
+      `<div style="color:#7a8aa0">Current cluster</div><div>${escHtml(issue.correctFrom)}</div>`+
+      `<div style="color:#7a8aa0">Expected</div><div style="font-weight:700;color:#2f6f43">${escHtml(issue.correctTo)} (to match TL ${escHtml(issue.tlDisplay)})</div>`+
+    `</div>`+
+    `<div style="font-weight:800;color:#b8860b;margin-top:4px">Cluster: ${escHtml(issue.correctFrom)} → ${escHtml(issue.correctTo)}</div>`+
+    `<div style="font-size:.76rem;color:#7a8aa0;margin-top:8px">Writes only the <b>cluster</b> field on the existing users/${escHtml(issue.email)} document. TL, name, email, role and all other fields are preserved.</div>`;
+  const err=document.getElementById('shCorrectError'); if(err){ err.style.display='none'; err.textContent=''; }
+  const btn=document.getElementById('shCorrectBtn'); if(btn){ btn.disabled=false; btn.textContent='Confirm Correction'; }
+  openModal('correctModal');
 }
 // ── Confirm → awaited write; only on confirmed success update memory + re-render (no extra read). ──
-async function shConfirmReactivation(){
-  const p = shPendingReactivation; if(!p) return;
-  const btn=document.getElementById('shConfirmBtn'); if(btn){ btn.disabled=true; btn.textContent='Reactivating…'; }
-  const res = await shReactivateWrite(p.email, p.patch);
+async function shConfirmCorrection(){
+  const p = shPendingCorrection; if(!p) return;
+  const btn=document.getElementById('shCorrectBtn'); if(btn){ btn.disabled=true; btn.textContent='Correcting…'; }
+  const res = await shCorrectWrite(p.email, p.patch);
   if(!res.ok){
     // FAILURE: keep the issue, do NOT mutate local roster, show a clear error, no auto-retry.
-    const err=document.getElementById('shReactError'); if(err){ err.style.display='block'; err.textContent='Reactivation failed: '+res.error+'. Nothing was changed — the issue is still listed.'; }
-    if(btn){ btn.disabled=false; btn.textContent='Confirm Reactivation'; }
+    const err=document.getElementById('shCorrectError'); if(err){ err.style.display='block'; err.textContent='Correction failed: '+res.error+'. Nothing was changed — the issue is still listed.'; }
+    if(btn){ btn.disabled=false; btn.textContent='Confirm Correction'; }
     return;
   }
   // SUCCESS: the confirmed write applied exactly `patch`. Merge the SAME patch into the retained
@@ -3962,12 +3905,12 @@ async function shConfirmReactivation(){
   const d=(LAST_USERS_DOCS||[]).find(x=>normEmail(x.email)===p.email);
   if(d) Object.assign(d, p.patch);
   applyUsersDocs(LAST_USERS_DOCS); loadRoster();
-  closeModal('reactivateModal');
-  const agent = p.agent, tl = p.tlDisplay, cl = p.destCluster;
-  shPendingReactivation = null;
+  closeModal('correctModal');
+  const agent = p.agent, to = p.to;
+  shPendingCorrection = null;
   renderSomHealth();
   const msg=document.getElementById('shMsg');
-  if(msg){ msg.style.display='block'; msg.innerHTML = '✅ Reactivated '+escHtml(agent)+' — Active · '+escHtml(cl)+' · '+escHtml(tl)+'.'; }
+  if(msg){ msg.style.display='block'; msg.innerHTML = '✅ Corrected '+escHtml(agent)+' — cluster set to '+escHtml(to)+'.'; }
 }
 // Completion stats. `expected` = required coaching logs for the window (1/agent/week).
 // TL% and Fully% are measured against `expected`; Agent% is measured against logs that
