@@ -1220,13 +1220,16 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
     </div>
     <div class="modal-body">
       <div id="rcSummary" style="font-size:.9rem;margin-bottom:10px"></div>
+      <div id="rcReadinessChips" style="margin-bottom:8px"></div>
       <div id="rcEstimate" style="font-size:.82rem;color:#ef6c00;margin-bottom:6px"></div>
       <div id="rcResult" style="font-size:.85rem;color:#2e7d32;margin-bottom:8px"></div>
       <div class="table-wrap" style="max-height:58vh;overflow:auto"><table class="proj-table"><thead><tr class="proj-row-header">
-        <th id="rcSelectHead">Select</th><th style="text-align:left">Team Lead</th><th style="text-align:left">Agent</th><th>Week</th><th>Date</th><th style="text-align:left">Coaching Type</th><th style="text-align:left">Entry ID</th><th>Recovery Status</th><th>Key Discussion</th><th>Rainmaker</th><th>Last Detected</th><th>Action</th>
-      </tr></thead><tbody id="rcBody" onchange="updateRcEstimate()"><tr><td colspan="12" class="empty-state">No recovery candidates.</td></tr></tbody></table></div>
+        <th id="rcSelectHead">Select</th><th style="text-align:left">Team Lead</th><th style="text-align:left">Agent</th><th>Week</th><th>Date</th><th style="text-align:left">Coaching Type</th><th style="text-align:left">Entry ID</th><th>Recovery Status</th><th>Restore Readiness</th><th>Key Discussion</th><th>Rainmaker</th><th>Last Detected</th><th>Action</th>
+      </tr></thead><tbody id="rcBody" onchange="updateRcEstimate()"><tr><td colspan="13" class="empty-state">No recovery candidates.</td></tr></tbody></table></div>
     </div>
     <div class="modal-footer">
+      <button id="btnSelectReady" class="btn-burger" style="display:none" onclick="rcSelectReady()" title="Select only records classified Ready to Restore — UI only, 0 SheetDB, 0 Firestore">☑️ Select Ready</button>
+      <button id="btnClearSel" class="btn-burger" style="display:none" onclick="rcClearSelection()" title="Clear all selections — UI only">⬜ Clear Selection</button>
       <button id="btnRestoreSelected" class="btn-primary" style="width:auto" onclick="restoreSelectedRecoveries()">♻️ Restore Selected</button>
       <button id="btnReconcileStale" class="btn-burger" style="display:none" onclick="selfHealStaleRecoveries()" title="Mark pending records already present on the server as Already Exists — Firestore status only, 0 SheetDB">✅ Reconcile Stale (0 SheetDB)</button>
       <button class="btn-burger" onclick="refreshRecoveryData()" title="Re-query Firestore only — 0 SheetDB requests">🔄 Refresh Recovery Data</button>
@@ -1434,7 +1437,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-05-recovery-self-heal-PROD-v48";
+const APEX_BUILD = "2026-09-05-recovery-readiness-PROD-v49";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -6199,23 +6202,68 @@ function rcStatusBadge(s){
   const map={restored:'badge-green', already_exists:'badge-green', pending_review:'badge-gray', needs_review:'badge-red', failed:'badge-red'};
   return '<span class="badge '+(map[s]||'badge-gray')+'">'+escHtml(s.replace(/_/g,' '))+'</span>';
 }
+// ── v49: Recovery RESTORE-READINESS classification for the Recovery Center UI. DISPLAY-ONLY — it never
+// changes a Firestore recoveryStatus. It REUSES the authoritative recoveryReadiness() (the same gate the
+// restore loop uses to block incomplete records), so the UI and the restore engine can never disagree.
+//   restored / already_exists   → reflect their real terminal status
+//   pending_review              → 'ready' only when recoveryReadiness(cachedObject)==='ready', else 'needs_review'
+//   anything else (needs_review/failed) → 'needs_review' (not restore-ready)
+let rcReadinessFilter = 'all';
+function rcReadinessOf(d){
+  const s = d && d.recoveryStatus;
+  if (s==='restored') return 'restored';
+  if (s==='already_exists') return 'already_exists';
+  if (s==='pending_review') return recoveryReadiness(d && d.cachedObject)==='ready' ? 'ready' : 'needs_review';
+  return 'needs_review';
+}
+const RC_READY_META = {
+  ready:          { label:'Ready to Restore', cls:'badge-green' },
+  needs_review:   { label:'Needs Review',     cls:'badge-red'   },
+  already_exists: { label:'Already Exists',   cls:'badge-gray'  },
+  restored:       { label:'Restored',         cls:'badge-green' }
+};
+function rcReadinessBadge(k){ const m=RC_READY_META[k]||RC_READY_META.needs_review; return '<span class="badge '+m.cls+'">'+escHtml(m.label)+'</span>'; }
+// Counts always come from the FULL loaded RECOVERY_DOCS (0 Firestore/SheetDB) — never re-queried.
+function rcCountsByReadiness(){ const c={ready:0,needs_review:0,already_exists:0,restored:0}; Object.values(RECOVERY_DOCS||{}).forEach(d=>{ const k=rcReadinessOf(d); if(k in c) c[k]++; }); return c; }
+function rcSetReadinessFilter(f){ rcReadinessFilter=f; renderRecoveryCenter(Object.values(RECOVERY_DOCS||{})); }   // pure re-render — 0 requests
+function rcSelectReady(){ document.querySelectorAll('.rc-sel:not(:disabled)').forEach(cb=>{ cb.checked=true; }); if(typeof updateRcEstimate==='function') updateRcEstimate(); }   // only enabled boxes = Ready
+function rcClearSelection(){ document.querySelectorAll('.rc-sel').forEach(cb=>{ cb.checked=false; }); if(typeof updateRcEstimate==='function') updateRcEstimate(); }
 function renderRecoveryCenter(docs){
   const canRestore = isDeptWide(currentUser);
+  const cts = rcCountsByReadiness();
+  const totalAll = Object.values(RECOVERY_DOCS||{}).length;
+  // ── readiness filter chips (counts from full RECOVERY_DOCS; clicking is a pure re-render) ──
+  const chip=(key,label)=>'<button class="rc-chip" type="button" onclick="rcSetReadinessFilter(\''+key+'\')" style="border:1px solid '+(rcReadinessFilter===key?'#1a3353':'#d5dbe5')+';background:'+(rcReadinessFilter===key?'#1a3353':'#fff')+';color:'+(rcReadinessFilter===key?'#fff':'#1a3353')+';border-radius:14px;padding:3px 11px;font-size:.76rem;font-weight:700;cursor:pointer;margin:0 6px 6px 0">'+escHtml(label)+'</button>';
+  const chipsEl=document.getElementById('rcReadinessChips');
+  if (chipsEl) chipsEl.innerHTML =
+      chip('all','All ('+totalAll+')')
+    + chip('ready','Ready to Restore ('+cts.ready+')')
+    + chip('needs_review','Needs Review ('+cts.needs_review+')')
+    + chip('already_exists','Already Exists ('+cts.already_exists+')')
+    + chip('restored','Restored ('+cts.restored+')')
+    + '<div style="font-size:.72rem;color:#888;margin-top:2px">Filtering &amp; selecting use <b>0</b> SheetDB requests and <b>0</b> Firestore writes. Only <b>Confirm Restore</b> uses SheetDB.</div>';
   const sum=document.getElementById('rcSummary');
   const byTL={}; docs.forEach(d=>{ const t=d.teamLead||'(unknown TL)'; byTL[t]=(byTL[t]||0)+1; });
   const groups=Object.keys(byTL).sort().map(t=>escHtml(t)+' — <b>'+byTL[t]+'</b> Recovery Candidate'+(byTL[t]===1?'':'s')).join(' · ');
   if (sum) sum.innerHTML = '<b>'+docs.length+'</b> recovery candidate'+(docs.length===1?'':'s')+' across '+Object.keys(byTL).length+' Team Lead'+(Object.keys(byTL).length===1?'':'s')
     + (docs.length? ('<div style="margin-top:6px">'+groups+'</div>'):'')
     + '<div style="color:#888;margin-top:6px">Firestore-backed · reading this list made <b>0</b> SheetDB requests. '
-    + (canRestore?'Select records and Restore Selected (SheetDB used only on restore).':'View-only for your role.')
+    + (canRestore?'Use “Select Ready”, then Restore Selected (SheetDB used only on restore).':'View-only for your role.')
     + ' Recovery SheetDB requests this session: <b id="rcSessionReqs">'+recoverySheetReqs+'</b>.</div>';
   const body=document.getElementById('rcBody');
-  const selCol = canRestore ? '<th>Select</th>' : '';
-  const rows = docs.slice().sort((a,b)=>String(a.teamLead||'').localeCompare(String(b.teamLead||''))).map(d=>{
+  const displayDocs = (rcReadinessFilter==='all') ? docs : docs.filter(d=>rcReadinessOf(d)===rcReadinessFilter);
+  const rows = displayDocs.slice().sort((a,b)=>String(a.teamLead||'').localeCompare(String(b.teamLead||''))).map(d=>{
     const kd = d.keyDiscussionCached ? 'Yes' : 'No';
     const rm = d.rainmakerLinked===true?'true':(d.rainmakerLinked===false?'false':'unknown');
-    const selectable = canRestore && !deletedIds.has(d.entryId) && (d.recoveryStatus!=='restored');
-    const sel = canRestore ? ('<td>'+(selectable?'<input type="checkbox" class="rc-sel" value="'+escHtml(d.entryId)+'">':'')+'</td>') : '';
+    const rk = rcReadinessOf(d);
+    const selectable = canRestore && !deletedIds.has(d.entryId) && rk==='ready';
+    let box='';
+    if (canRestore && !deletedIds.has(d.entryId)){   // deleted/suppressed → never any checkbox (as before)
+      if (selectable) box='<input type="checkbox" class="rc-sel" value="'+escHtml(d.entryId)+'">';
+      else if (rk==='needs_review') box='<input type="checkbox" class="rc-sel" value="'+escHtml(d.entryId)+'" disabled title="Needs Review — cannot be restored (missing required metadata)">';
+      // already_exists / restored → no checkbox (as before)
+    }
+    const sel = canRestore ? ('<td>'+box+'</td>') : '';
     return '<tr>'+sel
       + '<td style="text-align:left">'+escHtml(d.teamLead||'')+'</td>'
       + '<td style="text-align:left">'+escHtml(d.agentName||'')+'</td>'
@@ -6223,15 +6271,18 @@ function renderRecoveryCenter(docs){
       + '<td style="text-align:left">'+escHtml(d.coachingType||'')+'</td>'
       + '<td style="text-align:left;font-family:monospace;font-size:.72rem">'+escHtml(d.entryId||'')+'</td>'
       + '<td>'+rcStatusBadge(d.recoveryStatus)+'</td>'
+      + '<td>'+rcReadinessBadge(rk)+'</td>'
       + '<td>'+kd+'</td><td>'+rm+'</td>'
       + '<td style="font-size:.72rem">'+escHtml((d.recoveryDetectedAt||'').slice(0,19).replace('T',' '))+'</td>'
       + '<td><button class="btn-burger" style="padding:3px 8px" onclick="reviewRecoveryRecord(\''+escHtml(d.entryId)+'\')">Review</button></td>'
       + '</tr>';
   }).join('');
-  const colspan = canRestore ? 12 : 11;
-  body.innerHTML = docs.length ? rows : '<tr><td colspan="'+colspan+'" class="empty-state">No recovery candidates.</td></tr>';
-  // toggle restore button by permission
+  const colspan = canRestore ? 13 : 12;
+  body.innerHTML = displayDocs.length ? rows : '<tr><td colspan="'+colspan+'" class="empty-state">No recovery candidates in this view.</td></tr>';
+  // toggle restore/selection controls by permission
   const rb=document.getElementById('btnRestoreSelected'); if(rb) rb.style.display = canRestore ? 'inline-block' : 'none';
+  const sr=document.getElementById('btnSelectReady'); if(sr) sr.style.display = canRestore ? 'inline-block' : 'none';   // v49
+  const cl=document.getElementById('btnClearSel'); if(cl) cl.style.display = canRestore ? 'inline-block' : 'none';       // v49
   const rc=document.getElementById('btnReconcileStale'); if(rc) rc.style.display = somCanAccess(currentUser) ? 'inline-block' : 'none';   // v48: SOM/Director only
   const head=document.getElementById('rcSelectHead'); if(head) head.style.display = canRestore ? '' : 'none';
 }
@@ -6267,7 +6318,17 @@ async function restoreSelectedRecoveries(){
   const ids = rcSelectedIds();
   if (!ids.length){ alert('Select at least one recovery candidate to restore.'); return; }
   const est = estimateRestoreRequests(ids.length);
-  if (!confirm('This recovery will use approximately '+est+' SheetDB request'+(est===1?'':'s')+'. Continue?')) return;
+  // v49: readiness-aware confirmation summary. Selection is already UI-limited to Ready records (Needs
+  // Review checkboxes are disabled); readySel re-checks that here as a display cross-check, and the loop
+  // below remains the authoritative second safety layer (non-ready → needs_review, no POST).
+  const cts = rcCountsByReadiness();
+  const readySel = ids.filter(id=>{ const d=RECOVERY_DOCS[id]; return d && rcReadinessOf(d)==='ready'; }).length;
+  if (!confirm(
+      'Restore '+ids.length+' selected coaching record'+(ids.length===1?'':'s')+'?\n\n'
+    + '• '+readySel+' Ready to Restore will be POSTed to SheetDB.\n'
+    + '• '+cts.needs_review+' Needs Review record'+(cts.needs_review===1?'':'s')+' excluded (cannot be selected).\n'
+    + '• Estimated SheetDB requests: ~'+est+' (1 check + '+ids.length+' POST + 1 verify).\n\n'
+    + 'Confirm Restore?')) return;
   let used = 0; const results = {};
   // 1) ONE authoritative whole-sheet read → per-Entry-ID count map (dept-wide caller).
   const countMap = {};
