@@ -1433,7 +1433,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-05-storage-usage-PROD-v46";
+const APEX_BUILD = "2026-09-05-coaching-cache-5min-PROD-v47";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -4020,7 +4020,7 @@ function renderStorageUsage(){
     suCard('Firestore Reads', SU_NA, 'account totals need Cloud Monitoring') +
     suCard('Firestore Writes', SU_NA, 'account totals need Cloud Monitoring') +
     suCard('Stored Documents', String(usersLoaded), 'users docs loaded this session (real)') +
-    suCard('Largest Data Area', 'users', 'by loaded document count');
+    suCard('Largest Loaded Collection', 'users', 'by loaded document count');
   // ── FIREBASE footprint table (real collection names only) ──
   document.getElementById('suFbTable').innerHTML = suTable(
     ['Collection','Documents / Records','Read Pattern','Write Pattern','Growth Risk','Notes'],
@@ -4039,7 +4039,7 @@ function renderStorageUsage(){
   document.getElementById('suSdTable').innerHTML = suTable(
     ['Area','Method','Trigger','Cached?','Request Risk'],
     [
-      ['Coaching load', 'GET', 'Login / dashboard refresh', 'Yes (60s)', suRisk('Medium')+' full sheet for SOM/Director/OM; scoped search for TL/Agent'],
+      ['Coaching load', 'GET', 'Login / dashboard refresh', 'Yes (5 min)', suRisk('Medium')+' full sheet for SOM/Director/OM; scoped search for TL/Agent'],
       ['Save coaching', 'POST', 'User save (new)', 'No', suRisk('Low')+' expected'],
       ['Edit coaching', 'PATCH', 'User edit', 'No', suRisk('Low')+' expected'],
       ['Delete coaching', 'DELETE', 'User delete', 'No', suRisk('Low')+' rare'],
@@ -4054,10 +4054,10 @@ function renderStorageUsage(){
     `<div style="font-weight:800;color:#1a3353;width:18px">${rank}.</div><div style="flex:1">${escHtml(label)}</div>`+
     `<span style="font-size:.68rem;font-weight:800;color:#fff;background:${tagColor};border-radius:8px;padding:1px 7px">${tag}</span></div>`;
   document.getElementById('suDrivers').innerHTML =
-    driver(1,'Coaching Logs full-sheet GET (whole sheet for SOM/Director/OM on each refresh outside the 60s cache).','SheetDB read','#1565c0')+
+    driver(1,'Coaching Logs full-sheet GET (whole sheet for SOM/Director/OM on each refresh outside the 5-min cache).','SheetDB read','#1565c0')+
     driver(2,'coachingRecovery documents accumulate — one per failed-sync entry, never deleted.','Firestore storage','#7a4fb0')+
     driver(3,'Historical Coaching Logs grow over time, making each full-sheet load heavier.','SheetDB storage','#1565c0')+
-    driver(4,'Repeated dashboard refreshes (mitigated by the 60s cache; refreshers past the window repeat the GET).','SheetDB request','#1565c0')+
+    driver(4,'Repeated dashboard refreshes (mitigated by the 5-min coaching cache; refreshers past the window repeat the GET).','SheetDB request','#1565c0')+
     driver(5,'Roster writes to users on add / edit / one-click Correct / deactivate.','Firestore write','#2f6f43');
 
   // ── Warnings (read-only; actionable growth/retention only) ──
@@ -4065,7 +4065,7 @@ function renderStorageUsage(){
   document.getElementById('suWarnings').innerHTML =
     warn('<b>coachingRecovery has no retention/cleanup.</b> Failed-sync backups remain indefinitely — the collection grows forever. (Deduped by Entry ID, so one doc per problem entry, not unbounded duplicates.)')+
     warn('<b>Full Coaching Logs sheet is fetched for SOM/Director/OM.</b> Payload grows with historical rows; TL/Agent use a scoped search instead.')+
-    warn('<b>Cache window is short (60s).</b> Frequent refreshers can repeat the same GET once the window lapses.')+
+    warn('<b>Coaching cache window is 5 min</b> (v47; other sheets 60s). A wider window means a fresh tab may lag another device’s change by up to 5 min; frequent reloaders past the window repeat the GET.')+
     warn('Approx. Coaching Logs client payload in memory: <b>~'+suFmtBytes(coachingBytes)+'</b> ('+coachingRows+' rows). This is the loaded client payload, <b>not</b> Firebase billing storage.');
 
   document.getElementById('suNote').innerHTML =
@@ -5175,14 +5175,22 @@ function sheetErrorMessage(status){
 // never reuses another user's scoped data. The persisted datasets themselves
 // (apexCoachingLogs / apexNTELogs / apexRoster / apexCustomTLs) survive reloads;
 // this only records "how fresh" they are.
-const CACHE_TTL_MS = 60000; // 60s
+const CACHE_TTL_MS = 60000; // 60s default (NTE / Agents / Rainmaker / Custom TLs)
+// v47: Coaching Logs is the largest, most-refetched dataset (full sheet for SOM/Director/OM on
+// each login/reload). Give ONLY the coaching key a longer 5-minute window to cut reload-driven
+// GETs (SheetDB's binding limit is request count). This is safe because every coaching write
+// (create/edit/delete/commitment/recovery-restore) mutates `entries` in memory AND re-stamps the
+// coaching cache, so the writer's own device stays current under any TTL; the sole effect is a
+// wider cross-device freshness window. All other sheets keep the 60s default.
+const CACHE_TTL_OVERRIDES = { coaching: 300000 }; // 5 min — coaching only
+function __cacheTtl(key){ return CACHE_TTL_OVERRIDES[key] || CACHE_TTL_MS; }
 const __memCacheTs = {};
 function __ckey(key){ return 'apexCacheTs:' + key + ':' + ((currentUser && currentUser.email) || 'anon'); }
 function cacheFresh(key){
-  const now = Date.now(), k = __ckey(key);
-  if (__memCacheTs[k] && (now - __memCacheTs[k]) < CACHE_TTL_MS) return true;
+  const now = Date.now(), k = __ckey(key), ttl = __cacheTtl(key);
+  if (__memCacheTs[k] && (now - __memCacheTs[k]) < ttl) return true;
   const ls = parseInt(localStorage.getItem(k) || '0', 10);
-  if (ls && (now - ls) < CACHE_TTL_MS) { __memCacheTs[k] = ls; return true; }
+  if (ls && (now - ls) < ttl) { __memCacheTs[k] = ls; return true; }
   return false;
 }
 function cacheStamp(key){ const now = Date.now(), k = __ckey(key); __memCacheTs[k] = now; try { localStorage.setItem(k, String(now)); } catch(e){} }
