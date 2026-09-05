@@ -1228,6 +1228,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
     </div>
     <div class="modal-footer">
       <button id="btnRestoreSelected" class="btn-primary" style="width:auto" onclick="restoreSelectedRecoveries()">♻️ Restore Selected</button>
+      <button id="btnReconcileStale" class="btn-burger" style="display:none" onclick="selfHealStaleRecoveries()" title="Mark pending records already present on the server as Already Exists — Firestore status only, 0 SheetDB">✅ Reconcile Stale (0 SheetDB)</button>
       <button class="btn-burger" onclick="refreshRecoveryData()" title="Re-query Firestore only — 0 SheetDB requests">🔄 Refresh Recovery Data</button>
       <button style="background:#f5f5f5;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer" onclick="closeModal('recoveryCenterModal')">Close</button>
     </div>
@@ -1433,7 +1434,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-05-coaching-cache-5min-PROD-v47";
+const APEX_BUILD = "2026-09-05-recovery-self-heal-PROD-v48";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -2053,6 +2054,11 @@ function getSyncState(id){ return (syncMeta[id] && syncMeta[id].state) || null; 
 let serverEntryIds = new Set();
 function loadServerIds(){ try { serverEntryIds = new Set(JSON.parse(localStorage.getItem('apexServerIds')||'[]')); } catch(e){ serverEntryIds = new Set(); } }
 function saveServerIds(){ try { localStorage.setItem('apexServerIds', JSON.stringify([...serverEntryIds])); } catch(e){} }
+// v48: per-Entry-ID OCCURRENCE COUNT from the LAST fetch's server rows (in-memory only; NOT persisted).
+// Built for free from the response fetchFromSheets already parsed (0 extra SheetDB/Firestore). Lets the
+// SOM/Director Recovery self-heal distinguish "exactly once on server" (safe to mark already_exists) from
+// "duplicate" (>1 → leave for Review). Only authoritative after a WHOLE-SHEET fetch (dept-wide/OM).
+let serverIdCounts = {};
 // ── v36: Key Discussion recovery overlay — when a fresh server row for an EXISTING id carries a
 // blank Key Discussion but the cached copy had content (the schema-drift symptom), we keep the
 // cached text available for later targeted restoration instead of letting the merge wipe it.
@@ -5489,10 +5495,12 @@ async function fetchFromSheets(force) {
     // v36: capture the authoritative server Entry-ID set from THIS scope fetch (for the Recovery
     // Diagnostic + sync-state reconciliation). This response is complete for the fetched scope.
     const freshServerIds = new Set();
+    const freshServerCounts = {};   // v48: occurrence count per Entry ID from THIS response (0 extra cost)
     rows.forEach(row => {
       const parsed = parseSheetRow(row);
       if (!parsed.id || deletedIds.has(parsed.id)) return;
       freshServerIds.add(parsed.id);
+      freshServerCounts[parsed.id] = (freshServerCounts[parsed.id] || 0) + 1;
       const cached = merged[parsed.id];
       // v36 Key Discussion recovery: if the server row's Key Discussion is blank but the cached copy
       // had content (the schema-drift symptom), DON'T let the merge wipe it — preserve the cached
@@ -5513,7 +5521,7 @@ async function fetchFromSheets(force) {
         setSyncState(id, 'failed', 'Absent from authoritative server response');
       }
     });
-    serverEntryIds = freshServerIds; saveServerIds(); saveKdRecoverable();
+    serverEntryIds = freshServerIds; serverIdCounts = freshServerCounts; saveServerIds(); saveKdRecoverable();
     // v38: silent, NON-BLOCKING central recovery backup of any Local-Only records this scope proves
     // are missing from the server. Uses ONLY the in-memory merged/entries + serverEntryIds just
     // computed — 0 additional SheetDB requests. Fire-and-forget: never blocks load or TL work.
@@ -6127,6 +6135,45 @@ async function setRecoveryDocStatus(id, status, extra){
   const patch = Object.assign({ recoveryStatus: status, lastVerifiedAt: new Date().toISOString() }, extra||{});
   try { await FB_DB.collection(RECOVERY_COL).doc(id).set(patch, { merge:true }); } catch(e){}
 }
+// ── v48: SOM/Director-only STALE-RECOVERY SELF-HEAL. Reuses (a) serverIdCounts — the per-Entry-ID
+// occurrence counts from the whole-sheet fetch the dashboard already performed at login (0 SheetDB),
+// and (b) RECOVERY_DOCS — the recovery docs the Recovery Center already loaded (0 extra Firestore
+// reads). For each pending_review doc whose Entry ID is present on the server EXACTLY ONCE, mark it
+// already_exists (+lastVerifiedAt), preserving cachedObject and every other field (merge write).
+// Duplicates (>1) and genuinely-absent (0) are left untouched. Gated to somCanAccess (SOM/Director)
+// because the Firestore rules only permit rosterAdmin to change coachingRecovery status — Admin/OM/TL
+// would be denied, so they never reach the write. 0 SheetDB requests, 0 new docs, 0 deletes, no POST.
+async function selfHealStaleRecoveries(){
+  if (!somCanAccess(currentUser)) { alert('Only SOM/Director can reconcile stale recovery records.'); return; }
+  if (!serverIdCounts || !Object.keys(serverIdCounts).length){
+    alert('No authoritative Coaching Logs snapshot is loaded yet. Open the dashboard first, then reconcile.'); return;
+  }
+  const docs    = Object.values(RECOVERY_DOCS || {});
+  const targets = docs.filter(d => d.recoveryStatus==='pending_review' && (serverIdCounts[d.entryId]||0) === 1);
+  const dupes   = docs.filter(d => d.recoveryStatus==='pending_review' && (serverIdCounts[d.entryId]||0) >  1);
+  const line = document.getElementById('rcResult');
+  if (!targets.length){
+    if(line) line.innerHTML = 'Reconcile: no stale pending records to heal in this snapshot'
+      + (dupes.length?(' · <b>'+dupes.length+'</b> duplicate left for Review'):'')
+      + '. <b>0 SheetDB requests · 0 Firestore writes · 0 deletes.</b>';
+    return;
+  }
+  if(!confirm('Mark '+targets.length+' pending recovery record'+(targets.length===1?'':'s')+' as “Already Exists”?\n\n'
+    + '• These Entry IDs are already present exactly once in the loaded Coaching Logs.\n'
+    + '• Firestore status update only — 0 SheetDB requests, nothing posted, nothing deleted.'
+    + (dupes.length?('\n• '+dupes.length+' duplicate Entry ID(s) will be LEFT for Review (not auto-healed).'):'')
+    + '\n\nContinue?')) return;
+  let healed=0;
+  for (const d of targets){
+    try { await setRecoveryDocStatus(d.entryId, 'already_exists', {}); healed++; }
+    catch(e){ /* rules deny / offline — skip, no optimistic success */ }
+  }
+  await refreshRecoveryData();   // Firestore-only re-read (0 SheetDB) to reflect healed statuses
+  const l2 = document.getElementById('rcResult');
+  if(l2) l2.innerHTML = 'Reconcile complete — <b>'+healed+'</b> marked Already Exists'
+    + (dupes.length?(' · <b>'+dupes.length+'</b> duplicate left for Review'):'')
+    + '. <b>0 SheetDB requests · '+healed+' Firestore write'+(healed===1?'':'s')+' · 0 deletes.</b>';
+}
 // ── Recovery Center (SOM/Director restore; OM view-only own-cluster). Firestore-only reads → 0 SheetDB.
 async function openRecoveryCenter(){ openModal('recoveryCenterModal'); await refreshRecoveryData(); }
 async function refreshRecoveryData(){
@@ -6185,6 +6232,7 @@ function renderRecoveryCenter(docs){
   body.innerHTML = docs.length ? rows : '<tr><td colspan="'+colspan+'" class="empty-state">No recovery candidates.</td></tr>';
   // toggle restore button by permission
   const rb=document.getElementById('btnRestoreSelected'); if(rb) rb.style.display = canRestore ? 'inline-block' : 'none';
+  const rc=document.getElementById('btnReconcileStale'); if(rc) rc.style.display = somCanAccess(currentUser) ? 'inline-block' : 'none';   // v48: SOM/Director only
   const head=document.getElementById('rcSelectHead'); if(head) head.style.display = canRestore ? '' : 'none';
 }
 function reviewRecoveryRecord(id){
