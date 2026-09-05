@@ -1437,7 +1437,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-05-recovery-readiness-PROD-v49";
+const APEX_BUILD = "2026-09-05-projection-4wk-future-dates-PROD-v50";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -4533,11 +4533,11 @@ function openAddModal() {
   document.getElementById('formModalTitle').textContent = 'New Coaching Log';
   document.getElementById('editId').value = '';
   clearForm();
-  // v43: a NEW coaching log may only use TODAY (no past, no future). Lock the picker to today
-  // (min == max == today), default the field to today, and derive the WK# for today so the form
-  // opens complete. This is UX only — saveEntry() enforces the today-only rule authoritatively.
+  // v50: a NEW coaching log may use TODAY or a FUTURE date (past still blocked). Lock only the lower
+  // bound (min == today, no max), default the field to today, and derive the WK# so the form opens
+  // complete. This is UX only — saveEntry() enforces the no-past rule authoritatively.
   { const fd = document.getElementById('fDate');
-    if (fd) { const t = todayLocalISO(); fd.min = t; fd.max = t; fd.value = t;
+    if (fd) { const t = todayLocalISO(); fd.min = t; fd.removeAttribute('max'); fd.value = t;
       if (typeof onCoachingDateChange === 'function') onCoachingDateChange(); } }
   if (currentUser.role === 'TL') {
     document.getElementById('fCluster').value = currentUser.tlInfo.cluster;
@@ -4939,27 +4939,30 @@ function isNumericFilled(v){
   return false;
 }
 function updateProjectionCurrent() {
-  const lt  = parseFloat(document.getElementById('lt1').value)  || 0;
-  const cc  = parseFloat(document.getElementById('cc1').value)  || 0;
-  const s   = parseFloat(document.getElementById('s1').value)   || 0;
-  const tcr = lt > 0 ? (cc / lt * 100) : 0;
-  const csr = cc > 0 ? (s  / cc * 100) : 0;
-  document.getElementById('projCurrTCR').textContent   = lt ? tcr.toFixed(1)+'%' : '—';
-  document.getElementById('projCurrLT').textContent    = lt || '—';
-  document.getElementById('projCurrCC').textContent    = cc || '—';
-  document.getElementById('projCurrCSR').textContent   = cc ? csr.toFixed(1)+'%' : '—';
-  document.getElementById('projCurrSales').textContent = s  || '—';
+  // v50: Performance Projection basis = 4-Week Trailing Performance (NOT Week 1). Reuses
+  // perf4wkAverages() — the SAME underlying source as the 4-Week Trailing table — so the two can
+  // never drift. avgTCR/avgCSR are avg-of-ratios from raw weekly values (never averaged display %s);
+  // avgLT/avgCC/avgS are the rounded 4-week trailing volumes.
+  const A = perf4wkAverages();
+  const hasTCR = A.n>0 && A.avgTCR!=null, hasCSR = A.n>0 && A.avgCSR!=null;
+  document.getElementById('projCurrTCR').textContent   = hasTCR ? A.avgTCR.toFixed(1)+'%' : '—';
+  document.getElementById('projCurrLT').textContent    = A.avgLT || '—';
+  document.getElementById('projCurrCC').textContent    = A.avgCC || '—';
+  document.getElementById('projCurrCSR').textContent   = hasCSR ? A.avgCSR.toFixed(1)+'%' : '—';
+  document.getElementById('projCurrSales').textContent = A.avgS || '—';
   const leadsEl = document.getElementById('projTargetLeads');
-  if (!leadsEl.dataset.userEdited) leadsEl.value = lt || '';
+  if (!leadsEl.dataset.userEdited) leadsEl.value = A.avgLT || '';
   calcProjection();
 }
 function calcProjection() {
-  const lt  = parseFloat(document.getElementById('lt1').value)  || 0;
-  const cc  = parseFloat(document.getElementById('cc1').value)  || 0;
-  const s   = parseFloat(document.getElementById('s1').value)   || 0;
-  const csrRate = cc > 0 ? (s / cc) : 0;
-  const tcrCurr = lt > 0 ? (cc / lt * 100) : 0;
-  const csrCurr = cc > 0 ? (s  / cc * 100) : 0;
+  // v50: basis = 4-Week Trailing Performance (reuses perf4wkAverages()), replacing the former Week-1
+  // basis. Rates (tcrCurr/csrCurr/csrRate) AND volumes (lt/cc) all come from the 4-week trailing row,
+  // so the projected rate and volume stay internally consistent.
+  const A = perf4wkAverages();
+  const lt = A.avgLT, cc = A.avgCC;
+  const tcrCurr = (A.n>0 && A.avgTCR!=null) ? A.avgTCR : 0;
+  const csrCurr = (A.n>0 && A.avgCSR!=null) ? A.avgCSR : 0;
+  const csrRate = csrCurr / 100;                              // 4-week trailing CSR (avg-of-ratios) as a rate
   const targetTCR   = parseFloat(document.getElementById('projTargetTCR').value);
   const targetCSR   = parseFloat(document.getElementById('projTargetCSR').value);
   const overrideLT  = parseFloat(document.getElementById('projTargetLeads').value);
@@ -6407,8 +6410,10 @@ async function saveEntry() {
     const isNew = !((document.getElementById('editId')||{}).value || '');
     if (isNew) {
       const selDate = document.getElementById('fDate').value;   // date input → already YYYY-MM-DD
-      if (selDate !== todayLocalISO()) {
-        alert("New coaching logs can only be created for today's date.");
+      // v50: allow today OR future; block only PAST dates. A future-dated log saves through the normal
+      // path and (via dcDailyFullyCount matching dateOfCoaching) counts only on its own coaching date.
+      if (selDate < todayLocalISO()) {
+        alert("New coaching logs cannot be created for a past date.");
         return;
       }
     }
