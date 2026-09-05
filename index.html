@@ -3710,6 +3710,17 @@ function renderDailyCompletion(){
 // authorized to update another user's users/ doc). Admin EXCLUDED (rosterAdmin() = SOM/Director only).
 function somCanAccess(u){ u = u || (typeof currentUser!=='undefined'?currentUser:null); return !!u && (u.role==='SOM' || u.role==='Director'); }
 function shValidClusters(){ return new Set(['Jubee','Arielle','Kendryck']); }
+// Centralized leadership-coverage model (business rule). A cluster's REQUIRED coverage is either:
+//   • SOM_DIRECT   — overseen directly by the SOM; NO dedicated OM required (→ never an OM warning).
+//   • OM_REQUIRED  — must have an active OM assigned to that cluster.
+// The leader detector uses this single map instead of assuming every cluster needs an OM. Clusters
+// outside the model impose no OM requirement here ('NONE') so retired/unknown clusters add no noise.
+function shClusterCoverageType(cl){
+  const k = normKey(cl);
+  if(k===normKey('Jubee'))                                   return 'SOM_DIRECT';
+  if(k===normKey('Arielle') || k===normKey('Kendryck'))      return 'OM_REQUIRED';
+  return 'NONE';
+}
 // Resolve a TL by fullName against the ACTIVE runtime TL set. Returns the TL object or null.
 function shTLByFullName(fn){ if(!fn) return null; const k=normKey(fn); return Object.values(TL_EMAILS).find(t=>normKey(t.fullName)===k) || null; }
 // ATL = Assistant Team Lead. Not a distinct normalized role (normRole doesn't know 'ATL'); in production
@@ -3775,8 +3786,9 @@ function somHealthIssues(){
         action:'Review assignment' });
     }
   });
-  // ── D. Clusters with active roster-owning TLs but NO active OM. ONE issue per CLUSTER (not per TL),
-  // case/whitespace-insensitive OM match — kills the per-TL noise + mis-cased-OM false positives.
+  // ── D. Leadership coverage per CLUSTER (one issue per cluster, not per TL). Uses the centralized
+  // coverage model: only OM_REQUIRED clusters are checked for an active OM (case/whitespace-insensitive).
+  // SOM_DIRECT clusters (Jubee) are overseen by the SOM and are NEVER flagged for a missing OM.
   const omKeys = new Set(Object.values(OM_EMAILS).map(o=>normKey(o.cluster)).filter(Boolean));
   const tlClusterCount = {};   // canonical cluster string → count of active non-ATL provisioned TLs
   Object.entries(TL_EMAILS).forEach(([key,t])=>{
@@ -3784,6 +3796,7 @@ function somHealthIssues(){
     tlClusterCount[t.cluster] = (tlClusterCount[t.cluster]||0)+1;
   });
   Object.keys(tlClusterCount).forEach(cl=>{
+    if(shClusterCoverageType(cl) !== 'OM_REQUIRED') return;     // SOM_DIRECT (Jubee) + unknowns → no OM warning
     if(!omKeys.has(normKey(cl))){
       out.push({ sev:'Warning', cat:'leader', issue:'Cluster has no active OM',
         person:'Cluster '+cl, cluster: shValidClusters().has(cl)?cl:'',
