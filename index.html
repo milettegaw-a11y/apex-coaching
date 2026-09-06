@@ -322,30 +322,37 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 <div id="app" style="display:none;flex-direction:column;min-height:100vh">
   <style>
     /* v51 — left sidebar navigation (permission-driven; render in JS). Fixed panel + content padding. */
-    #apexSidebar{position:fixed;top:0;left:0;bottom:0;width:224px;background:#12233b;color:#dfe7f1;display:flex;flex-direction:column;z-index:60;transition:width .15s ease;overflow:hidden}
-    #app.has-sidebar{padding-left:224px;transition:padding-left .15s ease}
+    /* v52 — Light Warm Gray theme. Width sized to the longest label ("Rainmaker Script & Results")
+       plus a fixed 24px icon area and comfortable padding, so every title fits on ONE line. */
+    #apexSidebar{position:fixed;top:0;left:0;bottom:0;width:252px;background:#F3F0E8;color:#2F2F2F;display:flex;flex-direction:column;z-index:60;transition:width .15s ease;overflow-x:hidden;overflow-y:hidden;border-right:1px solid #DED9CF}
+    #app.has-sidebar{padding-left:252px;transition:padding-left .15s ease}
     body.sb-collapsed #apexSidebar{width:60px}
     body.sb-collapsed #app.has-sidebar{padding-left:60px}
     #app > nav{display:none!important}                 /* old top nav replaced by sidebar */
-    .sb-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.9rem;letter-spacing:.02em;padding:14px 14px 10px;color:#fff;white-space:nowrap}
-    .sb-brand .sb-bolt{font-size:1.1rem;flex:0 0 auto}
-    .sb-section{font-size:.62rem;font-weight:800;letter-spacing:.09em;color:#6f86a8;text-transform:uppercase;padding:12px 16px 4px;white-space:nowrap}
-    .sb-item{display:flex;align-items:center;gap:11px;padding:9px 16px;cursor:pointer;color:#cdd8e8;font-size:.85rem;font-weight:600;border-left:4px solid transparent;white-space:nowrap;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
-    .sb-item .sb-ic{font-size:1.02rem;flex:0 0 22px;text-align:center}
-    .sb-item:hover{background:#1b3350;color:#fff}
-    .sb-item.active{background:#1d5fbf22;color:#fff;border-left-color:#4d9bff}
-    .sb-foot{margin-top:auto;border-top:1px solid #24405f;padding:12px 16px}
-    .sb-foot .sb-name{font-weight:800;color:#fff;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .sb-foot .sb-role{font-size:.72rem;color:#8ba3c4;margin-bottom:8px;white-space:nowrap}
-    .sb-logout{background:#24405f;color:#dfe7f1;border:none;border-radius:6px;padding:7px 12px;font-weight:700;cursor:pointer;font-size:.78rem;width:100%}
-    .sb-logout:hover{background:#2f5279}
-    .sb-collapse{background:none;border:none;color:#8ba3c4;cursor:pointer;font-size:1rem;padding:6px 16px;text-align:left}
-    .sb-collapse:hover{color:#fff}
+    #apexSidebar .sb-scroll{overflow-y:auto;overflow-x:hidden;flex:1;padding-top:8px}
+    .sb-brand{display:none}                             /* v52: no duplicated brand — header already shows it */
+    .sb-section{font-size:.68rem;font-weight:700;letter-spacing:.08em;color:#77736A;text-transform:uppercase;padding:14px 16px 5px;white-space:nowrap}
+    .sb-item{display:flex;align-items:center;gap:11px;padding:11px 16px;cursor:pointer;color:#2F2F2F;font-size:13.5px;font-weight:600;line-height:1.2;border-left:4px solid transparent;white-space:nowrap;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
+    .sb-item .sb-ic{font-size:15px;flex:0 0 24px;width:24px;text-align:center;display:inline-flex;align-items:center;justify-content:center}
+    .sb-item .sb-label{overflow:visible}
+    .sb-item:hover{background:#E9E4D8;color:#2F2F2F}    /* hover: bg only — no text/icon shift */
+    .sb-item.active{background:#FFF0A6;color:#1F1F1F;border-left-color:#FFD400;font-weight:700}
+    .sb-foot{margin-top:auto;border-top:1px solid #DED9CF;padding:12px 16px;background:#F3F0E8}
+    .sb-foot .sb-name{font-weight:800;color:#2F2F2F;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sb-foot .sb-role{font-size:.72rem;color:#77736A;margin-bottom:8px;white-space:nowrap}
+    .sb-logout{background:#fff;color:#2F2F2F;border:1px solid #DED9CF;border-radius:7px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:.78rem;width:100%}
+    .sb-logout:hover{background:#E9E4D8;border-color:#cdc7ba}
+    .sb-collapse{background:none;border:none;border-top:1px solid #DED9CF;color:#77736A;cursor:pointer;font-size:.8rem;font-weight:700;padding:9px 16px;text-align:left;white-space:nowrap}
+    .sb-collapse:hover{color:#2F2F2F;background:#E9E4D8}
+    body.sb-collapsed .sb-collapse{text-align:center;padding:9px 0}
+    body.sb-collapsed .sb-item{justify-content:center;padding:11px 0;border-left-width:3px}
+    body.sb-collapsed .sb-item .sb-ic{flex:0 0 auto}
+    body.sb-collapsed .sb-foot{text-align:center;padding:12px 6px}
     body.sb-collapsed .sb-label,body.sb-collapsed .sb-brand-txt,body.sb-collapsed .sb-section,body.sb-collapsed .sb-foot .sb-name,body.sb-collapsed .sb-foot .sb-role,body.sb-collapsed .sb-logout span{display:none}
     #sbHamburger{display:none;background:none;border:none;font-size:1.3rem;cursor:pointer;margin-right:6px}
     #sbScrim{display:none;position:fixed;inset:0;background:#0006;z-index:55}
     @media(max-width:900px){
-      #apexSidebar{transform:translateX(-100%);transition:transform .18s ease;width:224px}
+      #apexSidebar{transform:translateX(-100%);transition:transform .18s ease;width:252px}
       body.sb-open #apexSidebar{transform:translateX(0)}
       body.sb-open #sbScrim{display:block}
       #app.has-sidebar,body.sb-collapsed #app.has-sidebar{padding-left:0}
@@ -1512,7 +1519,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-05-sidebar-daily-tracker-PROD-v51";
+const APEX_BUILD = "2026-09-06-light-sidebar-PROD-v52";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -2944,8 +2951,8 @@ function renderSidebar(){
     const dv = it.view ? (' data-sbview="'+it.view+'"') : '';
     return '<button class="sb-item"'+dv+' onclick="'+oc+'" title="'+escHtml(it.label)+'"><span class="sb-ic">'+it.ic+'</span><span class="sb-label">'+escHtml(it.label)+'</span></button>';
   };
-  let html='<div class="sb-brand"><span class="sb-bolt">⚡</span><span class="sb-brand-txt">APEX COACHING DASHBOARD</span></div>';
-  html+='<div style="overflow-y:auto;flex:1">';
+  // v52: no brand block here — the yellow header already shows "APEX Coaching Dashboard".
+  let html='<div class="sb-scroll">';
   html+='<div class="sb-section">Coaching</div>'+m.coaching.map(item).join('');
   if(m.mgmt.length) html+='<div class="sb-section">Management</div>'+m.mgmt.map(item).join('');
   html+='</div>';
