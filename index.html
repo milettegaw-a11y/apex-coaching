@@ -824,7 +824,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <div style="grid-column:1/-1;font-weight:800;color:#1a3353;font-size:.82rem;margin-top:4px;border-top:2px solid #d7e3f4;padding-top:10px">🔄 PROGRESS AGAINST PREVIOUS COACHING PLAN — current coaching</div>
 
         <!-- SECTION 1 — PROGRESS CHECK (against the ORIGINAL ramp; no new ramp is created) -->
-        <div class="form-group" style="grid-column:1/-1"><label>① Which week of the ORIGINAL 4-Week Target Ramp are we reviewing? <span class="required">*</span></label>
+        <div class="form-group" style="grid-column:1/-1"><label>① Which week of the ORIGINAL 4-Week Coaching Plan are we reviewing? <span class="required">*</span></label>
           <select id="fuCheckWeek" onchange="renderFuReview()"><option value="">— Select checkpoint —</option><option>Week 1</option><option>Week 2</option><option>Week 3</option><option>Week 4</option></select>
           <div id="fuProgress" style="font-size:.82rem;color:#33691e;background:#f1f8e9;border:1px solid #c5e1a5;border-radius:6px;padding:8px 12px;margin-top:8px;display:none"></div>
           <label style="margin-top:8px">Did the agent meet the target for this checkpoint? <span class="required">*</span> <span style="font-weight:400;color:#7a8aa0">(your coaching judgment — the system will not decide this)</span></label>
@@ -939,7 +939,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
             <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="wcLR3" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS3" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR3">—</td><td class="calc" id="wcDEF3">—</td></tr>
             <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="wcLR4" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS4" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR4">—</td><td class="calc" id="wcDEF4">—</td></tr>
             <tr><td style="text-align:left;padding-left:8px;">Week 5</td><td><input type="number" id="wcLR5" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS5" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR5">—</td><td class="calc" id="wcDEF5">—</td></tr>
-            <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg (Cured Weeks 2–5)</td><td>—</td><td>—</td><td class="calc" id="wcCVRavg">—</td><td>—</td></tr>
+            <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg (Weeks 2–5)</td><td class="calc" id="wcLRavg">—</td><td class="calc" id="wcSavg">—</td><td class="calc" id="wcCVRavg">—</td><td>—</td></tr>
           </tbody>
         </table>
         <div id="wk1CvrBenchSummary" style="font-size:.8rem;color:#333;margin-top:10px;background:#fffef5;border:1px solid #f0e6b8;border-radius:8px;padding:8px 12px;display:none"></div>
@@ -1003,29 +1003,21 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <p class="proj-footnote">💡 <em>Current column auto-fills from performance data above. Set a target TCR% to project connects &amp; sales; set a target CSR% to project sales impact. Target Leads auto-fills from your entry (override if needed).</em></p>
         <!-- Core Metrics Lever guidance — 100% client-side, derived from the fields above. No SheetDB calls. -->
         <div id="leverGuidance" class="lever-guidance" style="margin-top:14px;border:1.5px solid #d7e3f4;border-radius:10px;overflow:hidden">
-          <div style="background:#1a3353;color:#fff;padding:8px 14px;font-weight:800;font-size:.9rem">🎯 Core Metrics Lever — Coaching Guidance</div>
+          <div style="background:#1a3353;color:#fff;padding:8px 14px;font-weight:800;font-size:.9rem">🎯 Coaching Focus</div>
           <div style="padding:14px;background:#f7faff">
-            <div style="font-size:.8rem;color:#555;margin-bottom:10px;line-height:1.5">
-              <b>Order of operations:</b>
-              <span style="white-space:nowrap">1️⃣ Volume / Leads Touched</span> →
-              <span style="white-space:nowrap">2️⃣ TCR</span> →
-              <span style="white-space:nowrap">3️⃣ CSR</span>.
-              Fix the most fundamental gap first: is the agent touching enough leads? then are leads converting to connects (TCR)? then are connects converting to sales (CSR)?
+            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px">
+              <span style="font-size:.8rem;color:#666;font-weight:700">Coaching Focus:</span>
+              <span id="leverPrimaryOpp" style="font-size:1.15rem;font-weight:800;color:#1565c0">—</span>
             </div>
-            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-              <span style="font-size:.8rem;color:#666;font-weight:700">Primary Opportunity:</span>
-              <span id="leverPrimaryOpp" style="font-size:1.05rem;font-weight:800;color:#1565c0">—</span>
-            </div>
+            <div id="leverCurGoal" style="font-size:.98rem;font-weight:700;color:#1a3353;margin-bottom:10px;display:none"></div>
+            <div style="font-size:.78rem;color:#666;font-weight:700;margin-bottom:2px">Why this is the focus:</div>
             <div id="leverPrimaryWhy" style="font-size:.85rem;color:#333;line-height:1.5;margin-bottom:10px">—</div>
-            <div id="leverImpact" style="font-size:.85rem;color:#333;line-height:1.6;background:#fff;border:1px solid #e3ecf7;border-radius:8px;padding:10px 12px;display:none"></div>
-            <div id="leverFocusWrap" style="font-size:.85rem;color:#333;line-height:1.5;margin-top:10px;display:none">
-              <b>Recommended Coaching Focus:</b> <span id="leverFocus"></span>
-              <div style="font-size:.76rem;color:#888;margin-top:4px;font-style:italic">Guidance only — confirm the actual behavioral root cause with the agent and the reports; this does not replace your judgment.</div>
+            <div id="leverFocusWrap" style="font-size:.85rem;color:#333;line-height:1.5;margin-bottom:10px;display:none">
+              <span style="font-size:.78rem;color:#666;font-weight:700">Focus on:</span> <span id="leverFocus" style="font-weight:600"></span>
             </div>
+            <div style="font-size:.78rem;color:#666;font-weight:700;margin-bottom:2px" id="leverImpactLabel" hidden>Expected Impact:</div>
+            <div id="leverImpact" style="font-size:.9rem;color:#1a3353;font-weight:600;line-height:1.5;background:#fff;border:1px solid #e3ecf7;border-radius:8px;padding:10px 12px;display:none"></div>
             <div id="leverRamp" style="margin-top:12px;display:none"></div>
-            <div style="font-size:.74rem;color:#7a8aa0;margin-top:12px;border-top:1px dashed #d7e3f4;padding-top:8px">
-              Flow: Performance Metrics → <b>Primary Opportunity</b> → <b>Projected Impact</b> → Areas For Improvement → Action Plan → Agent My Commitment
-            </div>
           </div>
         </div>
       </div>
@@ -1519,7 +1511,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-06-light-sidebar-PROD-v52";
+const APEX_BUILD = "2026-09-06-kaii-schedule-lever-simplify-PROD-v53";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -3693,6 +3685,7 @@ const DC_TL_SCHEDULES = [
   { email:'euniceolaguer@homeaglowsalestwo.com',   disp:'TL Eunice',   cluster:'Jubee',    days:{6:1,0:2,1:3,2:4,3:5} },                 // RD Thu-Fri
   { email:'PENDING_LOGIN_EMAIL::anna-pascual',     disp:'TL Anna',     cluster:'Jubee',    days:{4:1,5:2,6:3,0:4,1:5} },                 // RD Tue-Wed
   { email:'krizelletaino@homeaglowsalesone.com',   disp:'TL Krizelle', cluster:'Jubee',    days:{3:1,4:2,5:3,6:4,0:5} },                 // RD Mon-Tue
+  { email:'kailelaquindanum@homeaglowsalestwo.com',disp:'TL Kaii',     cluster:'Jubee',    days:{1:1,2:2,3:3,4:4,5:5} },                 // Mon-Fri (D1=Mon..D5=Fri), RD Sat-Sun
   // ── CLUSTER ARIELLE (confirmed updated) ──
   { email:'mariaglaizasy@homeaglowsales.com',      disp:'TL Glai',     cluster:'Arielle',  days:{5:1,6:2,0:3,1:4,2:5} },                 // RD Wed-Thu
   { email:'jovanjalandoni@homeaglowsales.com',     disp:'TL Jovan',    cluster:'Arielle',  days:{4:1,5:2,6:3,0:4,1:5} },                 // RD Tue-Wed
@@ -5023,15 +5016,22 @@ function calcWk1Cvr5() {
   // zero Leads Received. Blank ("—") when no cured week qualifies. Sales Deficit stays
   // week-by-week and is NOT aggregated here. Purely local — ZERO SheetDB requests.
   const cured = [];
+  const curedLeads = [], curedSales = [];   // avg Leads Received / avg Sales over the SAME qualifying weeks
   for (let i=2;i<=5;i++){
     const lr = parseFloat(document.getElementById('wcLR'+i).value);
     const sRaw = parseFloat(document.getElementById('wcS'+i).value);
-    if (!isNaN(lr) && lr>0){ const sales = isNaN(sRaw) ? 0 : sRaw; cured.push(sales/lr*100); }
+    if (!isNaN(lr) && lr>0){ const sales = isNaN(sRaw) ? 0 : sRaw; cured.push(sales/lr*100); curedLeads.push(lr); curedSales.push(sales); }
   }
   const avgEl = document.getElementById('wcCVRavg');
+  const lrAvgEl = document.getElementById('wcLRavg');
+  const sAvgEl = document.getElementById('wcSavg');
   const sumEl = document.getElementById('wk1CvrBenchSummary');
   if (cured.length){
     const curedAvg = cured.reduce((a,b)=>a+b,0)/cured.length;
+    const leadsAvg = curedLeads.reduce((a,b)=>a+b,0)/curedLeads.length;   // avg Leads Received (Weeks 2–5, Leads>0)
+    const salesAvg = curedSales.reduce((a,b)=>a+b,0)/curedSales.length;   // avg Sales (same weeks; blank Sales = 0)
+    if (lrAvgEl) lrAvgEl.textContent = leadsAvg.toFixed(1);
+    if (sAvgEl)  sAvgEl.textContent  = salesAvg.toFixed(1);
     if (avgEl) avgEl.textContent = curedAvg.toFixed(2)+'%';
     if (sumEl){
       const meets = curedAvg >= BENCH_WK1CVR - 0.005;
@@ -5042,6 +5042,8 @@ function calcWk1Cvr5() {
     }
   } else {
     if (avgEl) avgEl.textContent = '—';
+    if (lrAvgEl) lrAvgEl.textContent = '—';
+    if (sAvgEl)  sAvgEl.textContent  = '—';
     if (sumEl){ sumEl.style.display = 'none'; sumEl.innerHTML = ''; }
   }
   // v33: keep the in-modal Rainmaker required/optional badge in sync with the live curing table.
@@ -5222,18 +5224,24 @@ function renderLeverGuidance(){
   const box = document.getElementById('leverGuidance');
   if (!box) return;
   const oppEl   = document.getElementById('leverPrimaryOpp');
+  const curGoalEl = document.getElementById('leverCurGoal');
   const whyEl   = document.getElementById('leverPrimaryWhy');
   const impEl   = document.getElementById('leverImpact');
+  const impLabelEl = document.getElementById('leverImpactLabel');
   const focusWrap = document.getElementById('leverFocusWrap');
   const focusEl = document.getElementById('leverFocus');
+  // Behaviors as a compact "a • b • c" list (source strings unchanged).
+  const fmtFocus = str => String(str||'').replace(/\.\s*$/,'').split(/,\s*/).join(' • ');
   const lt = parseFloat(document.getElementById('lt1').value) || 0;
   const cc = parseFloat(document.getElementById('cc1').value) || 0;
   const s  = parseFloat(document.getElementById('s1').value)  || 0;
   const f1 = v => v.toFixed(1);
   if (lt <= 0) {
     oppEl.textContent = '—';
-    whyEl.textContent = 'Enter this week’s Leads Touched, Connected Calls, and Sales to see the primary opportunity and projected impact.';
+    if (curGoalEl){ curGoalEl.style.display = 'none'; curGoalEl.innerHTML = ''; }
+    whyEl.textContent = 'Enter this week’s Leads Touched, Connected Calls, and Sales to see the coaching focus and expected impact.';
     impEl.style.display = 'none'; impEl.innerHTML = '';
+    if (impLabelEl) impLabelEl.hidden = true;
     focusWrap.style.display = 'none';
     return;
   }
@@ -5250,45 +5258,45 @@ function renderLeverGuidance(){
     TCR:    'Call cadence, speed-to-lead, callbacks, contact strategy, lead utilization.',
     CSR:    'Discovery, objection handling, membership presentation, closing, call quality.'
   };
-  let opp, why, impactHtml = '', focusKey = null;
+  // opp = focus label; curGoal = "Current X → Goal Y"; impactHtml = one-line expected impact.
+  // Underlying figures (addConnects/addSales/newCC/newS) are computed exactly as before —
+  // only the PRESENTATION is compacted.
+  let opp, why, impactHtml = '', focusKey = null, curGoal = '';
   if (leadsEdited && !isNaN(leadsRaw) && leadsRaw > 0 && lt < leadsRaw) {
     // Step 1 — Volume is the most fundamental lever.
     opp = 'Volume / Leads Touched'; focusKey = 'Volume';
     const addConnects = (tcrCurr / 100) * (leadsRaw - lt);
     const addSales = csrRate * addConnects;
-    why = `Lead volume is below the target you set (${lt} vs ${leadsRaw}). Volume comes first in the order of operations — raise it before working TCR or CSR.`;
-    impactHtml = `Current Leads: <b>${lt}</b> → Target Leads: <b>${leadsRaw}</b><br>`
-      + `Potential Additional Connects: <b>+${Math.round(addConnects)}</b> (at current TCR ${f1(tcrCurr)}%)<br>`
-      + `Projected Additional Sales: <b>+${f1(addSales)}</b> (at current CSR ${f1(csrCurr)}%)`;
+    curGoal = `Current: <b>${lt} leads</b> → Goal: <b>${leadsRaw} leads</b>`;
+    why = `Lead volume is below the target you set — raising the number of leads touched is the first lever before working TCR or CSR.`;
+    impactHtml = `About <b>+${Math.round(addConnects)}</b> more connects and <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
   } else if (tcrCurr < BENCH_TCR - 0.05) {
     // Step 2 — TCR below the official 25% benchmark (volume ok / not flagged).
     opp = 'TCR'; focusKey = 'TCR';
     const newCC = (BENCH_TCR / 100) * tgtLeads;
     const addConnects = newCC - cc;
     const addSales = csrRate * addConnects;
-    why = `Lead volume is sufficient, but TCR is below the ${BENCH_TCR}% benchmark (${f1(tcrCurr)}% vs ${BENCH_TCR}%). Improving TCR should be the primary coaching focus.`;
-    impactHtml = `Current TCR: <b>${f1(tcrCurr)}%</b> → Benchmark TCR: <b>${BENCH_TCR}%</b><br>`
-      + `Current Connected Calls: <b>${cc}</b> → Projected: <b>${Math.round(newCC)}</b><br>`
-      + `Potential Additional Connects: <b>+${Math.round(addConnects)}</b><br>`
-      + `Projected Additional Sales: <b>+${f1(addSales)}</b> (at current CSR ${f1(csrCurr)}%)`;
+    curGoal = `Current: <b>${f1(tcrCurr)}%</b> → Goal: <b>${BENCH_TCR}%</b>`;
+    why = `Lead volume is okay, but not enough leads are turning into customer connects.`;
+    impactHtml = `About <b>+${Math.round(addConnects)}</b> more connects and <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
   } else if (cc > 0 && csrCurr < BENCH_CSR - 0.05) {
     // Step 3 — CSR below the official 12% benchmark (volume + TCR ok).
     opp = 'CSR'; focusKey = 'CSR';
     const newS = (BENCH_CSR / 100) * cc;
     const addSales = newS - s;
-    why = `Lead volume and TCR are sufficient, but CSR is below the ${BENCH_CSR}% benchmark (${f1(csrCurr)}% vs ${BENCH_CSR}%). Focus coaching on converting connected calls into sales.`;
-    impactHtml = `Current CSR: <b>${f1(csrCurr)}%</b> → Benchmark CSR: <b>${BENCH_CSR}%</b><br>`
-      + `Current Sales: <b>${s}</b> → Projected: <b>${f1(newS)}</b><br>`
-      + `Potential Additional Sales: <b>+${f1(addSales)}</b>`;
+    curGoal = `Current: <b>${f1(csrCurr)}%</b> → Goal: <b>${BENCH_CSR}%</b>`;
+    why = `Leads and connects are okay, but not enough connects are turning into sales.`;
+    impactHtml = `About <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
   } else {
-    opp = 'On Track / No major core-metric gap';
+    opp = 'On Track'; curGoal = '';
     why = `TCR is at/above the ${BENCH_TCR}% benchmark and CSR at/above ${BENCH_CSR}% (and lead volume meets any target set). No single core-metric gap stands out — coach to sustain and stretch.`;
   }
   oppEl.textContent = opp;
+  if (curGoalEl){ if (curGoal){ curGoalEl.style.display='block'; curGoalEl.innerHTML=curGoal; } else { curGoalEl.style.display='none'; curGoalEl.innerHTML=''; } }
   whyEl.textContent = why;
-  if (impactHtml) { impEl.style.display = 'block'; impEl.innerHTML = impactHtml; }
-  else { impEl.style.display = 'none'; impEl.innerHTML = ''; }
-  if (focusKey) { focusWrap.style.display = 'block'; focusEl.textContent = FOCUS[focusKey]; }
+  if (impactHtml) { impEl.style.display = 'block'; impEl.innerHTML = impactHtml; if (impLabelEl) impLabelEl.hidden = false; }
+  else { impEl.style.display = 'none'; impEl.innerHTML = ''; if (impLabelEl) impLabelEl.hidden = true; }
+  if (focusKey) { focusWrap.style.display = 'block'; focusEl.textContent = fmtFocus(FOCUS[focusKey]); }
   else { focusWrap.style.display = 'none'; focusEl.textContent = ''; }
   // ── 4-Week Target Ramp / Weekly 1:1 Check-In Guide ──────────────────────────
   // Progressive milestones from CURRENT to the FINAL TARGET of the primary lever.
@@ -5326,32 +5334,33 @@ function renderLeverGuidance(){
         const wt   = (i === 4) ? fin : (cur + gap * (i / 4));   // Week 4 = final target exactly
         const impv = wt - cur;
         const rel  = cur > 0 ? (impv / cur * 100) : 0;
+        // impv (Δ vs Today) and rel (Rel. Gain) still computed but no longer DISPLAYED (PART D).
         let cells;
         if (focusKey === 'TCR') {
+          const totC = (wt   / 100) * tgtLeadsAvg;               // Connects Goal
           const addC = (impv / 100) * tgtLeadsAvg;
-          const totC = (wt   / 100) * tgtLeadsAvg;
-          const addS = avgCSRrate * addC;
-          cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`;
+          const addS = avgCSRrate * addC;                        // Expected +Sales
+          cells = `<td>${f1(wt)}%</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`;
         } else if (focusKey === 'Volume') {
+          const totC = (avgTCRv / 100) * wt;                     // Connects Goal
           const addC = (avgTCRv / 100) * impv;
-          const totC = (avgTCRv / 100) * wt;
-          const addS = avgCSRrate * addC;
-          cells = `<td>${Math.round(wt)}</td><td>+${Math.round(impv)}</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`;
-        } else { // CSR
-          const addS = (impv / 100) * avgCCv;
-          const totS = (wt   / 100) * avgCCv;
-          cells = `<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addS)}</td><td>${Math.round(totS)}</td>`;
+          const addS = avgCSRrate * addC;                        // Expected +Sales
+          cells = `<td>${Math.round(wt)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`;
+        } else { // CSR — no connects column; middle column is Sales Goal
+          const totS = (wt   / 100) * avgCCv;                    // Sales Goal
+          const addS = (impv / 100) * avgCCv;                    // Expected +Sales
+          cells = `<td>${f1(wt)}%</td><td>${Math.round(totS)}</td><td>+${Math.round(addS)}</td>`;
         }
         rowsHtml += `<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`;
       }
-      const cols = focusKey === 'CSR'
-        ? ['CSR Target','Δ vs Today','Rel. Gain','+Sales','Total Sales/Wk']
-        : [ (focusKey === 'TCR' ? 'TCR Target' : 'Leads Target'), 'Δ vs Today','Rel. Gain','+Connects','Total Connects/Wk','+Sales'];
+      const goalCol = focusKey === 'CSR' ? 'CSR Goal' : (focusKey === 'TCR' ? 'TCR Goal' : 'Leads Goal');
+      const midCol  = focusKey === 'CSR' ? 'Sales Goal' : 'Connects Goal';
+      const cols = [goalCol, midCol, 'Expected +Sales'];
       const headHtml = '<th style="text-align:left">Week</th>' + cols.map(c => `<th>${c}</th>`).join('');
       rampEl.style.display = 'block';
       rampEl.innerHTML =
-        `<div style="font-weight:800;font-size:.85rem;color:#1a3353;margin-bottom:4px">📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp</div>`
-        + `<div style="font-size:.8rem;color:#555;margin-bottom:8px">Baselined on the <b>4-week average</b>: Current <b>${curStr}</b> → Final Target <b>${finStr}</b> → Gap <b>${gapStr}</b>. Milestones to review at each weekly 1:1 — Week 4 equals the final target.</div>`
+        `<div style="font-weight:800;font-size:.85rem;color:#1a3353;margin-bottom:4px">📅 4-Week Coaching Plan</div>`
+        + `<div style="font-size:.85rem;font-weight:700;color:#1a3353;margin-bottom:8px">Current ${valType==='pct'?opp:'Leads'}: <b>${curStr}</b> → Goal: <b>${finStr}</b></div>`
         + `<div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${headHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`
         + `<div style="font-size:.74rem;color:#888;margin-top:6px;font-style:italic">Coaching guide only — these are weekly milestones, not four Coaching Log records and not separate saves.</div>`;
     } else {
@@ -7083,23 +7092,26 @@ function agentLeverHtml(e){
   const p1=(e.perfData&&e.perfData[0])||{};
   const lt=parseFloat(p1.lt)||0, cc=parseFloat(p1.cc)||0, s=parseFloat(p1.s)||0;
   const f1=v=>v.toFixed(1);
-  if (lt<=0) return _agentSection('🎯 Core Metrics Lever — Coaching Guidance', '<div style="font-size:.85rem;color:#999">No performance data recorded for this log.</div>');
+  if (lt<=0) return _agentSection('🎯 Coaching Focus', '<div style="font-size:.85rem;color:#999">No performance data recorded for this log.</div>');
   const tcrCurr=cc/lt*100, csrCurr=cc>0?s/cc*100:0, csrRate=cc>0?s/cc:0;
   const FOCUS = { TCR:'Call cadence, speed-to-lead, callbacks, contact strategy, lead utilization.', CSR:'Discovery, objection handling, membership presentation, closing, call quality.' };
-  let opp, why, impactHtml='', focusKey=null;
+  const fmtFocus = str => String(str||'').replace(/\.\s*$/,'').split(/,\s*/).join(' • ');
+  let opp, why, impactHtml='', focusKey=null, curGoal='';
   const tgtLeads = lt;  // no persisted target-leads scenario in the Agent view
   if (tcrCurr < BENCH_TCR - 0.05){
     opp='TCR'; focusKey='TCR';
     const newCC=(BENCH_TCR/100)*tgtLeads, addConnects=newCC-cc, addSales=csrRate*addConnects;
-    why=`Lead volume is sufficient, but TCR is below the ${BENCH_TCR}% benchmark (${f1(tcrCurr)}% vs ${BENCH_TCR}%). Improving TCR should be the primary coaching focus.`;
-    impactHtml=`Current TCR: <b>${f1(tcrCurr)}%</b> → Benchmark TCR: <b>${BENCH_TCR}%</b><br>Current Connected Calls: <b>${cc}</b> → Projected: <b>${Math.round(newCC)}</b><br>Potential Additional Connects: <b>+${Math.round(addConnects)}</b><br>Projected Additional Sales: <b>+${f1(addSales)}</b> (at current CSR ${f1(csrCurr)}%)`;
+    curGoal=`Current: <b>${f1(tcrCurr)}%</b> → Goal: <b>${BENCH_TCR}%</b>`;
+    why=`Lead volume is okay, but not enough leads are turning into customer connects.`;
+    impactHtml=`About <b>+${Math.round(addConnects)}</b> more connects and <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
   } else if (cc>0 && csrCurr < BENCH_CSR - 0.05){
     opp='CSR'; focusKey='CSR';
     const newS=(BENCH_CSR/100)*cc, addSales=newS-s;
-    why=`Lead volume and TCR are sufficient, but CSR is below the ${BENCH_CSR}% benchmark (${f1(csrCurr)}% vs ${BENCH_CSR}%). Focus coaching on converting connected calls into sales.`;
-    impactHtml=`Current CSR: <b>${f1(csrCurr)}%</b> → Benchmark CSR: <b>${BENCH_CSR}%</b><br>Current Sales: <b>${s}</b> → Projected: <b>${f1(newS)}</b><br>Potential Additional Sales: <b>+${f1(addSales)}</b>`;
+    curGoal=`Current: <b>${f1(csrCurr)}%</b> → Goal: <b>${BENCH_CSR}%</b>`;
+    why=`Leads and connects are okay, but not enough connects are turning into sales.`;
+    impactHtml=`About <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
   } else {
-    opp='On Track / No major core-metric gap';
+    opp='On Track';
     why=`TCR is at/above the ${BENCH_TCR}% benchmark and CSR at/above ${BENCH_CSR}%. No single core-metric gap stands out — coach to sustain and stretch.`;
   }
   // 4-Week Target Ramp — averages basis (same math as renderLeverGuidance)
@@ -7113,23 +7125,28 @@ function agentLeverHtml(e){
   // v23: Follow-Up Coaching never renders a NEW ramp here — its baseline is the original coaching's
   // ramp, shown read-only in the Follow-Up review. Other coaching types are unaffected.
   if (focusKey && gap>0.05 && e.coachingType!=='Follow-Up Coaching'){
-    const curStr=f1(cur)+'%', finStr=f1(fin)+'%', gapStr='+'+f1(gap)+'pp';
+    const curStr=f1(cur)+'%', finStr=f1(fin)+'%';
     let rowsHtml='';
-    for(let i=1;i<=4;i++){ const wt=(i===4)?fin:(cur+gap*(i/4)); const impv=wt-cur; const rel=cur>0?(impv/cur*100):0; let cells;
-      if (focusKey==='TCR'){ const addC=(impv/100)*tgtLeadsAvg, totC=(wt/100)*tgtLeadsAvg, addS=avgCSRrate*addC;
-        cells=`<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`; }
-      else { const addS=(impv/100)*avgCCv, totS=(wt/100)*avgCCv; cells=`<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addS)}</td><td>${Math.round(totS)}</td>`; }
+    // impv (Δ vs Today) and rel (Rel. Gain) still computed but no longer DISPLAYED (PART D).
+    for(let i=1;i<=4;i++){ const wt=(i===4)?fin:(cur+gap*(i/4)); const impv=wt-cur; let cells;
+      if (focusKey==='TCR'){ const totC=(wt/100)*tgtLeadsAvg, addS=avgCSRrate*((impv/100)*tgtLeadsAvg);
+        cells=`<td>${f1(wt)}%</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`; }
+      else { const totS=(wt/100)*avgCCv, addS=(impv/100)*avgCCv; cells=`<td>${f1(wt)}%</td><td>${Math.round(totS)}</td><td>+${Math.round(addS)}</td>`; }
       rowsHtml+=`<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`; }
-    const cols = focusKey==='CSR' ? ['CSR Target','Δ vs Today','Rel. Gain','+Sales','Total Sales/Wk'] : ['TCR Target','Δ vs Today','Rel. Gain','+Connects','Total Connects/Wk','+Sales'];
+    const goalCol=focusKey==='CSR'?'CSR Goal':'TCR Goal', midCol=focusKey==='CSR'?'Sales Goal':'Connects Goal';
+    const cols=[goalCol,midCol,'Expected +Sales'];
     const headHtml='<th style="text-align:left">Week</th>'+cols.map(c=>`<th>${c}</th>`).join('');
-    rampHtml=`<div style="margin-top:12px"><div style="font-weight:800;font-size:.85rem;color:#1a3353;margin-bottom:4px">📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp</div><div style="font-size:.8rem;color:#555;margin-bottom:8px">Baselined on the <b>4-week average</b>: Current <b>${curStr}</b> → Final Target <b>${finStr}</b> → Gap <b>${gapStr}</b>.</div><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${headHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`;
+    rampHtml=`<div style="margin-top:12px"><div style="font-weight:800;font-size:.85rem;color:#1a3353;margin-bottom:4px">📅 4-Week Coaching Plan</div><div style="font-size:.85rem;font-weight:700;color:#1a3353;margin-bottom:8px">Current ${opp}: <b>${curStr}</b> → Goal: <b>${finStr}</b></div><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${headHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`;
   }
-  const focusHtml = focusKey ? `<div style="font-size:.82rem;margin-top:8px"><b>Recommended Coaching Focus:</b> ${FOCUS[focusKey]}</div>` : '';
-  const inner = `<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px"><span style="font-size:.8rem;color:#666;font-weight:700">Primary Opportunity:</span><span style="font-size:1.02rem;font-weight:800;color:#1565c0">${opp}</span></div>
+  const focusHtml = focusKey ? `<div style="font-size:.82rem;margin-top:8px"><span style="color:#666;font-weight:700">Focus on:</span> <span style="font-weight:600">${fmtFocus(FOCUS[focusKey])}</span></div>` : '';
+  const inner = `<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px"><span style="font-size:.8rem;color:#666;font-weight:700">Coaching Focus:</span><span style="font-size:1.12rem;font-weight:800;color:#1565c0">${opp}</span></div>
+    ${curGoal?`<div style="font-size:.95rem;font-weight:700;color:#1a3353;margin-bottom:8px">${curGoal}</div>`:''}
+    <div style="font-size:.78rem;color:#666;font-weight:700;margin-bottom:2px">Why this is the focus:</div>
     <div style="font-size:.85rem;color:#333;line-height:1.5;margin-bottom:8px">${why}</div>
-    ${impactHtml?`<div style="font-size:.85rem;color:#333;line-height:1.6;background:#fff;border:1px solid #e3ecf7;border-radius:8px;padding:10px 12px">${impactHtml}</div>`:''}
-    ${focusHtml}${rampHtml}`;
-  return _agentSection('🎯 Core Metrics Lever — Coaching Guidance', inner);
+    ${focusHtml}
+    ${impactHtml?`<div style="font-size:.78rem;color:#666;font-weight:700;margin-top:8px;margin-bottom:2px">Expected Impact:</div><div style="font-size:.9rem;color:#1a3353;font-weight:600;line-height:1.5;background:#fff;border:1px solid #e3ecf7;border-radius:8px;padding:10px 12px">${impactHtml}</div>`:''}
+    ${rampHtml}`;
+  return _agentSection('🎯 Coaching Focus', inner);
 }
 // Assemble the read-only Agent coaching-content sections (order per spec; each appears once).
 // Follow-Up review (when applicable) leads, so the agent sees "what we agreed / what happened" first.
@@ -7179,20 +7196,22 @@ function fuLeverInfo(e){
 // 4-Week Target Ramp for an entry (averages basis). `heading` lets callers relabel it (the
 // Follow-Up review shows the ORIGINAL/root ramp as a read-only progress reference).
 function fuRampHtml(e, heading){
-  const H = heading || '📅 Weekly 1:1 Check-In Guide — 4-Week Target Ramp';
+  const H = heading || '📅 4-Week Coaching Plan';
   const info=fuLeverInfo(e); const f1=v=>v.toFixed(1);
-  if(!info.focusKey) return '<div style="color:#888;font-size:.82rem">No single core-metric gap — no target ramp (on track / insufficient data).</div>';
+  if(!info.focusKey) return '<div style="color:#888;font-size:.82rem">No single core-metric gap — no coaching plan (on track / insufficient data).</div>';
   const A=_perfAvgFromEntry(e);
   const avgTCRv=(A.avgTCR!=null)?A.avgTCR:0, avgCSRv=(A.avgCSR!=null)?A.avgCSR:0, avgCSRrate=avgCSRv/100, avgLTv=A.avgLT, avgCCv=A.avgCC, tgtLeadsAvg=avgLTv;
   let cur,fin; if(info.focusKey==='TCR'){cur=avgTCRv;fin=BENCH_TCR;} else {cur=avgCSRv;fin=BENCH_CSR;}
-  const gap=fin-cur; if(!(gap>0.05)) return '<div style="color:#888;font-size:.82rem">4-week average already at/above the benchmark — no ramp needed.</div>';
-  let rows=''; for(let i=1;i<=4;i++){ const wt=(i===4)?fin:(cur+gap*(i/4)); const impv=wt-cur; const rel=cur>0?(impv/cur*100):0; let cells;
-    if(info.focusKey==='TCR'){ const addC=(impv/100)*tgtLeadsAvg,totC=(wt/100)*tgtLeadsAvg,addS=avgCSRrate*addC; cells=`<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addC)}</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`; }
-    else { const addS=(impv/100)*avgCCv,totS=(wt/100)*avgCCv; cells=`<td>${f1(wt)}%</td><td>+${f1(impv)}pp</td><td>+${f1(rel)}%</td><td>+${Math.round(addS)}</td><td>${Math.round(totS)}</td>`; }
+  const gap=fin-cur; if(!(gap>0.05)) return '<div style="color:#888;font-size:.82rem">4-week average already at/above the benchmark — no plan needed.</div>';
+  // impv (Δ vs Today) still computed for projections but no longer DISPLAYED (PART D).
+  let rows=''; for(let i=1;i<=4;i++){ const wt=(i===4)?fin:(cur+gap*(i/4)); const impv=wt-cur; let cells;
+    if(info.focusKey==='TCR'){ const totC=(wt/100)*tgtLeadsAvg,addS=avgCSRrate*((impv/100)*tgtLeadsAvg); cells=`<td>${f1(wt)}%</td><td>${Math.round(totC)}</td><td>+${Math.round(addS)}</td>`; }
+    else { const totS=(wt/100)*avgCCv,addS=(impv/100)*avgCCv; cells=`<td>${f1(wt)}%</td><td>${Math.round(totS)}</td><td>+${Math.round(addS)}</td>`; }
     rows+=`<tr><td class="proj-label">Week ${i}</td>${cells}</tr>`; }
-  const cols=info.focusKey==='CSR'?['CSR Target','Δ vs Today','Rel. Gain','+Sales','Total Sales/Wk']:['TCR Target','Δ vs Today','Rel. Gain','+Connects','Total Connects/Wk','+Sales'];
+  const goalCol=info.focusKey==='CSR'?'CSR Goal':'TCR Goal', midCol=info.focusKey==='CSR'?'Sales Goal':'Connects Goal';
+  const cols=[goalCol,midCol,'Expected +Sales'];
   const head='<th style="text-align:left">Week</th>'+cols.map(c=>`<th>${c}</th>`).join('');
-  return `<div style="font-weight:800;font-size:.82rem;color:#1a3353;margin-bottom:4px">${H}</div><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  return `<div style="font-weight:800;font-size:.82rem;color:#1a3353;margin-bottom:4px">${H}</div><div style="font-size:.82rem;font-weight:700;color:#1a3353;margin-bottom:6px">Current ${info.focusKey}: <b>${f1(cur)}%</b> → Goal: <b>${f1(fin)}%</b></div><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 // ORIGINAL ramp's target for checkpoint week N (1–4). Never recalculated from the current result.
 function fuWeekTarget(root, n){
@@ -7232,7 +7251,7 @@ function prevCoachingReviewHtml(prev, root){
     : '<span style="color:#999">No commitment submitted.</span>';
   const row=(l,v)=>`<div style="margin-bottom:6px"><b>${l}:</b> ${v}</div>`;
   const rampBlock = root
-    ? `${fuRampHtml(root, '📅 Original 4-Week Target Ramp — Progress Reference')}${(String(root.id)!==String(prev.id))?`<div style="font-size:.74rem;color:#8a6d00;margin-top:3px">Baseline from the original coaching: ${escHtml(fuOptionLabel(root))}</div>`:''}`
+    ? `${fuRampHtml(root, '📅 Original 4-Week Coaching Plan — Progress Reference')}${(String(root.id)!==String(prev.id))?`<div style="font-size:.74rem;color:#8a6d00;margin-top:3px">Baseline from the original coaching: ${escHtml(fuOptionLabel(root))}</div>`:''}`
     : '<div style="color:#c62828">Original coaching not available — cannot resolve the baseline ramp.</div>';
   return row('1. Primary Opportunity', escHtml(fuLeverInfo(prev).opp))
     + row('2. Primary Limiter', escHtml(prev.limiter||'—')+(prev.callObjLimiter?(' — '+escHtml(prev.callObjLimiter)):''))
@@ -7240,7 +7259,7 @@ function prevCoachingReviewHtml(prev, root){
     + row('4. Areas For Improvement', escHtml(prev.areas||'—').replace(/\n/g,'<br>'))
     + row('5. Action Plan', escHtml(prev.actionPlan||'—').replace(/\n/g,'<br>'))
     + row("6. Agent's My Commitments", commit)
-    + `<div style="margin-bottom:4px"><b>7. Original 4-Week Target Ramp — Progress Reference:</b></div><div style="margin-top:4px">${rampBlock}</div>`;
+    + `<div style="margin-bottom:4px"><b>7. Original 4-Week Coaching Plan — Progress Reference:</b></div><div style="margin-top:4px">${rampBlock}</div>`;
 }
 // ── FORM: show/hide, populate the same-agent selector, guard links, render the live review ──
 function onCoachingTypeChange(){
