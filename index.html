@@ -320,7 +320,61 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
   </div>
 </div>
 <div id="app" style="display:none;flex-direction:column;min-height:100vh">
+  <style>
+    /* v51 — left sidebar navigation (permission-driven; render in JS). Fixed panel + content padding. */
+    #apexSidebar{position:fixed;top:0;left:0;bottom:0;width:224px;background:#12233b;color:#dfe7f1;display:flex;flex-direction:column;z-index:60;transition:width .15s ease;overflow:hidden}
+    #app.has-sidebar{padding-left:224px;transition:padding-left .15s ease}
+    body.sb-collapsed #apexSidebar{width:60px}
+    body.sb-collapsed #app.has-sidebar{padding-left:60px}
+    #app > nav{display:none!important}                 /* old top nav replaced by sidebar */
+    .sb-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.9rem;letter-spacing:.02em;padding:14px 14px 10px;color:#fff;white-space:nowrap}
+    .sb-brand .sb-bolt{font-size:1.1rem;flex:0 0 auto}
+    .sb-section{font-size:.62rem;font-weight:800;letter-spacing:.09em;color:#6f86a8;text-transform:uppercase;padding:12px 16px 4px;white-space:nowrap}
+    .sb-item{display:flex;align-items:center;gap:11px;padding:9px 16px;cursor:pointer;color:#cdd8e8;font-size:.85rem;font-weight:600;border-left:4px solid transparent;white-space:nowrap;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
+    .sb-item .sb-ic{font-size:1.02rem;flex:0 0 22px;text-align:center}
+    .sb-item:hover{background:#1b3350;color:#fff}
+    .sb-item.active{background:#1d5fbf22;color:#fff;border-left-color:#4d9bff}
+    .sb-foot{margin-top:auto;border-top:1px solid #24405f;padding:12px 16px}
+    .sb-foot .sb-name{font-weight:800;color:#fff;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sb-foot .sb-role{font-size:.72rem;color:#8ba3c4;margin-bottom:8px;white-space:nowrap}
+    .sb-logout{background:#24405f;color:#dfe7f1;border:none;border-radius:6px;padding:7px 12px;font-weight:700;cursor:pointer;font-size:.78rem;width:100%}
+    .sb-logout:hover{background:#2f5279}
+    .sb-collapse{background:none;border:none;color:#8ba3c4;cursor:pointer;font-size:1rem;padding:6px 16px;text-align:left}
+    .sb-collapse:hover{color:#fff}
+    body.sb-collapsed .sb-label,body.sb-collapsed .sb-brand-txt,body.sb-collapsed .sb-section,body.sb-collapsed .sb-foot .sb-name,body.sb-collapsed .sb-foot .sb-role,body.sb-collapsed .sb-logout span{display:none}
+    #sbHamburger{display:none;background:none;border:none;font-size:1.3rem;cursor:pointer;margin-right:6px}
+    #sbScrim{display:none;position:fixed;inset:0;background:#0006;z-index:55}
+    @media(max-width:900px){
+      #apexSidebar{transform:translateX(-100%);transition:transform .18s ease;width:224px}
+      body.sb-open #apexSidebar{transform:translateX(0)}
+      body.sb-open #sbScrim{display:block}
+      #app.has-sidebar,body.sb-collapsed #app.has-sidebar{padding-left:0}
+      #sbHamburger{display:inline-block}
+      body.sb-collapsed .sb-label,body.sb-collapsed .sb-section{display:inline}
+    }
+    /* Week View cells */
+    .dcw-table th,.dcw-table td{text-align:center;padding:7px 6px;font-size:.8rem}
+    .dcw-cell{border-radius:7px;padding:5px 4px;font-weight:700;line-height:1.15}
+    .dcw-d{font-size:.66rem;font-weight:800;letter-spacing:.03em;opacity:.85}
+    .dcw-n{font-size:1.05rem;font-weight:800}
+    .dcw-green{background:#e7f3ec;color:#1e7a43;border:1px solid #b7d8c4}
+    .dcw-red{background:#fbe9e9;color:#b23b3b;border:1px solid #eec2c2}
+    .dcw-amber{background:#fdf4e3;color:#a9720c;border:1px solid #ecd9a0}
+    .dcw-gray{background:#f2f4f7;color:#8a97a8;border:1px solid #e3e8ef}
+    .dcw-future{background:#fbfcfe;color:#5b6b82;border:1px dashed #cdd8e8}
+    /* TL pacing reminder popup */
+    #tlReminderOverlay{display:none;position:fixed;inset:0;background:#0007;z-index:120;align-items:center;justify-content:center}
+    #tlReminderCard{background:#fff;border-radius:14px;max-width:420px;width:92%;padding:0;overflow:hidden;box-shadow:0 20px 60px #0004}
+    .tlr-head{padding:16px 20px;color:#fff;font-weight:800;font-size:1.02rem}
+    .tlr-body{padding:16px 20px}
+    .tlr-bar{height:12px;border-radius:7px;background:#eef1f5;overflow:hidden;margin:8px 0 12px}
+    .tlr-bar>span{display:block;height:100%;border-radius:7px}
+    .tlr-btns{display:flex;gap:10px;justify-content:flex-end;padding:0 20px 18px}
+  </style>
+  <aside id="apexSidebar"></aside>
+  <div id="sbScrim" onclick="sbCloseDrawer()"></div>
   <header>
+    <button id="sbHamburger" onclick="sbToggleDrawer()" title="Menu" aria-label="Open navigation">☰</button>
     <div class="brand">⚡ APEX Coaching Dashboard</div>
     <div class="user-area">
       <div class="user-badge" id="userBadge"></div>
@@ -340,7 +394,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
   <nav>
     <button id="navDashboard" class="active" onclick="showView('dashboard')">📊 Dashboard</button>
     <button id="navLog" onclick="showView('log')">📋 Coaching Log</button>
-    <button id="navRainmaker" onclick="showView('rainmaker')">🎯 Rainmaker Practice</button>
+    <button id="navRainmaker" onclick="showView('rainmaker')">🎯 Rainmaker Script &amp; Results</button>
     <button id="navDailyCompletion" onclick="showView('dailycompletion')" style="display:none">🗓️ Daily Coaching Completion</button>
     <button id="navSomHealth" onclick="showView('somhealth')" style="display:none">🩺 SOM Health Check</button>
     <button id="navStorageUsage" onclick="showView('storageusage')" style="display:none">📦 Storage & Usage</button>
@@ -424,34 +478,55 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         </table>
       </div>
     </div>
-    <!-- ══ v44 DAILY COACHING COMPLETION — management report; 100% in-memory from entries + ROSTER + TL_EMAILS; 0 SheetDB ══ -->
+    <!-- ══ v51 DAILY COACHING COMPLETION — Week/Day operational tracker; 100% in-memory from entries + ROSTER + schedules; 0 SheetDB ══ -->
     <div id="viewDailyCompletion" style="display:none">
-      <div class="section-header"><h2>🗓️ Daily Coaching Completion</h2></div>
-      <div id="dcControls" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:8px 0 14px">
-        <div class="form-group" style="margin:0">
-          <label style="font-size:.72rem;color:#7a8aa0">Report Date</label><br/>
-          <input type="date" id="dcReportDate" onchange="renderDailyCompletion()"/>
+      <div class="section-header"><h2>📅 Daily Coaching Completion</h2></div>
+      <!-- week nav + view toggle + (leadership) cluster picker -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:8px 0 12px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div id="dcWeekTitle" style="font-weight:800;font-size:1rem;color:#1a3353"></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn-burger" onclick="dcShiftWeek(-1)" title="Previous week">‹ Previous</button>
+            <button class="btn-burger" onclick="dcThisWeek()">This Week</button>
+            <button class="btn-burger" onclick="dcShiftWeek(1)" title="Next week">Next ›</button>
+          </div>
         </div>
-        <div class="form-group" id="dcClusterGroup" style="margin:0">
-          <label style="font-size:.72rem;color:#7a8aa0">Cluster</label><br/>
-          <select id="dcCluster" onchange="renderDailyCompletion()">
-            <option value="">All Clusters</option>
-            <option>Jubee</option><option>Arielle</option><option>Kendryck</option>
-          </select>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div class="form-group" id="dcClusterGroup" style="margin:0">
+            <select id="dcCluster" onchange="renderDailyCompletion()">
+              <option value="">All Clusters</option>
+              <option>Jubee</option><option>Arielle</option><option>Kendryck</option>
+            </select>
+          </div>
+          <div id="dcViewToggle" style="display:inline-flex;border:1px solid #c7d2df;border-radius:8px;overflow:hidden">
+            <button id="dcTabWeek" onclick="dcSetMode('week')" style="border:none;padding:7px 14px;font-weight:800;cursor:pointer;font-size:.8rem">WEEK VIEW</button>
+            <button id="dcTabDay" onclick="dcSetMode('day')" style="border:none;padding:7px 14px;font-weight:800;cursor:pointer;font-size:.8rem">DAY VIEW</button>
+          </div>
         </div>
       </div>
-      <!-- DAILY minimum pacing cards -->
-      <div style="font-weight:800;font-size:.82rem;color:#1a3353;margin:6px 0 6px">Daily Minimum Pacing <span style="font-weight:600;color:#7a8aa0">— operational pacing only (1 / 1 / 2 / 2 / 2). NOT the weekly requirement.</span></div>
-      <div id="dcDailyCards" class="cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
-      <div id="dcRDInfo" style="font-size:.75rem;color:#7a8aa0;margin:6px 0 2px"></div>
-      <!-- WEEKLY 80% context, visually separated -->
-      <div id="dcWeeklyWrap" style="margin-top:22px;border-top:3px solid #2f6f43;padding-top:12px">
-        <div style="font-weight:800;font-size:.9rem;color:#2f6f43;margin-bottom:6px">✅ Weekly 80% Coaching Progress <span style="font-weight:600;color:#7a8aa0">— the TRUE weekly requirement: ≥80% of each TL's roster Fully Completed this week.</span></div>
-        <div id="dcWeeklyCards" class="cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
+      <!-- day-view date picker (only visible in Day View) -->
+      <div id="dcDayDateWrap" style="display:none;margin:0 0 10px">
+        <label style="font-size:.72rem;color:#7a8aa0">Day</label>
+        <input type="date" id="dcReportDate" onchange="renderDailyCompletion()" style="margin-left:6px"/>
       </div>
-      <!-- per-cluster TL sections -->
-      <div id="dcSections" style="margin-top:18px"></div>
-      <div id="dcNote" style="font-size:.72rem;color:#7a8aa0;margin-top:12px"></div>
+      <!-- 4 summary cards -->
+      <div id="dcSummaryCards" class="cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
+      <!-- week or day table -->
+      <div id="dcBody" style="margin-top:16px"></div>
+      <!-- legend + pacing -->
+      <div id="dcLegend" style="font-size:.74rem;color:#7a8aa0;margin-top:12px"></div>
+      <div id="dcNote" style="font-size:.72rem;color:#7a8aa0;margin-top:6px"></div>
+    </div>
+    <!-- ══ v51 TL PACING REMINDER — presentation-only; TL-only; 0 SheetDB / 0 Firestore; once per session ══ -->
+    <div id="tlReminderOverlay">
+      <div id="tlReminderCard">
+        <div class="tlr-head" id="tlrHead"></div>
+        <div class="tlr-body" id="tlrBody"></div>
+        <div class="tlr-btns">
+          <button class="btn-burger" onclick="tlReminderViewProgress()">View Weekly Progress</button>
+          <button class="btn-primary" style="width:auto" onclick="tlReminderDismiss()">Got it</button>
+        </div>
+      </div>
     </div>
     <!-- ══ v45 SOM HEALTH CHECK — SOM-only; detection-only; 100% in-memory; 0 SheetDB, 0 extra Firestore ══ -->
     <div id="viewSomHealth" style="display:none">
@@ -1437,7 +1512,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-05-projection-4wk-future-dates-PROD-v50";
+const APEX_BUILD = "2026-09-05-sidebar-daily-tracker-PROD-v51";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -2766,6 +2841,7 @@ function initApp() {
   const bm=document.getElementById('btnMigrate');
   if(bm) bm.style.display = 'none';
   // (Sync Local → SheetDB button removed — no visibility toggle needed.)
+  if (typeof renderSidebar==='function') renderSidebar();   // v51: build the left sidebar from permissions
   populateWKOptions();
   populateFilterTLs();
   populateLogFilterTLs();
@@ -2842,7 +2918,97 @@ function getAgentsForTL(tlDisplay) {
   if (!tlEntry || !tlEntry.fullName) return [];   // never fall through to manager==='' (mass-match)
   return ROSTER.filter(a => a.manager === tlEntry.fullName);
 }
+// ── v51 LEFT SIDEBAR NAVIGATION — generated from the SAME permission gates as the old top nav.
+// Moving a page into the sidebar grants NO new access: each item is included only if its existing
+// gate passes, and showView()/the page functions keep their own guards. 0 requests. UI-only.
+var CURRENT_VIEW = 'dashboard';
+function sbBuildModel(){
+  const u=currentUser||{};
+  const coaching=[
+    {ic:'📊',label:'Dashboard',view:'dashboard'},
+    {ic:'📋',label:'Coaching Log',view:'log'},
+    {ic:'🎯',label:'Rainmaker Script & Results',view:'rainmaker'},
+  ];
+  if(dcCanAccess(u)) coaching.push({ic:'📅',label:'Daily Coaching Completion',view:'dailycompletion'});
+  const mgmt=[];
+  if(canManageRoster()) mgmt.push({ic:'👥',label:'Roster',action:'openRosterManager'});
+  if(somCanAccess(u))   mgmt.push({ic:'🩺',label:'SOM Health Check',view:'somhealth'});
+  if(suCanAccess(u))    mgmt.push({ic:'📦',label:'Storage & Usage',view:'storageusage'});
+  return {coaching,mgmt};
+}
+function renderSidebar(){
+  const el=document.getElementById('apexSidebar'); if(!el) return;
+  const u=currentUser||{}; const m=sbBuildModel();
+  const item=(it)=>{
+    const oc = it.action ? (it.action+'();sbCloseDrawer()') : ("showView('"+it.view+"');sbCloseDrawer()");
+    const dv = it.view ? (' data-sbview="'+it.view+'"') : '';
+    return '<button class="sb-item"'+dv+' onclick="'+oc+'" title="'+escHtml(it.label)+'"><span class="sb-ic">'+it.ic+'</span><span class="sb-label">'+escHtml(it.label)+'</span></button>';
+  };
+  let html='<div class="sb-brand"><span class="sb-bolt">⚡</span><span class="sb-brand-txt">APEX COACHING DASHBOARD</span></div>';
+  html+='<div style="overflow-y:auto;flex:1">';
+  html+='<div class="sb-section">Coaching</div>'+m.coaching.map(item).join('');
+  if(m.mgmt.length) html+='<div class="sb-section">Management</div>'+m.mgmt.map(item).join('');
+  html+='</div>';
+  html+='<button class="sb-collapse" onclick="sbToggleCollapse()" title="Collapse / expand"><span class="sb-ic">⇔</span> <span class="sb-label">Collapse</span></button>';
+  const roleLabel={TL:'Team Lead',OM:'Operations Manager',SOM:'SOM',Director:'Director',Admin:'Admin'}[u.role]||(u.role||'');
+  html+='<div class="sb-foot"><div class="sb-name" title="'+escHtml(u.display||'')+'">'+escHtml(u.display||'')+'</div><div class="sb-role">'+escHtml(roleLabel)+'</div><button class="sb-logout" onclick="doLogout()">⏻ <span>Logout</span></button></div>';
+  el.innerHTML=html;
+  const app=document.getElementById('app'); if(app) app.classList.add('has-sidebar');
+  try{ if(sessionStorage.getItem('apexSbCollapsed')==='1') document.body.classList.add('sb-collapsed'); }catch(e){}
+  const hl=document.querySelector('header .btn-logout'); if(hl) hl.style.display='none';   // logout now lives in the sidebar
+  sbSetActive(CURRENT_VIEW);
+}
+function sbSetActive(view){ document.querySelectorAll('#apexSidebar .sb-item').forEach(b=>b.classList.toggle('active', b.getAttribute('data-sbview')===view)); }
+function sbToggleCollapse(){ document.body.classList.toggle('sb-collapsed'); try{sessionStorage.setItem('apexSbCollapsed', document.body.classList.contains('sb-collapsed')?'1':'0');}catch(e){} }
+function sbToggleDrawer(){ document.body.classList.toggle('sb-open'); }
+function sbCloseDrawer(){ document.body.classList.remove('sb-open'); }
+// ── v51 TL PACING REMINDER (TL-only, presentation-only, once per session, 0 requests) ──
+var TL_REMINDER_SHOWN=false;
+function tlPacingState(){
+  const u=currentUser; if(!u||u.role!=='TL') return null;
+  const disp=(u.tlInfo&&u.tlInfo.display)||u.display;
+  const sched=dcScheduleFor(u.email,disp);
+  const today=todayLocalISO(), wk=ctWeekNumberForDate(today);
+  const cluster=sched?sched.cluster:'';
+  const wk80=dcWeeklyForTL(cluster,disp,wk);
+  const wd=sched?dcWorkdayFor(sched,today):{unconfigured:true};
+  const dayNum=wd.dayNum||null;
+  const doneToday=dayNum?dcDailyFullyCount(disp,today):null;
+  const dailyMin=dayNum?dcDailyMinimum(dayNum):null;
+  const onDailyPace = dayNum ? (doneToday>=dailyMin) : true;   // RD/unconfigured today → no workday → treat on-pace
+  return {disp,wk,wk80,dayNum,doneToday,dailyMin,onDailyPace,today};
+}
+// Level: null=no popup; 'yellow'=early/mid-week behind (time left); 'red'=late-week (D4/D5) below target.
+function tlReminderLevel(st){
+  if(!st||!st.wk80.hasRoster) return null;
+  if(st.wk80.met) return null;            // already ≥80% → never nag
+  if(st.dayNum==null) return null;        // today is RD/unconfigured → no popup
+  if(st.onDailyPace) return null;         // met today's daily minimum → on pace → no popup
+  return (st.dayNum>=4)?'red':'yellow';
+}
+function maybeShowTLPacingReminder(){
+  if(TL_REMINDER_SHOWN) return;
+  const u=currentUser; if(!u||u.role!=='TL') return;
+  const st=tlPacingState(); const lvl=tlReminderLevel(st);
+  if(!lvl) return;                        // not shown; a later refresh may still show once
+  TL_REMINDER_SHOWN=true;
+  const wk80=st.wk80, red=(lvl==='red'), col=red?'#b23b3b':'#c8891a';
+  document.getElementById('tlrHead').style.background=col;
+  document.getElementById('tlrHead').textContent = red?'🔴 WEEKLY COACHING TARGET AT RISK':'🟡 COACHING PACING REMINDER';
+  document.getElementById('tlrBody').innerHTML =
+      '<div style="font-size:.78rem;color:#7a8aa0;font-weight:700;text-transform:uppercase;letter-spacing:.03em">Weekly Completion</div>'
+    + '<div style="font-size:1.7rem;font-weight:800;color:'+col+';line-height:1.1">'+wk80.pctNum+'%</div>'
+    + '<div class="tlr-bar"><span style="width:'+Math.min(100,wk80.pctNum)+'%;background:'+col+'"></span></div>'
+    + '<div style="font-size:.86rem;line-height:1.7">Fully Completed: <b>'+wk80.full+'</b><br>Required for 80%: <b>'+wk80.required+'</b><br>Remaining: <b>'+wk80.remaining+'</b></div>'
+    + '<div style="margin-top:8px;font-size:.85rem;color:#444">'+(red
+        ? 'You are in the later part of your workweek (D'+st.dayNum+') and still below your 80% target. Prioritize <b>'+wk80.remaining+'</b> more Fully Completed Coaching session'+(wk80.remaining===1?'':'s')+'.'
+        : 'You need <b>'+wk80.remaining+'</b> more Fully Completed Coaching session'+(wk80.remaining===1?'':'s')+' to reach your 80% weekly target.')+'</div>';
+  document.getElementById('tlReminderOverlay').style.display='flex';
+}
+function tlReminderDismiss(){ const o=document.getElementById('tlReminderOverlay'); if(o) o.style.display='none'; }
+function tlReminderViewProgress(){ tlReminderDismiss(); DC_MODE='week'; dcAnchorISO=todayLocalISO(); showView('dailycompletion'); }
 function showView(view) {
+  CURRENT_VIEW = view;
   const setDisp = (id,on) => { const el=document.getElementById(id); if(el) el.style.display = on ? 'block' : 'none'; };
   const setAct  = (id,on) => { const el=document.getElementById(id); if(el) el.classList.toggle('active', on); };
   setDisp('viewDashboard', view==='dashboard');
@@ -2868,6 +3034,7 @@ function showView(view) {
   if (view==='somhealth' && typeof openSomHealthTab==='function') openSomHealthTab();
   // v46: Storage & Usage (SOM only). Passive render from in-memory data.
   if (view==='storageusage' && typeof renderStorageUsage==='function') renderStorageUsage();
+  if (typeof sbSetActive==='function') sbSetActive(view);   // v51: sync sidebar active highlight
 }
 function onClusterChange() {
   const cluster = document.getElementById('filterCluster').value;
@@ -3541,8 +3708,13 @@ const DC_WD_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function dcScheduleFor(email, disp){
   return DC_SCHED_BY_EMAIL[String(email||'').toLowerCase()] || DC_SCHED_BY_DISP[disp] || null;
 }
-// Access gate: OM (own cluster) + SOM/Director/Admin (all). TLs + Agents have NO access.
-function dcCanAccess(u){ u = u || (typeof currentUser!=='undefined'?currentUser:null); return !!u && (isDeptWide(u) || u.role==='OM'); }
+// ── v51 week-date helpers (all LOCAL/CT-calendar, 0 requests). Reuse the existing CT week math. ──
+function dcAddDaysISO(iso, n){ const p=String(iso||'').split('-'); if(p.length!==3) return iso; const d=new Date(+p[0],+p[1]-1,+p[2]); d.setDate(d.getDate()+n); const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; }
+function dcWeekMondayISO(iso){ const ymd=_ctYMD(iso); if(!ymd) return iso; const ed=_mondayEpochDay(ymd.y,ymd.m,ymd.d); const dt=new Date(ed*86400000); return dt.toISOString().slice(0,10); }
+function dcWeekDatesISO(anchorISO){ const mon=dcWeekMondayISO(anchorISO); return [0,1,2,3,4,5,6].map(n=>dcAddDaysISO(mon,n)); }  // Mon..Sun
+function dcFmtShort(iso){ const p=String(iso||'').split('-'); if(p.length!==3) return iso; const d=new Date(+p[0],+p[1]-1,+p[2]); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+// Access gate: OM (own cluster) + SOM/Director/Admin (all clusters) + TL (v51: OWN team only). Agents: none.
+function dcCanAccess(u){ u = u || (typeof currentUser!=='undefined'?currentUser:null); return !!u && (isDeptWide(u) || u.role==='OM' || u.role==='TL'); }
 // LOCAL weekday of a YYYY-MM-DD string — parsed with the LOCAL Date constructor (NOT UTC), so the
 // selected calendar date never shifts around midnight (§6/§11).
 function dcLocalWeekday(iso){ const p=String(iso||'').split('-'); if(p.length!==3) return null; const d=new Date(+p[0], +p[1]-1, +p[2]); return isNaN(d)?null:d.getDay(); }
@@ -3606,6 +3778,11 @@ function dcVisibleTLs(cluster){
   const u = currentUser;
   let entriesArr = Object.entries(TL_EMAILS||{});   // [email, obj]
   // Role visibility: OM → own cluster only (cannot pick another); SOM/Director/Admin → all.
+  // v51: TL → OWN team only (self-scoped; no cross-TL/cluster visibility).
+  if(u && u.role==='TL'){
+    const myDisp=(u.tlInfo&&u.tlInfo.display)||u.display||''; const myEmail=String(u.email||'').toLowerCase();
+    entriesArr = entriesArr.filter(([em,t]) => String(em).toLowerCase()===myEmail || (t&&t.display===myDisp));
+  }
   if(u && u.role==='OM' && u.omInfo){ entriesArr = entriesArr.filter(([em,t]) => t.cluster===u.omInfo.cluster); }
   if(cluster){ entriesArr = entriesArr.filter(([em,t]) => t.cluster===cluster); }
   const seen = new Set(); const out = [];
@@ -3628,131 +3805,148 @@ function dcBadge(text, kind){
   const bg= kind==='ok' ? '#e7f3ec' : kind==='warn' ? '#fbf3df' : kind==='bad' ? '#f7e6e6' : kind==='rd' ? '#eef1f5' : '#eef2f7';
   return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700;color:${c};background:${bg}">${escHtml(text)}</span>`;
 }
-// Open handler: gate access, set default/max date, show/hide cluster control by role, then render.
+// ── v51 Daily Coaching Completion — Week View (default) / Day View operational tracker ──
+var DC_MODE = 'week';           // 'week' | 'day'  (UI-only)
+var dcAnchorISO = null;         // anchor date that determines the displayed week (defaults today)
+// Cluster in scope: OM → own; TL → own (self); SOM/Director/Admin → picker value.
+function dcScopeCluster(){
+  const u=currentUser;
+  if(u && u.role==='OM' && u.omInfo) return u.omInfo.cluster;
+  if(u && u.role==='TL'){ const s=dcScheduleFor(u.email,(u.tlInfo&&u.tlInfo.display)||u.display); return s?s.cluster:''; }
+  return document.getElementById('dcCluster')?.value || '';
+}
 function openDailyCompletionTab(){
   if(!dcCanAccess(currentUser)){
-    const s=document.getElementById('dcSections'); if(s) s.innerHTML='<div class="cp-empty">You do not have access to this report.</div>';
-    ['dcDailyCards','dcWeeklyCards'].forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML='';});
+    const b=document.getElementById('dcBody'); if(b) b.innerHTML='<div class="cp-empty">You do not have access to this report.</div>';
+    ['dcSummaryCards','dcLegend','dcNote'].forEach(id=>{const el=document.getElementById(id); if(el) el.innerHTML='';});
     return;
   }
-  const dEl = document.getElementById('dcReportDate');
-  if(dEl){ dEl.max = todayLocalISO(); if(!dEl.value) dEl.value = todayLocalISO(); }
-  // OM: lock to own cluster (hide the cluster picker). SOM/Director/Admin: show it.
-  const cg = document.getElementById('dcClusterGroup');
-  if(cg) cg.style.display = (currentUser && currentUser.role==='OM') ? 'none' : 'block';
+  const dEl=document.getElementById('dcReportDate'); if(dEl && !dEl.value) dEl.value=todayLocalISO();
+  if(!dcAnchorISO) dcAnchorISO=todayLocalISO();
+  // Hide cluster picker for OM (locked own cluster) and TL (self-scoped). Show for SOM/Director/Admin.
+  const cg=document.getElementById('dcClusterGroup');
+  if(cg) cg.style.display=(currentUser && (currentUser.role==='OM'||currentUser.role==='TL'))?'none':'block';
+  dcSetMode(DC_MODE||'week');
+}
+function dcSetMode(m){
+  DC_MODE=(m==='day')?'day':'week';
+  const on='border:none;padding:7px 14px;font-weight:800;cursor:pointer;font-size:.8rem;background:#1a3353;color:#fff';
+  const off='border:none;padding:7px 14px;font-weight:800;cursor:pointer;font-size:.8rem;background:#fff;color:#1a3353';
+  const tw=document.getElementById('dcTabWeek'), td=document.getElementById('dcTabDay');
+  if(tw) tw.style.cssText=(DC_MODE==='week')?on:off;
+  if(td) td.style.cssText=(DC_MODE==='day')?on:off;
+  const dd=document.getElementById('dcDayDateWrap'); if(dd) dd.style.display=(DC_MODE==='day')?'block':'none';
   renderDailyCompletion();
+}
+function dcShiftWeek(n){ dcAnchorISO=dcAddDaysISO(dcAnchorISO||todayLocalISO(), n*7); renderDailyCompletion(); }
+function dcThisWeek(){ dcAnchorISO=todayLocalISO(); const dEl=document.getElementById('dcReportDate'); if(dEl) dEl.value=todayLocalISO(); renderDailyCompletion(); }
+// Operational pacing legend (reuses dcDailyMinimum — never hard-coded).
+function dcPacingLegend(){
+  const ds=[1,2,3,4,5].map(n=>'D'+n+' = '+dcDailyMinimum(n)).join(' · ');
+  return 'Number shown = <b>Fully Completed Coaching</b> &nbsp;·&nbsp; '
+    + '<span class="dcw-cell dcw-green" style="padding:1px 7px">met pace</span> '
+    + '<span class="dcw-cell dcw-amber" style="padding:1px 7px">today · behind</span> '
+    + '<span class="dcw-cell dcw-red" style="padding:1px 7px">past · below</span> '
+    + '<span class="dcw-cell dcw-gray" style="padding:1px 7px">RD</span> '
+    + '<span class="dcw-cell dcw-future" style="padding:1px 7px">upcoming</span>'
+    + '<div style="margin-top:5px">Daily pacing (operational guidance only — NOT the weekly requirement): '+ds+'</div>';
+}
+// Compact weekly-progress cell (reuses dcWeeklyForTL — existing 80% denominator + Fully Completed def).
+function dcWeeklyProgressCell(wk80){
+  if(!wk80.hasRoster) return '<div style="color:#8a97a8;font-size:.78rem">No roster</div>';
+  const met=wk80.met, barCol=met?'#2f6f43':(wk80.pctNum>=60?'#b8860b':'#b23b3b');
+  const line3=met?'✓ 80% Goal Met':(wk80.remaining+' more needed for 80%');
+  return '<div style="min-width:158px">'
+    + '<div style="font-weight:800;color:#1a3353;font-size:.82rem">'+wk80.full+' / '+wk80.denom+' Fully Completed</div>'
+    + '<div class="tlr-bar" style="height:8px;margin:4px 0"><span style="width:'+Math.min(100,wk80.pctNum)+'%;background:'+barCol+'"></span></div>'
+    + '<div style="display:flex;justify-content:space-between;gap:8px;font-size:.75rem"><span style="font-weight:800;color:'+barCol+'">'+wk80.pctNum+'%</span><span style="color:'+(met?'#2f6f43':'#7a8aa0')+'">'+line3+'</span></div>'
+    + '</div>';
 }
 function renderDailyCompletion(){
   if(!dcCanAccess(currentUser)) return;
-  const dEl = document.getElementById('dcReportDate');
-  let iso = (dEl && dEl.value) || todayLocalISO();
-  // Block FUTURE report dates (this is a REPORT selector; unrelated to v43 creation rule).
-  if(iso > todayLocalISO()){ iso = todayLocalISO(); if(dEl) dEl.value = iso; }
-  const cluster = (currentUser.role==='OM' && currentUser.omInfo) ? currentUser.omInfo.cluster
-                : (document.getElementById('dcCluster')?.value || '');
-  const wk = ctWeekNumberForDate(iso);
-  const tls = dcVisibleTLs(cluster);
-
-  // Compute per-TL rows.
-  const rows = tls.map(tl => {
-    const wdinfo = dcWorkdayFor(tl.sched, iso);
-    const doneToday = wdinfo.unconfigured ? null : dcDailyFullyCount(tl.display, iso);
-    const dstat = wdinfo.unconfigured ? { rd:false, unconfigured:true } : dcDailyStatus(wdinfo.dayNum, doneToday);
-    const wk80 = dcWeeklyForTL(cluster, tl.display, wk);
-    return { tl, wdinfo, doneToday, dstat, wk80 };
-  });
-
-  // ── DAILY MINIMUM cards (RD + unconfigured excluded from performance counts) ──
-  const scheduled = rows.filter(r => !r.wdinfo.unconfigured && !r.wdinfo.rd);
-  const onRD = rows.filter(r => !r.wdinfo.unconfigured && r.wdinfo.rd);
-  const unconfigured = rows.filter(r => r.wdinfo.unconfigured);
-  const metCount   = scheduled.filter(r => r.doneToday >= r.dstat.min).length;
-  const inProgress = scheduled.filter(r => r.doneToday>0 && r.doneToday < r.dstat.min).length;
-  const noCoaching = scheduled.filter(r => r.doneToday===0).length;
-  document.getElementById('dcDailyCards').innerHTML =
-    dcCard('Scheduled TLs', scheduled.length, 'Day 1–5 on '+iso) +
-    dcCard('Daily Minimum Met', metCount, 'met today’s pacing minimum', '#2f6f43') +
-    dcCard('In Progress', inProgress, 'started, below minimum', '#b8860b') +
-    dcCard('No Coaching', noCoaching, '0 fully completed today', noCoaching?'#b23b3b':'#1a3353');
-  document.getElementById('dcRDInfo').innerHTML =
-    'On RD: '+onRD.length+(unconfigured.length?(' · Schedule not configured: '+unconfigured.length+' ('+unconfigured.map(r=>escHtml(r.tl.display)).join(', ')+')'):'')+
-    ' · Daily minimums (1/1/2/2/2) are pacing only — the sum (8) is NOT the weekly requirement.';
-
-  // ── WEEKLY 80% cards (all visible TLs with a roster) ──
-  const withRoster = rows.filter(r => r.wk80.hasRoster);
-  const atGoal   = withRoster.filter(r => r.wk80.met).length;
-  const belowGoal= withRoster.filter(r => !r.wk80.met).length;
-  const totFull  = withRoster.reduce((s,r)=>s+r.wk80.full,0);
-  const totReq   = withRoster.reduce((s,r)=>s+r.wk80.required,0);
-  document.getElementById('dcWeeklyCards').innerHTML =
-    dcCard('TLs at/above 80%', atGoal, 'WK'+wk+' weekly goal met', '#2f6f43') +
-    dcCard('TLs below 80%', belowGoal, 'WK'+wk+' not yet at goal', belowGoal?'#b23b3b':'#1a3353') +
-    dcCard('Total Fully Completed', totFull, 'distinct agents · WK'+wk) +
-    dcCard('Total Required for 80%', totReq, 'across visible TLs · WK'+wk);
-
-  // ── Per-cluster TL sections ──
-  const byCluster = {};
-  rows.forEach(r => { const c=r.tl.cluster||'(Unassigned)'; (byCluster[c]=byCluster[c]||[]).push(r); });
-  const clusterOrder = Object.keys(byCluster).sort();
-  // v44 UI review: grouped TODAY / THIS WEEK headers so an OM/SOM reads a TL's status in seconds
-  // without horizontal scroll. Daily Completion % column dropped (redundant with Daily Status + the
-  // Fully/Min numbers — §3); dcDailyStatus().pct calculation is UNCHANGED, only not shown as a column.
-  // Weekly Requirement shown compactly as "required / eligible" (§4 avoids implying 8 is the target).
-  const TD='#eaf1f8', TDb='#c7d2df', WK='#e7f3ec', WKb='#b7d8c4';
-  const head = `
-    <tr>
-      <th rowspan="2" style="text-align:left;background:#f4c430;vertical-align:bottom">Team Lead</th>
-      <th colspan="5" style="background:${TD};color:#1a3353;border-left:2px solid ${TDb}">TODAY · Daily Minimum</th>
-      <th colspan="5" style="background:${WK};color:#2f6f43;border-left:2px solid ${WKb}">THIS WEEK · 80% Goal</th>
-    </tr>
-    <tr>
-      <th style="background:${TD};border-left:2px solid ${TDb}">Workday</th>
-      <th style="background:${TD}">Fully Completed</th>
-      <th style="background:${TD}">Min</th>
-      <th style="background:${TD}">Pending</th>
-      <th style="background:${TD}">Status</th>
-      <th style="background:${WK};border-left:2px solid ${WKb}">Fully Completed</th>
-      <th style="background:${WK}">Req for 80%</th>
-      <th style="background:${WK}">Weekly %</th>
-      <th style="background:${WK}">Remaining</th>
-      <th style="background:${WK}">Status</th>
-    </tr>`;
-  const sections = clusterOrder.map(c => {
-    const rws = byCluster[c].slice().sort((a,b)=>a.tl.display.localeCompare(b.tl.display));
-    const body = rws.map(r => {
-      const {tl, wdinfo, doneToday, dstat, wk80} = r;
-      const workdayCell = wdinfo.unconfigured ? '—' : (wdinfo.rd ? dcBadge('RD','rd') : ('Day '+wdinfo.dayNum));
-      const dDone  = wdinfo.unconfigured ? '—' : (wdinfo.rd ? '—' : doneToday);
-      const dMin   = wdinfo.unconfigured ? '—' : (wdinfo.rd ? '—' : dstat.min);
-      const dPend  = wdinfo.unconfigured ? '—' : (wdinfo.rd ? '—' : dstat.pending);
-      const dStatusCell = wdinfo.unconfigured ? dcBadge('No schedule','neutral') : (wdinfo.rd ? dcBadge('RD','rd')
-                        : dcBadge(dstat.status, dstat.status==='Complete'?'ok':dstat.status==='In Progress'?'warn':'bad'));
-      const wReq = wk80.hasRoster ? (wk80.required+' / '+wk80.denom) : '—';
-      const wPct = wk80.hasRoster ? (wk80.pctNum+'%') : '—';
-      const wRem = wk80.hasRoster ? wk80.remaining : '—';
-      const wStatus = !wk80.hasRoster ? dcBadge('No Roster','neutral')
-                    : (wk80.met ? dcBadge('80% Goal Met','ok') : dcBadge('Below 80%','bad'));
-      const bl = 'border-left:2px solid #e3e8ef';
-      return `<tr>
-        <td class="proj-label" style="text-align:left">${escHtml(tl.display)}<div style="font-size:.68rem;color:#7a8aa0;font-weight:500">${escHtml(dcSchedLabel(tl.sched))}</div></td>
-        <td style="${bl}">${workdayCell}</td><td>${dDone}</td><td>${dMin}</td><td>${dPend}</td><td>${dStatusCell}</td>
-        <td style="${bl}">${wk80.hasRoster?wk80.full:'—'}</td><td title="≥80% of eligible roster (ceil(roster×0.8))">${wReq}</td><td>${wPct}</td><td>${wRem}</td><td>${wStatus}</td>
-      </tr>`;
+  if(DC_MODE==='day') renderDcDayView(); else renderDcWeekView();
+}
+function renderDcWeekView(){
+  const cluster=dcScopeCluster();
+  const anchor=dcAnchorISO||todayLocalISO();
+  const dates=dcWeekDatesISO(anchor);   // Mon..Sun ISO
+  const wk=ctWeekNumberForDate(anchor);
+  const today=todayLocalISO();
+  const tls=dcVisibleTLs(cluster);
+  const tt=document.getElementById('dcWeekTitle'); if(tt) tt.textContent='WK'+wk+' · '+dcFmtShort(dates[0])+' – '+dcFmtShort(dates[6]);
+  // ── 4 summary cards (today-based daily pace + weekly 80%) ──
+  const configured=tls.filter(t=>t.sched);
+  let onPace=0, paceDen=0;
+  configured.forEach(t=>{ const wd=dcWorkdayFor(t.sched,today); if(wd.dayNum){ paceDen++; if(dcDailyFullyCount(t.display,today)>=dcDailyMinimum(wd.dayNum)) onPace++; } });
+  const wkStats=tls.map(t=>dcWeeklyForTL(cluster,t.display,wk)).filter(w=>w.hasRoster);
+  const atGoal=wkStats.filter(w=>w.met).length, below=wkStats.filter(w=>!w.met).length;
+  document.getElementById('dcSummaryCards').innerHTML =
+    dcCard('Scheduled TLs', configured.length, 'in view') +
+    dcCard('On Daily Pace', onPace+' / '+paceDen, 'today’s minimum met', (paceDen&&onPace>=paceDen)?'#2f6f43':'#b8860b') +
+    dcCard('At/Above 80% Weekly', atGoal, 'WK'+wk+' goal met', '#2f6f43') +
+    dcCard('Below 80% Weekly', below, 'WK'+wk+' not yet at goal', below?'#b23b3b':'#1a3353');
+  // ── weekly grid ──
+  const dayNames=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  const head='<tr><th style="text-align:left;background:#f4c430">TEAM LEAD</th>'+dayNames.map((n,i)=>'<th>'+n+'<div style="font-size:.62rem;font-weight:600;color:#7a8aa0">'+dcFmtShort(dates[i])+'</div></th>').join('')+'<th style="background:#e7f3ec">WEEKLY PROGRESS</th></tr>';
+  const rowsHtml=tls.slice().sort((a,b)=>(a.cluster||'').localeCompare(b.cluster||'')||a.display.localeCompare(b.display)).map(t=>{
+    const cells=dates.map(d=>{
+      const wd=dcWorkdayFor(t.sched,d);
+      if(wd.unconfigured) return '<td>—</td>';
+      if(wd.rd) return '<td><div class="dcw-cell dcw-gray"><div class="dcw-d">RD</div></div></td>';
+      const n=dcDailyFullyCount(t.display,d), min=dcDailyMinimum(wd.dayNum);
+      let cls,cue;
+      if(d>today){ cls='dcw-future'; cue='upcoming'; }
+      else if(d===today){ cls=(n>=min)?'dcw-green':'dcw-amber'; cue=(n>=min)?'on pace':'behind (time left)'; }
+      else { cls=(n>=min)?'dcw-green':'dcw-red'; cue=(n>=min)?'met':'below'; }
+      return '<td><div class="dcw-cell '+cls+'" title="D'+wd.dayNum+' · '+cue+' · '+n+' Fully Completed (min '+min+')"><div class="dcw-d">D'+wd.dayNum+'</div><div class="dcw-n">'+n+'</div></div></td>';
     }).join('');
-    return `<div style="margin-top:16px"><div style="font-weight:800;font-size:.9rem;color:#1a3353;margin-bottom:6px">Cluster ${escHtml(c)}</div>`+
-      `<div class="table-wrap"><table class="proj-table dc-table"><thead>${head}</thead><tbody>${body}</tbody></table></div></div>`;
+    const wk80=dcWeeklyForTL(cluster,t.display,wk);
+    return '<tr><td style="text-align:left" class="proj-label">'+escHtml(t.display)+'<div style="font-size:.66rem;color:#7a8aa0;font-weight:500">'+escHtml(dcSchedLabel(t.sched))+'</div></td>'+cells+'<td>'+dcWeeklyProgressCell(wk80)+'</td></tr>';
   }).join('');
-  document.getElementById('dcSections').innerHTML = sections || '<div class="cp-empty">No Team Leads in scope.</div>';
-  // §5 — surface the current-roster denominator basis prominently when a PAST date is selected.
-  const isHistorical = iso < todayLocalISO();
-  const histNote = isHistorical
-    ? `<div style="background:#fbf6e6;border:1px solid #ecd9a0;border-radius:8px;padding:8px 12px;margin:10px 0 0;font-size:.76rem;color:#6b5b1e">`+
-      `ℹ️ Viewing a historical report date (WK${wk}). Weekly completion uses the <b>current active roster</b> as the denominator, consistent with the existing Weekly Coaching Dashboard — no historical roster snapshot exists. Daily figures reflect coaching records dated ${escHtml(iso)}.</div>`
-    : '';
-  document.getElementById('dcNote').innerHTML = histNote +
-    '<div style="margin-top:8px">Report date '+escHtml(iso)+' · Weekly context = WK'+wk+' (CT week containing the report date). '+
-    'TODAY counts DISTINCT agents Fully Completed on the selected date; THIS WEEK reuses the Weekly Coaching Dashboard’s Fully Completed definition and roster denominator. '+
-    'Weekly denominator uses the current active roster (same basis as the Weekly Coaching Dashboard). 0 SheetDB requests.</div>';
+  document.getElementById('dcBody').innerHTML = tls.length
+    ? '<div class="table-wrap"><table class="proj-table dcw-table"><thead>'+head+'</thead><tbody>'+rowsHtml+'</tbody></table></div>'
+    : '<div class="cp-empty">No Team Leads in scope.</div>';
+  document.getElementById('dcLegend').innerHTML=dcPacingLegend();
+  document.getElementById('dcNote').innerHTML='Each cell = DISTINCT agents Fully Completed (TL + agent both complete) on that Date of Coaching. Weekly % reuses the Weekly Coaching Dashboard’s Fully Completed definition and current-roster 80% denominator. Future workdays are never marked missed. 0 SheetDB requests.';
+}
+function renderDcDayView(){
+  const cluster=dcScopeCluster();
+  const dEl=document.getElementById('dcReportDate');
+  let iso=(dEl&&dEl.value)||todayLocalISO();
+  const today=todayLocalISO();
+  const wk=ctWeekNumberForDate(iso);
+  const tls=dcVisibleTLs(cluster);
+  const tt=document.getElementById('dcWeekTitle'); if(tt) tt.textContent='WK'+wk+' · '+dcFmtShort(iso);
+  const configured=tls.filter(t=>t.sched);
+  let onPace=0, paceDen=0;
+  configured.forEach(t=>{ const wd=dcWorkdayFor(t.sched,iso); if(wd.dayNum){ paceDen++; if(dcDailyFullyCount(t.display,iso)>=dcDailyMinimum(wd.dayNum)) onPace++; } });
+  const wkStats=tls.map(t=>dcWeeklyForTL(cluster,t.display,wk)).filter(w=>w.hasRoster);
+  const atGoal=wkStats.filter(w=>w.met).length, below=wkStats.filter(w=>!w.met).length;
+  document.getElementById('dcSummaryCards').innerHTML =
+    dcCard('Scheduled TLs', configured.length, 'workday '+dcFmtShort(iso)) +
+    dcCard('On Daily Pace', onPace+' / '+paceDen, 'daily minimum met', (paceDen&&onPace>=paceDen)?'#2f6f43':'#b8860b') +
+    dcCard('At/Above 80% Weekly', atGoal, 'WK'+wk, '#2f6f43') +
+    dcCard('Below 80% Weekly', below, 'WK'+wk, below?'#b23b3b':'#1a3353');
+  const head='<tr><th style="text-align:left;background:#f4c430">TEAM LEAD</th><th>WORKDAY</th><th>FULLY COMPLETED</th><th>DAILY MINIMUM</th><th>STATUS</th></tr>';
+  const rowsHtml=tls.slice().sort((a,b)=>(a.cluster||'').localeCompare(b.cluster||'')||a.display.localeCompare(b.display)).map(t=>{
+    const wd=dcWorkdayFor(t.sched,iso);
+    let workday,done,min,statusCell;
+    if(wd.unconfigured){ workday='—'; done='—'; min='—'; statusCell=dcBadge('No schedule','neutral'); }
+    else if(wd.rd){ workday=dcBadge('RD','rd'); done='—'; min='—'; statusCell=dcBadge('RD','rd'); }
+    else {
+      const n=dcDailyFullyCount(t.display,iso), m=dcDailyMinimum(wd.dayNum);
+      workday='D'+wd.dayNum; done=n; min=m;
+      if(iso>today){ statusCell=dcBadge('Scheduled','neutral'); }
+      else { const st=dcDailyStatus(wd.dayNum,n).status; statusCell=dcBadge(st==='Complete'?'Met':st, st==='Complete'?'ok':st==='In Progress'?'warn':'bad'); }
+    }
+    return '<tr><td style="text-align:left" class="proj-label">'+escHtml(t.display)+'<div style="font-size:.66rem;color:#7a8aa0;font-weight:500">'+escHtml(dcSchedLabel(t.sched))+'</div></td><td>'+workday+'</td><td>'+done+'</td><td>'+min+'</td><td>'+statusCell+'</td></tr>';
+  }).join('');
+  document.getElementById('dcBody').innerHTML = tls.length
+    ? '<div class="table-wrap"><table class="proj-table"><thead>'+head+'</thead><tbody>'+rowsHtml+'</tbody></table></div>'
+    : '<div class="cp-empty">No Team Leads in scope.</div>';
+  document.getElementById('dcLegend').innerHTML=dcPacingLegend();
+  const hist = iso<today ? ' Historical day — weekly % uses the current active roster (no historical snapshot).' : (iso>today ? ' Future day — future-dated Fully Completed coaching shows here; not treated as missed.' : '');
+  document.getElementById('dcNote').innerHTML='Day '+escHtml(iso)+' · WK'+wk+'. Fully Completed = distinct agents with TL + agent both complete on this Date of Coaching.'+hist+' 0 SheetDB requests.';
 }
 // ═══════════════════════════════════════════════════════════════════════════
 // v45 — SOM HEALTH CHECK (SOM-only, detection-only, read-only)
@@ -5470,7 +5664,9 @@ async function fetchFromSheets(force) {
   if (!SHEETDB_API_URL || !currentUser) return;
   // Cache hit: reuse already-loaded coaching logs instead of re-downloading the sheet
   if (!force && cacheFresh('coaching') && entries.length) {
-    reconcileRosterFromEntries(); populateCoachingTypeFilter(); if(typeof populateProgFilters==='function') populateProgFilters(); renderLogTable(); renderDashboard(); if(typeof renderCoachingProgress==='function') renderCoachingProgress(); return;
+    reconcileRosterFromEntries(); populateCoachingTypeFilter(); if(typeof populateProgFilters==='function') populateProgFilters(); renderLogTable(); renderDashboard(); if(typeof renderCoachingProgress==='function') renderCoachingProgress();
+    if(currentUser && currentUser.role==='TL'){ try{ maybeShowTLPacingReminder(); }catch(e){} }   // v51: TL pacing popup (data already loaded)
+    return;
   }
   try {
     let url;
@@ -5545,6 +5741,7 @@ async function fetchFromSheets(force) {
     renderLogTable();
     renderDashboard();
     if (typeof renderCoachingProgress==='function') renderCoachingProgress();
+    if(currentUser && currentUser.role==='TL'){ try{ maybeShowTLPacingReminder(); }catch(e){} }   // v51: TL pacing popup (data loaded)
   } catch (err) {
     console.warn('fetchFromSheets error:', err);
   }
