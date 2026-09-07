@@ -1531,7 +1531,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-06-weeklystatus-agent-read-lockdown-PROD-v56";
+const APEX_BUILD = "2026-09-07-coaching-focus-4wk-avg-PROD-v58";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -3262,16 +3262,17 @@ function cpLatestPerAgent(list){
        || (String(e.dateOfCoaching||'')===String(cur.dateOfCoaching||'') && String(e.updatedAt||'').localeCompare(String(cur.updatedAt||''))>0)) by[k]=e; });
   return by;   // {agentName: entry}
 }
-// Reconstruct Primary Opportunity from STORED WK1 perf only (v27). Never "Volume" (target leads
-// not stored), never from free text. Missing perf → Insufficient Data.
+// Reconstruct Primary Opportunity from the 4-WEEK TRAILING averages (v58 — was STORED WK1-only from
+// v27). Same benchmarks/order as the coaching card (fuLeverInfo/agentLeverHtml) so an agent's Primary
+// Opportunity is classified identically on the dashboard donut and on the coaching card. Never
+// "Volume" (target leads not stored), never from free text. Missing perf → Insufficient Data.
 function opportunityForEntry(e){
-  const p=(e.perfData&&e.perfData[0])||{};
-  const lt=parseFloat(p.lt), cc=parseFloat(p.cc), s=parseFloat(p.s);
-  if(!(lt>0)) return 'Insufficient Data';
-  const tcr=cc/lt*100;
+  const A=_perfAvgFromEntry(e);
+  if(!(A.n>0) || !(A.avgLT>0)) return 'Insufficient Data';
+  const tcr=(A.avgTCR!=null)?A.avgTCR:0;
   if(tcr < BENCH_TCR-0.05) return 'TCR';
-  if(cc>0){ if((s/cc*100) < BENCH_CSR-0.05) return 'CSR'; return 'On Track'; }
-  return 'TCR';   // lt>0, cc=0 → TCR is 0% → the opportunity is TCR
+  if(A.avgCC>0){ if(((A.avgCSR!=null)?A.avgCSR:0) < BENCH_CSR-0.05) return 'CSR'; return 'On Track'; }
+  return 'TCR';   // avgLT>0, avgCC=0 → TCR is 0% → the opportunity is TCR
 }
 function cpLimiterLabel(e){ return (e.limiter||'').trim() || 'Unspecified'; }
 
@@ -5484,58 +5485,60 @@ function renderLeverGuidance(){
   const focusEl = document.getElementById('leverFocus');
   // Behaviors as a compact "a • b • c" list (source strings unchanged).
   const fmtFocus = str => String(str||'').replace(/\.\s*$/,'').split(/,\s*/).join(' • ');
-  const lt = parseFloat(document.getElementById('lt1').value) || 0;
-  const cc = parseFloat(document.getElementById('cc1').value) || 0;
-  const s  = parseFloat(document.getElementById('s1').value)  || 0;
+  // v57 FIX: Coaching Focus selection + Current + Expected Impact use the 4-WEEK TRAILING averages
+  // (same source as the 4-Week Trailing Performance table + the 4-Week Coaching Plan below), NOT Week 1.
+  // Business rules (ordered Volume → TCR → CSR, same official benchmarks + same impact formulas) are
+  // unchanged — only the data source that feeds them.
+  const A = perf4wkAverages();
+  const avgLT = A.avgLT, avgCC = A.avgCC, avgS = A.avgS;
   const f1 = v => v.toFixed(1);
-  if (lt <= 0) {
+  if (A.n === 0 || avgLT <= 0) {
     oppEl.textContent = '—';
     if (curGoalEl){ curGoalEl.style.display = 'none'; curGoalEl.innerHTML = ''; }
-    whyEl.textContent = 'Enter this week’s Leads Touched, Connected Calls, and Sales to see the coaching focus and expected impact.';
+    whyEl.textContent = 'Enter the agent’s 4-week performance (Leads Touched, Connected Calls, Sales) to see the coaching focus and expected impact.';
     impEl.style.display = 'none'; impEl.innerHTML = '';
     if (impLabelEl) impLabelEl.hidden = true;
     focusWrap.style.display = 'none';
     return;
   }
-  const tcrCurr = lt > 0 ? (cc / lt * 100) : 0;
-  const csrCurr = cc > 0 ? (s  / cc * 100) : 0;
-  const csrRate = cc > 0 ? (s / cc) : 0;
+  const tcrCurr = (A.avgTCR != null) ? A.avgTCR : 0;   // 4-week avg-of-ratios TCR%
+  const csrCurr = (A.avgCSR != null) ? A.avgCSR : 0;   // 4-week avg-of-ratios CSR%
+  const csrRate = csrCurr / 100;
   const tgtTCR  = parseFloat(document.getElementById('projTargetTCR').value);
   const tgtCSR  = parseFloat(document.getElementById('projTargetCSR').value);
   const leadsRaw = parseFloat(document.getElementById('projTargetLeads').value);
   const leadsEdited = document.getElementById('projTargetLeads').dataset.userEdited === '1';
-  const tgtLeads = (!isNaN(leadsRaw) && leadsRaw > 0) ? leadsRaw : lt;
+  const tgtLeads = (!isNaN(leadsRaw) && leadsRaw > 0) ? leadsRaw : avgLT;
   const FOCUS = {
     Volume: 'Productivity, lead utilization, cadence, speed-to-lead, pipeline management.',
     TCR:    'Call cadence, speed-to-lead, callbacks, contact strategy, lead utilization.',
     CSR:    'Discovery, objection handling, membership presentation, closing, call quality.'
   };
   // opp = focus label; curGoal = "Current X → Goal Y"; impactHtml = one-line expected impact.
-  // Underlying figures (addConnects/addSales/newCC/newS) are computed exactly as before —
-  // only the PRESENTATION is compacted.
+  // All computed from the 4-week averages (avgLT/avgCC/avgS + avg TCR/CSR).
   let opp, why, impactHtml = '', focusKey = null, curGoal = '';
-  if (leadsEdited && !isNaN(leadsRaw) && leadsRaw > 0 && lt < leadsRaw) {
+  if (leadsEdited && !isNaN(leadsRaw) && leadsRaw > 0 && avgLT < leadsRaw) {
     // Step 1 — Volume is the most fundamental lever.
     opp = 'Volume / Leads Touched'; focusKey = 'Volume';
-    const addConnects = (tcrCurr / 100) * (leadsRaw - lt);
+    const addConnects = (tcrCurr / 100) * (leadsRaw - avgLT);
     const addSales = csrRate * addConnects;
-    curGoal = `Current: <b>${lt} leads</b> → Goal: <b>${leadsRaw} leads</b>`;
+    curGoal = `Current: <b>${avgLT} leads</b> → Goal: <b>${leadsRaw} leads</b>`;
     why = `Lead volume is below the target you set — raising the number of leads touched is the first lever before working TCR or CSR.`;
     impactHtml = `About <b>+${Math.round(addConnects)}</b> more connects and <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
   } else if (tcrCurr < BENCH_TCR - 0.05) {
     // Step 2 — TCR below the official 25% benchmark (volume ok / not flagged).
     opp = 'TCR'; focusKey = 'TCR';
     const newCC = (BENCH_TCR / 100) * tgtLeads;
-    const addConnects = newCC - cc;
+    const addConnects = newCC - avgCC;
     const addSales = csrRate * addConnects;
     curGoal = `Current: <b>${f1(tcrCurr)}%</b> → Goal: <b>${BENCH_TCR}%</b>`;
     why = `Lead volume is okay, but not enough leads are turning into customer connects.`;
     impactHtml = `About <b>+${Math.round(addConnects)}</b> more connects and <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
-  } else if (cc > 0 && csrCurr < BENCH_CSR - 0.05) {
+  } else if (avgCC > 0 && csrCurr < BENCH_CSR - 0.05) {
     // Step 3 — CSR below the official 12% benchmark (volume + TCR ok).
     opp = 'CSR'; focusKey = 'CSR';
-    const newS = (BENCH_CSR / 100) * cc;
-    const addSales = newS - s;
+    const newS = (BENCH_CSR / 100) * avgCC;
+    const addSales = newS - avgS;
     curGoal = `Current: <b>${f1(csrCurr)}%</b> → Goal: <b>${BENCH_CSR}%</b>`;
     why = `Leads and connects are okay, but not enough connects are turning into sales.`;
     impactHtml = `About <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
@@ -7316,11 +7319,15 @@ function agentWk1Cvr5Html(e){
 }
 // ── Performance Projection (read-only): Current from persisted perfData; unstored targets → "Not recorded" ──
 function agentProjectionHtml(e){
-  const p1=(e.perfData&&e.perfData[0])||{};
-  const lt=parseFloat(p1.lt)||0, cc=parseFloat(p1.cc)||0, s=parseFloat(p1.s)||0;
+  // v58: Current column basis = 4-Week Trailing Performance — matches the form's updateProjectionCurrent()/
+  // calcProjection() (both perf4wkAverages()) and this section's own footnote. _perfAvgFromEntry() is the
+  // entry-side equivalent: avgTCR/avgCSR are avg-of-ratios, avgLT/avgCC/avgS the rounded 4-week volumes.
+  // (Was Week-1 perfData[0] through v57 — the display/footnote mismatch this fixes.)
+  const A=_perfAvgFromEntry(e);
+  const lt=A.avgLT, cc=A.avgCC, s=A.avgS;
   const f1=v=>v.toFixed(1);
-  const curTCR = lt>0 ? f1(cc/lt*100)+'%' : '—';
-  const curCSR = cc>0 ? f1(s/cc*100)+'%' : '—';
+  const curTCR = (A.n>0 && A.avgTCR!=null) ? f1(A.avgTCR)+'%' : '—';
+  const curCSR = (A.n>0 && A.avgCSR!=null) ? f1(A.avgCSR)+'%' : '—';
   const proj = e.projection || null;   // NOT persisted to SheetDB → undefined for loaded logs
   const tCell = v => (proj && v!=null && String(v).trim()!=='') ? rmEsc(String(v)) : 'Not recorded';
   const inner = `
@@ -7341,24 +7348,26 @@ function agentProjectionHtml(e){
 //    4-Week Target Ramp from the trailing averages. Mirrors renderLeverGuidance() exactly, but pure.
 //    (Volume branch needs a TL-entered target-leads scenario that isn't persisted, so it is omitted.)
 function agentLeverHtml(e){
-  const p1=(e.perfData&&e.perfData[0])||{};
-  const lt=parseFloat(p1.lt)||0, cc=parseFloat(p1.cc)||0, s=parseFloat(p1.s)||0;
+  // v57 FIX: Coaching Focus selection + Current + Expected Impact use the 4-WEEK TRAILING averages
+  // (same source as the 4-Week Trailing Performance table + the 4-Week Coaching Plan), NOT Week 1.
+  const A=_perfAvgFromEntry(e);
   const f1=v=>v.toFixed(1);
-  if (lt<=0) return _agentSection('🎯 Coaching Focus', '<div style="font-size:.85rem;color:#999">No performance data recorded for this log.</div>');
-  const tcrCurr=cc/lt*100, csrCurr=cc>0?s/cc*100:0, csrRate=cc>0?s/cc:0;
+  if (!(A.n>0) || A.avgLT<=0) return _agentSection('🎯 Coaching Focus', '<div style="font-size:.85rem;color:#999">No performance data recorded for this log.</div>');
+  const tcrCurr=(A.avgTCR!=null)?A.avgTCR:0, csrCurr=(A.avgCSR!=null)?A.avgCSR:0, csrRate=csrCurr/100;
+  const avgLTv=A.avgLT, avgCCv=A.avgCC, avgSv=A.avgS;
   const FOCUS = { TCR:'Call cadence, speed-to-lead, callbacks, contact strategy, lead utilization.', CSR:'Discovery, objection handling, membership presentation, closing, call quality.' };
   const fmtFocus = str => String(str||'').replace(/\.\s*$/,'').split(/,\s*/).join(' • ');
   let opp, why, impactHtml='', focusKey=null, curGoal='';
-  const tgtLeads = lt;  // no persisted target-leads scenario in the Agent view
+  const tgtLeads = avgLTv;  // agent view: no target-leads scenario; project on the 4-week avg leads
   if (tcrCurr < BENCH_TCR - 0.05){
     opp='TCR'; focusKey='TCR';
-    const newCC=(BENCH_TCR/100)*tgtLeads, addConnects=newCC-cc, addSales=csrRate*addConnects;
+    const newCC=(BENCH_TCR/100)*tgtLeads, addConnects=newCC-avgCCv, addSales=csrRate*addConnects;
     curGoal=`Current: <b>${f1(tcrCurr)}%</b> → Goal: <b>${BENCH_TCR}%</b>`;
     why=`Lead volume is okay, but not enough leads are turning into customer connects.`;
     impactHtml=`About <b>+${Math.round(addConnects)}</b> more connects and <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
-  } else if (cc>0 && csrCurr < BENCH_CSR - 0.05){
+  } else if (avgCCv>0 && csrCurr < BENCH_CSR - 0.05){
     opp='CSR'; focusKey='CSR';
-    const newS=(BENCH_CSR/100)*cc, addSales=newS-s;
+    const newS=(BENCH_CSR/100)*avgCCv, addSales=newS-avgSv;
     curGoal=`Current: <b>${f1(csrCurr)}%</b> → Goal: <b>${BENCH_CSR}%</b>`;
     why=`Leads and connects are okay, but not enough connects are turning into sales.`;
     impactHtml=`About <b>+${Math.round(addSales)}</b> additional sales if the goal is reached.`;
@@ -7366,10 +7375,9 @@ function agentLeverHtml(e){
     opp='On Track';
     why=`TCR is at/above the ${BENCH_TCR}% benchmark and CSR at/above ${BENCH_CSR}%. No single core-metric gap stands out — coach to sustain and stretch.`;
   }
-  // 4-Week Target Ramp — averages basis (same math as renderLeverGuidance)
+  // 4-Week Target Ramp — same 4-week-average basis as the Coaching Focus above (A reused).
   let rampHtml='';
-  const A=_perfAvgFromEntry(e);
-  const avgTCRv=(A.avgTCR!=null)?A.avgTCR:0, avgCSRv=(A.avgCSR!=null)?A.avgCSR:0, avgCSRrate=avgCSRv/100, avgLTv=A.avgLT, avgCCv=A.avgCC, tgtLeadsAvg=avgLTv;
+  const avgTCRv=(A.avgTCR!=null)?A.avgTCR:0, avgCSRv=(A.avgCSR!=null)?A.avgCSR:0, avgCSRrate=avgCSRv/100, tgtLeadsAvg=avgLTv;
   let cur,fin,valType;
   if (focusKey==='TCR'){ cur=avgTCRv; fin=BENCH_TCR; valType='pct'; }
   else if (focusKey==='CSR'){ cur=avgCSRv; fin=BENCH_CSR; valType='pct'; }
@@ -7436,13 +7444,15 @@ function followUpRootCoaching(e){
 }
 // Primary Opportunity selection — mirrors renderLeverGuidance()/agentLeverHtml() (Volume branch omitted:
 // it needs a TL target-leads scenario that is not persisted). Pure; from the entry's own perfData.
+// v58: selects on the 4-WEEK TRAILING averages (was Week-1 only through v57) so the Follow-Up/original
+// Coaching Focus matches the ramp values below, which already used _perfAvgFromEntry(). Same
+// benchmarks/order (TCR<BENCH_TCR → CSR<BENCH_CSR → On Track).
 function fuLeverInfo(e){
-  const p1=(e.perfData&&e.perfData[0])||{};
-  const lt=parseFloat(p1.lt)||0, cc=parseFloat(p1.cc)||0, s=parseFloat(p1.s)||0;
-  if(lt<=0) return {opp:'—', focusKey:null};
-  const tcrCurr=cc/lt*100, csrCurr=cc>0?s/cc*100:0;
+  const A=_perfAvgFromEntry(e);
+  if(!(A.n>0) || A.avgLT<=0) return {opp:'—', focusKey:null};
+  const tcrCurr=(A.avgTCR!=null)?A.avgTCR:0, csrCurr=(A.avgCSR!=null)?A.avgCSR:0;
   if(tcrCurr < BENCH_TCR-0.05) return {opp:'TCR', focusKey:'TCR'};
-  if(cc>0 && csrCurr < BENCH_CSR-0.05) return {opp:'CSR', focusKey:'CSR'};
+  if(A.avgCC>0 && csrCurr < BENCH_CSR-0.05) return {opp:'CSR', focusKey:'CSR'};
   return {opp:'On Track / No major core-metric gap', focusKey:null};
 }
 // 4-Week Target Ramp for an entry (averages basis). `heading` lets callers relabel it (the
