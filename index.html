@@ -713,27 +713,20 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div><h3>Individual Agent Progress</h3><div class="cl-sub">Select an agent to view their performance, coaching history, and progress.</div></div>
         </div>
         <div class="cl-filters" id="agentFilterBar">
+          <div class="cl-fg"><label>Team Lead</label><select id="iaTL" onchange="onIaTLChange()"><option value="">All TLs</option></select></div>
           <div class="cl-fg"><label>Agent</label><select id="iaAgent" onchange="renderAgentProgress()"><option value="">— Select an agent —</option></select></div>
           <div class="cl-fg"><label>Week Range</label><select id="iaRange" onchange="renderAgentProgress()">
               <option value="4">Last 4 Weeks</option>
               <option value="6" selected>Last 6 Weeks</option>
               <option value="8">Last 8 Weeks</option>
             </select></div>
-          <div class="cl-fg"><label>Primary Opportunity</label><select id="iaOpp" onchange="onIaOppChange()">
-              <option value="">All Opportunities</option>
-              <option>TCR</option>
-              <option>CSR</option>
-              <option>On Track</option>
-            </select></div>
-          <div class="cl-fg"><label>Metric</label><select id="iaMetric" onchange="renderAgentProgress()">
-              <option value="TCR">TCR</option>
-              <option value="CSR">CSR</option>
-              <option value="LT">Leads Touched</option>
-              <option value="RM">Rainmaker</option>
-            </select></div>
           <button class="cl-btn cl-btn-apply" onclick="renderAgentProgress()">Apply Filters</button>
           <button class="cl-btn cl-btn-clear" onclick="clearAgentFilters()">Clear</button>
         </div>
+        <!-- v62: Primary Opportunity & Metric removed from the top filters (Primary Opportunity is still
+             auto-computed/shown in the agent summary; the Trend card's own metric buttons are the sole
+             trend-metric control). This hidden holder carries the current trend metric for the pills. -->
+        <input type="hidden" id="iaMetric" value="TCR">
         <div id="iaBody">
           <div class="empty-state" style="padding:34px;color:#8a93a6">Select an agent to view their performance, coaching history, and progress.</div>
         </div>
@@ -1598,7 +1591,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-09-coaching-log-redesign-PROD-v60";
+const APEX_BUILD = "2026-09-09-coaching-log-redesign-PROD-v62";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -3255,6 +3248,7 @@ const CP_DONUT_COLORS = ['#f4c430','#1565c0','#2f6f43','#c62828','#8a4fbf','#e08
 // without coupling their selected values.
 function populateProgFilters(){
   populateTeamFilters();
+  populateIaTL();
   populateAgentFilters();
 }
 // ── TEAM COACHING LOG filters (Week, Cluster, Team Lead, Coaching Type; Status is static) ──
@@ -3279,21 +3273,36 @@ function populateTeamFilters(){
 function onTeamClusterChange(){ const t=document.getElementById('teamTL'); if(t) t.value=''; buildTLOptions('teamTL', getTLsForUser(document.getElementById('teamCluster')?.value||''),'All TLs'); renderLogTable(); }
 function clearTeamFilters(){ ['teamWK','teamCluster','teamTL','teamType','teamStatus'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';}); buildTLOptions('teamTL', getTLsForUser(''),'All TLs'); renderLogTable(); }
 // ── INDIVIDUAL AGENT PROGRESS filters (Agent list, optionally filtered by latest Primary Opportunity) ──
+// v61: Team Lead options for the Individual section — role-scoped via getTLsForUser(). For a TL whose
+// role already restricts them to their own team, default to (and lock onto) their own TL rather than
+// making them pick themselves. Independent of the Team Coaching Log's teamTL control.
+function populateIaTL(){
+  const sel=document.getElementById('iaTL'); if(!sel) return; const prev=sel.value;
+  const selfTL = (currentUser && currentUser.role==='TL' && currentUser.tlInfo) ? currentUser.tlInfo.display : null;
+  const tls = selfTL ? [selfTL] : (typeof getTLsForUser==='function' ? getTLsForUser('') : []);
+  sel.innerHTML = (selfTL ? '' : '<option value="">All TLs</option>') + tls.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  if(selfTL) sel.value = selfTL;                 // default + lock to own team
+  else if(prev && tls.includes(prev)) sel.value = prev;
+}
 function populateAgentFilters(){
   const sel=document.getElementById('iaAgent'); if(!sel) return; const prev=sel.value;
   const opp=document.getElementById('iaOpp')?.value||'';
+  const tl=document.getElementById('iaTL')?.value||'';
   const vis=(typeof getVisibleEntries==='function')?getVisibleEntries():[];
   const byAgent={};
-  vis.forEach(e=>{ const k=e.agentName||''; if(!k) return; const cur=byAgent[k];
+  vis.forEach(e=>{ if(tl && (e.teamLead||'')!==tl) return; const k=e.agentName||''; if(!k) return; const cur=byAgent[k];
     if(!cur || (wkNum(e)>wkNum(cur)) || (wkNum(e)===wkNum(cur) && String(e.dateOfCoaching||'')>String(cur.dateOfCoaching||''))) byAgent[k]=e; });
   let names=Object.keys(byAgent);
   if(opp) names=names.filter(n=>opportunityForEntry(byAgent[n])===opp);
   names.sort((a,b)=>a.localeCompare(b));
   sel.innerHTML='<option value="">— Select an agent —</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
-  if(prev && names.includes(prev)) sel.value=prev;
+  if(prev && names.includes(prev)) sel.value=prev;   // preserve agent only if still under the selected TL
 }
+// Changing Team Lead re-scopes the Agent list; if the previously-selected agent is not under the new
+// TL, populateAgentFilters drops it (value falls back to "— Select —") and the panel returns to prompt.
+function onIaTLChange(){ populateAgentFilters(); renderAgentProgress(); }
 function onIaOppChange(){ populateAgentFilters(); renderAgentProgress(); }
-function clearAgentFilters(){ ['iaAgent','iaOpp'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';}); const r=document.getElementById('iaRange'); if(r) r.value='6'; const m=document.getElementById('iaMetric'); if(m) m.value='TCR'; populateAgentFilters(); renderAgentProgress(); }
+function clearAgentFilters(){ const a=document.getElementById('iaAgent'); if(a) a.value=''; const r=document.getElementById('iaRange'); if(r) r.value='6'; const m=document.getElementById('iaMetric'); if(m) m.value='TCR'; populateIaTL(); populateAgentFilters(); renderAgentProgress(); }
 function progPopulateAgents(){
   const tl=document.getElementById('progTL')?.value||''; const cl=document.getElementById('progCluster')?.value||'';
   const agEl=document.getElementById('progAgent'); if(!agEl) return; const prev=agEl.value;
@@ -3674,6 +3683,37 @@ function iaAgentEntriesAsc(agentName){
             .sort((a,b)=>(wkNum(a)-wkNum(b)) || String(a.dateOfCoaching||'').localeCompare(String(b.dateOfCoaching||'')));
 }
 function iaRangeEntries(all, N){ if(!all.length) return []; const latest=wkNum(all[all.length-1]); return all.filter(e=>wkNum(e) >= latest-(N-1)); }
+// v61 TREND FIX — group coaching entries by WK so the trend plots ONE point per unique week (not one
+// per coaching entry). Weeks are returned chronologically; each group keeps all that week's entries so
+// the per-metric snapshot can pick the LATEST VALID entry (and, for Rainmaker, the latest actual review)
+// within the week. Visualization-only: it never mutates, merges, or deletes the underlying entries.
+function iaWeekGroups(list){
+  const m=new Map();
+  list.forEach(e=>{ const w=wkNum(e); if(!w) return; if(!m.has(w)) m.set(w,[]); m.get(w).push(e); });
+  return [...m.keys()].sort((a,b)=>a-b).map(w=>({ wk:w, entries:m.get(w) }));
+}
+// Entries of one WK ordered oldest→newest (date, then updatedAt tiebreak).
+function _iaWeekOrdered(entries){
+  return entries.slice().sort((a,b)=> String(a.dateOfCoaching||'').localeCompare(String(b.dateOfCoaching||'')) || String(a.updatedAt||'').localeCompare(String(b.updatedAt||'')));
+}
+// The representative coaching entry for a week = the LATEST entry that has usable 4-week perf data;
+// falls back to the latest entry if none carries perf (its metric value then renders as "—", never faked).
+function iaWeekRepEntry(group){
+  const ord=_iaWeekOrdered(group.entries);
+  for(let i=ord.length-1;i>=0;i--){ if(_perfAvgFromEntry(ord[i]).n>0) return ord[i]; }
+  return ord[ord.length-1];
+}
+// One metric value for a unique WK. Perf metrics use the week representative (latest valid). Rainmaker
+// keeps the actual-review-only rule: the latest entry IN THAT WEEK that has a visible linked review;
+// null (no point) if that week has no actual review — never manufactured from a coaching week alone.
+function iaWeekMetricValue(group, metric, rmMap){
+  if(metric==='RM'){
+    const ord=_iaWeekOrdered(group.entries);
+    for(let i=ord.length-1;i>=0;i--){ const r=rmMap[String(ord[i].id)]; if(r){ const a=rmAdherence(r); return (a&&a.pct!=null)?a.pct:null; } }
+    return null;
+  }
+  return iaMetricValue(iaWeekRepEntry(group), metric, rmMap);
+}
 function iaChange(before, current, kind){
   if(before==null || current==null) return {arrow:'→', color:IA_FLAT, word:'—'};
   const d=current-before;
@@ -3812,7 +3852,10 @@ function renderAgentProgress(){
   if(all.length<2){ pvp += `<div style="font-size:.74rem;color:#a76a10;margin-top:8px">Only one coaching session on record — before/after uses that single session until a second exists.</div>`; }
 
   // ── Trend (one chart; metric pills switch the SAME chart) ──
-  const pts = range.map(e=>({ label:e.wkNumber||'', sub:fmtCoachingDate(e.dateOfCoaching)||'', value:iaMetricValue(e, metric, rmMap) }));
+  // v61: ONE point per unique WK (chronological). Duplicate coaching records in the same WK collapse to
+  // that week's latest-valid snapshot; the underlying entries are untouched (still shown in the log).
+  const weekGroups = iaWeekGroups(range);
+  const pts = weekGroups.map(g=>({ label:'WK'+g.wk, sub:fmtCoachingDate(iaWeekRepEntry(g).dateOfCoaching)||'', value:iaWeekMetricValue(g, metric, rmMap) }));
   const rmCount = pts.filter(p=>p.value!=null).length;
   let trendInner;
   if(metric==='RM' && rmCount<2){
