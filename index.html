@@ -377,6 +377,67 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     .tlr-bar{height:12px;border-radius:7px;background:#eef1f5;overflow:hidden;margin:8px 0 12px}
     .tlr-bar>span{display:block;height:100%;border-radius:7px}
     .tlr-btns{display:flex;gap:10px;justify-content:flex-end;padding:0 20px 18px}
+    /* ══ v60 Coaching Log redesign (mockup) — scoped cl-* classes ══ */
+    #viewLog .cl-pagetitle{font-size:1.6rem;font-weight:800;color:#1a2a44;margin:0}
+    #viewLog .cl-pagesub{color:#7a8496;font-size:.9rem;margin:2px 0 18px}
+    .cl-card{background:#fff;border:1px solid #e6e9f0;border-radius:14px;box-shadow:0 1px 3px rgba(20,30,60,.05);overflow:hidden;margin-bottom:22px}
+    .cl-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(90deg,#f5f8ff,#fbfcff);border-bottom:1px solid #eef1f7}
+    .cl-head .cl-ic{width:38px;height:38px;border-radius:10px;background:#eaf1ff;color:#2f6fd6;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:none}
+    .cl-head h3{margin:0;font-size:1.12rem;font-weight:800;color:#1a2a44}
+    .cl-head .cl-sub{font-size:.8rem;color:#8a93a6;margin-top:1px}
+    .cl-filters{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;padding:16px 18px;background:#fafbfe;border-bottom:1px solid #eef1f7}
+    .cl-filters .cl-fg{display:flex;flex-direction:column;gap:5px;min-width:120px}
+    .cl-filters label{font-size:.66rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#9aa3b4}
+    .cl-filters select{padding:8px 10px;border:1px solid #d9dee8;border-radius:9px;font-size:.85rem;background:#fff;color:#233;min-width:120px}
+    .cl-btn{padding:9px 16px;border:none;border-radius:9px;font-weight:800;font-size:.82rem;cursor:pointer}
+    .cl-btn-apply{background:var(--yellow);color:#3a2f00}
+    .cl-btn-clear{background:#eef1f6;color:#5a6373}
+    .cl-tablewrap{overflow-x:auto}
+    .cl-table{width:100%;border-collapse:collapse;font-size:.85rem}
+    .cl-table th{text-align:left;padding:11px 14px;background:#fcfcfd;border-bottom:2px solid #eef1f7;font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9aa3b4;white-space:nowrap}
+    .cl-table td{padding:11px 14px;border-bottom:1px solid #f1f3f8;color:#2a3242;vertical-align:middle}
+    .cl-table tbody tr:hover{background:#fbfcff}
+    .cl-num{color:#aab1c0;font-weight:700}
+    .cl-agent-link{color:#2f6fd6;font-weight:700;text-decoration:none}
+    .cl-agent-link:hover{text-decoration:underline}
+    .cl-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:800;white-space:nowrap}
+    .cl-b-blue{background:#e8f0ff;color:#2559c4}
+    .cl-b-purple{background:#f0e9ff;color:#7a3fd0}
+    .cl-b-green{background:#e5f6ec;color:#207544}
+    .cl-b-amber{background:#fff2dc;color:#a76a10}
+    .cl-b-red{background:#fdeaea;color:#c1352f}
+    .cl-b-gray{background:#eef1f6;color:#6a7385}
+    .cl-viewbtn{padding:5px 14px;border:1px solid #cdd7ea;background:#f4f8ff;color:#2f6fd6;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer}
+    .cl-mini{padding:4px 9px;border:1px solid #e2e6ee;background:#fff;border-radius:7px;font-weight:700;font-size:.72rem;cursor:pointer;margin-left:5px;color:#6a7385}
+    .cl-foot{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;color:#8a93a6;font-size:.8rem}
+    .cl-pager{display:flex;gap:6px;align-items:center}
+    .cl-pager button{width:30px;height:30px;border:1px solid #e2e6ee;background:#fff;border-radius:8px;cursor:pointer;color:#5a6373;font-weight:700}
+    .cl-pager button.cl-on{background:var(--yellow);border-color:var(--yellow);color:#3a2f00}
+    .cl-pager button:disabled{opacity:.4;cursor:default}
+    /* individual */
+    .cl-ia-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;padding:18px}
+    .cl-ia-grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:0 18px 18px}
+    @media(max-width:1050px){.cl-ia-grid,.cl-ia-grid2{grid-template-columns:1fr}}
+    .cl-avatar{width:60px;height:60px;border-radius:50%;background:#2f6fd6;color:#fff;font-weight:800;font-size:1.3rem;display:flex;align-items:center;justify-content:center;flex:none}
+    .cl-sumcards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:14px}
+    @media(max-width:760px){.cl-sumcards{grid-template-columns:1fr}}
+    .cl-sumcard{border:1px solid #e6e9f0;border-radius:11px;padding:12px 14px;background:#fff}
+    .cl-sumcard .cl-l{font-size:.64rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#9aa3b4;margin-bottom:6px}
+    .cl-sumcard .cl-v{font-size:1.02rem;font-weight:800;color:#1a2a44}
+    .cl-sumcard .cl-d{font-size:.72rem;color:#9aa3b4;margin-top:3px}
+    .cl-panel{border:1px solid #e6e9f0;border-radius:12px;padding:14px 16px;background:#fff}
+    .cl-panel h4{margin:0 0 10px;font-size:.98rem;font-weight:800;color:#1a2a44}
+    .cl-impact{display:flex;flex-direction:column;gap:8px}
+    .cl-impact-row{display:flex;gap:7px;align-items:stretch}
+    .cl-impact-step{flex:1;border:1px solid #eef1f7;border-radius:9px;padding:7px 9px;background:#fbfcff}
+    .cl-impact-step .cl-l{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#9aa3b4}
+    .cl-impact-step .cl-v{font-size:.76rem;font-weight:700;color:#233;margin-top:2px;line-height:1.35}
+    .cl-impact-arrow{align-self:center;color:#cdd5e2;font-weight:800;font-size:.8rem}
+    .cl-pills{display:inline-flex;gap:4px;background:#f0f2f7;border-radius:9px;padding:3px}
+    .cl-pill{border:none;background:transparent;padding:5px 12px;border-radius:7px;font-weight:700;font-size:.78rem;color:#6a7385;cursor:pointer}
+    .cl-pill.cl-on{background:#fff;color:#2f6fd6;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+    .cl-note{display:flex;gap:8px;align-items:center;background:#fafbfe;border:1px solid #eef1f7;color:#98a1b2;border-radius:10px;padding:9px 14px;font-size:.76rem;margin-top:6px}
+    .cl-note b{color:#7a8496;font-weight:700}
   </style>
   <aside id="apexSidebar"></aside>
   <div id="sbScrim" onclick="sbCloseDrawer()"></div>
@@ -595,88 +656,93 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div id="wasNote" style="font-size:.72rem;color:#7a8aa0;margin-top:16px"></div>
     </div>
     <div id="viewLog" style="display:none">
-      <!-- ══ COACHING PROGRESS DASHBOARD (v27) — analytics only; 100% in-memory from entries + ROSTER ══ -->
-      <!-- v29: the single + New Coaching Log button lives here (moved out of View All Coaching Logs). One element, one handler. -->
-      <div class="section-header" style="align-items:center">
-        <h2>Coaching Progress Dashboard</h2>
+      <!-- ══ COACHING LOG (v60 mockup redesign) — two independent areas: Team Coaching Log + Individual
+           Agent Progress. 100% in-memory from `entries` + `rmEntries` + ROSTER. Zero extra SheetDB. ══ -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div>
+          <h1 class="cl-pagetitle">Coaching Log</h1>
+          <div class="cl-pagesub">Create, view, and manage coaching sessions. Use the filters in each section to view team logs or an individual agent's progress.</div>
+        </div>
         <button class="btn-add btn-add-green" id="btnAddCoaching" onclick="openAddModal()" style="display:none">+ New Coaching Log</button>
       </div>
-      <div class="filter-bar" id="cpFilterBar">
-        <div><label>WK #</label><select id="progWK" onchange="renderCoachingProgress()"><option value="">Latest</option></select></div>
-        <div><label>Cluster</label><select id="progCluster" onchange="onProgClusterChange()"><option value="">All Clusters</option></select></div>
-        <div><label>Team Lead</label><select id="progTL" onchange="onProgTLChange()"><option value="">All TLs</option></select></div>
-        <div><label>Agent</label><select id="progAgent" onchange="renderCoachingProgress()"><option value="">All Agents</option></select></div>
-        <div><label>Coaching Type</label><select id="progType" onchange="renderCoachingProgress()"><option value="">All Coaching Types</option></select></div>
-        <div><label>Week Coverage <span style="font-weight:400;color:#888">(trends &amp; analysis)</span></label>
-          <select id="progCoverage" onchange="onProgCoverageChange()">
-            <option value="4">Last 4 Weeks</option>
-            <option value="6" selected>Last 6 Weeks</option>
-            <option value="8">Last 8 Weeks</option>
-            <option value="12">Last 12 Weeks</option>
-            <option value="custom">Custom Range</option>
-          </select>
+
+      <!-- ─────────── SECTION 1: TEAM COACHING LOG ─────────── -->
+      <div class="cl-card">
+        <div class="cl-head">
+          <div class="cl-ic">👥</div>
+          <div><h3>Team Coaching Log</h3><div class="cl-sub">View and manage coaching logs for your team.</div></div>
         </div>
-        <div id="progCustomRange" style="display:none"><label>Custom Range</label>
-          <div style="display:flex;gap:6px;align-items:center">
-            <select id="progFromWK" onchange="renderCoachingProgress()"></select>
-            <span style="color:#888">→</span>
-            <select id="progToWK" onchange="renderCoachingProgress()"></select>
-          </div>
+        <div class="cl-filters" id="teamFilterBar">
+          <div class="cl-fg"><label>Week</label><select id="teamWK"><option value="">All Weeks</option></select></div>
+          <div class="cl-fg"><label>Cluster</label><select id="teamCluster" onchange="onTeamClusterChange()"><option value="">All Clusters</option></select></div>
+          <div class="cl-fg"><label>Team Lead</label><select id="teamTL"><option value="">All TLs</option></select></div>
+          <div class="cl-fg"><label>Coaching Type</label><select id="teamType"><option value="">All Coaching Types</option></select></div>
+          <div class="cl-fg"><label>Coaching Status</label><select id="teamStatus">
+              <option value="">All Statuses</option>
+              <option>On Track</option>
+              <option>Needs Monitoring</option>
+              <option>Escalated</option>
+              <option>Resolved</option>
+              <option>Pending</option>
+            </select></div>
+          <button class="cl-btn cl-btn-apply" onclick="renderLogTable()">Apply Filters</button>
+          <button class="cl-btn cl-btn-clear" onclick="clearTeamFilters()">Clear</button>
         </div>
-        <button class="filter-btn" onclick="clearProgFilters()">Clear</button>
-      </div>
-      <div id="progRangeMsg" style="display:none;background:#ffebee;border:1.5px solid #ef9a9a;color:#c62828;border-radius:8px;padding:8px 12px;font-size:.84rem;font-weight:700;margin-bottom:14px"></div>
-      <div id="cpBody">
-        <!-- v30 layout: Row 1 = 4 cards · Row 2 = 2 trends · Row 3 = effectiveness + insights -->
-        <div class="cp-row cp-row-4">
-          <div class="cp-section" id="cpCoverage"></div>
-          <div class="cp-section" id="cpNotCoached"></div>
-          <div class="cp-section" id="cpLimiterDonut"></div>
-          <div class="cp-section" id="cpOppDonut"></div>
+        <div class="cl-tablewrap">
+          <table class="cl-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Agent</th><th>WK</th><th>Date</th><th>Coaching Type</th>
+                <th>Primary Opportunity</th><th>Primary Limiter</th>
+                <th>Coaching Status</th><th>Agent Status</th><th>Next Follow-Up</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
+          </table>
         </div>
-        <div class="cp-row cp-row-2">
-          <div class="cp-section" id="cpLimiterTrend"></div>
-          <div class="cp-section" id="cpOppTrend"></div>
-        </div>
-        <div class="cp-row cp-row-2">
-          <div class="cp-section" id="cpEffectiveness"></div>
-          <div class="cp-section" id="cpInsights"></div>
+        <div class="cl-foot">
+          <div id="teamCountLine">Showing 0 agents</div>
+          <div class="cl-pager" id="teamPager"></div>
         </div>
       </div>
-      <details class="cp-logs" id="cpAllLogs" style="margin-top:20px">
-      <summary style="cursor:pointer;font-weight:800;font-size:1rem;padding:12px 16px;background:#fff;border:2px solid var(--yellow);border-radius:10px;list-style:revert">📋 View All Coaching Logs</summary>
-      <div style="margin-top:16px">
-      <div class="section-header">
-        <h2>All Coaching Entries</h2>
-      </div>
-      <div class="filter-bar">
-        <div>
-          <label>WK #</label>
-          <select id="logFilterWK" onchange="renderLogTable()"><option value="">All</option></select>
+
+      <!-- ─────────── SECTION 2: INDIVIDUAL AGENT PROGRESS ─────────── -->
+      <div class="cl-card" style="margin-top:38px">
+        <div class="cl-head">
+          <div class="cl-ic">👤</div>
+          <div><h3>Individual Agent Progress</h3><div class="cl-sub">Select an agent to view their performance, coaching history, and progress.</div></div>
         </div>
-        <div>
-          <label>Team Lead</label>
-          <select id="logFilterTL" onchange="onLogTLChange()"><option value="">All TLs</option></select>
+        <div class="cl-filters" id="agentFilterBar">
+          <div class="cl-fg"><label>Agent</label><select id="iaAgent" onchange="renderAgentProgress()"><option value="">— Select an agent —</option></select></div>
+          <div class="cl-fg"><label>Week Range</label><select id="iaRange" onchange="renderAgentProgress()">
+              <option value="4">Last 4 Weeks</option>
+              <option value="6" selected>Last 6 Weeks</option>
+              <option value="8">Last 8 Weeks</option>
+            </select></div>
+          <div class="cl-fg"><label>Primary Opportunity</label><select id="iaOpp" onchange="onIaOppChange()">
+              <option value="">All Opportunities</option>
+              <option>TCR</option>
+              <option>CSR</option>
+              <option>On Track</option>
+            </select></div>
+          <div class="cl-fg"><label>Metric</label><select id="iaMetric" onchange="renderAgentProgress()">
+              <option value="TCR">TCR</option>
+              <option value="CSR">CSR</option>
+              <option value="LT">Leads Touched</option>
+              <option value="RM">Rainmaker</option>
+            </select></div>
+          <button class="cl-btn cl-btn-apply" onclick="renderAgentProgress()">Apply Filters</button>
+          <button class="cl-btn cl-btn-clear" onclick="clearAgentFilters()">Clear</button>
         </div>
-        <div>
-          <label>Agent</label>
-          <select id="logFilterAgent" onchange="renderLogTable()"><option value="">All</option></select>
+        <div id="iaBody">
+          <div class="empty-state" style="padding:34px;color:#8a93a6">Select an agent to view their performance, coaching history, and progress.</div>
         </div>
-        <button class="filter-btn" onclick="clearLogFilters()">Clear</button>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th><th>WK #</th><th>Agent</th><th>Team Lead</th>
-              <th>Coaching Type</th><th>Areas For Improvement</th><th>Primary Limiter</th><th>Follow-up Date</th><th>Coaching Status</th><th>Agent Status</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="logTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
-        </table>
+
+      <div class="cl-note">
+        <span style="font-size:1rem">ℹ️</span>
+        <span><b>Note:</b> Team Coaching Log and Individual Agent Progress have separate filters. Changing the filters in one section will not affect the other section.</span>
       </div>
-      </div>
-      </details>
     </div>
     <div id="viewNTE" style="display:none">
       <div class="section-header">
@@ -1121,6 +1187,7 @@ Brief Explanation: The agent's TCR is below target mainly because of low leads t
               <option>Call Tagging</option>
               <option>Dial and Drop</option>
               <option>Aircall Phone # Localization</option>
+              <option>SMS Blast</option>
               <option>Call/Objection Handling</option>
             </select>
           </div>
@@ -1531,7 +1598,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-07-coaching-focus-4wk-avg-PROD-v58";
+const APEX_BUILD = "2026-09-09-coaching-log-redesign-PROD-v60";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -3058,7 +3125,7 @@ function showView(view) {
   setAct('navStorageUsage', view==='storageusage');           // v46
   if (view==='nte' && typeof renderNTETable==='function') renderNTETable();  // dormant path
   if (view==='rainmaker') openRainmakerTab();
-  if (view==='log' && typeof renderCoachingProgress==='function') renderCoachingProgress();  // v27 analytics (in-memory)
+  if (view==='log'){ try{ populateProgFilters(); }catch(e){} renderLogTable(); if(typeof renderAgentProgress==='function') renderAgentProgress(); }  // v59: Team table + Individual Agent Progress (in-memory)
   // v44: Daily Coaching Completion is leadership-only (OM/SOM/Director/Admin). Guard render + default date.
   if (view==='dailycompletion' && typeof openDailyCompletionTab==='function') openDailyCompletionTab();
   // v45: SOM Health Check (SOM only). Guard + render from in-memory data.
@@ -3183,20 +3250,50 @@ const CP_RATE_TOL = 2;       // rate metrics (CSR): ±2 percentage points
 const CP_METRIC_FOR_LIMITER = { 'Leads Touched':'LT', 'Call/Objection Handling':'CSR' };
 const CP_DONUT_COLORS = ['#f4c430','#1565c0','#2f6f43','#c62828','#8a4fbf','#e08a1e','#00897b','#7a8aa0','#b0490f','#546e7a'];
 
+// v59: repurposed to populate BOTH independent filter sets (Team + Individual). Called after every
+// data load (same call sites as before). Keeps team and individual option lists in sync with the data
+// without coupling their selected values.
 function populateProgFilters(){
-  // Cluster options mirror the dashboard's cluster filter (single source; no new list).
-  const src = document.getElementById('filterCluster');
-  const pc = document.getElementById('progCluster');
-  if (src && pc){ const prev=pc.value; pc.innerHTML = src.innerHTML; if(prev) pc.value=prev; }
-  buildTLOptions('progTL', getTLsForUser(document.getElementById('progCluster')?.value||''), 'All TLs');
-  // Coaching Type options mirror the current supported types (form is the source of truth, v25).
-  const form = document.getElementById('fCoachingType');
-  const pt = document.getElementById('progType');
-  if (form && pt){ const prev=pt.value; const types=[...form.options].map(o=>(o.value||o.textContent||'').trim()).filter(Boolean);
-    pt.innerHTML = '<option value="">All Coaching Types</option>'+types.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
-    if(prev && types.includes(prev)) pt.value=prev; }
-  progPopulateAgents();
+  populateTeamFilters();
+  populateAgentFilters();
 }
+// ── TEAM COACHING LOG filters (Week, Cluster, Team Lead, Coaching Type; Status is static) ──
+function populateTeamFilters(){
+  const vis = (typeof getVisibleEntries==='function') ? getVisibleEntries() : [];
+  // Week options from the visible entries (newest first).
+  const wkSel = document.getElementById('teamWK');
+  if (wkSel){ const prev=wkSel.value;
+    const wks=[...new Set(vis.map(e=>e.wkNumber).filter(Boolean))].sort((a,b)=>wkNum({wkNumber:b})-wkNum({wkNumber:a}));
+    wkSel.innerHTML='<option value="">All Weeks</option>'+wks.map(w=>{ const r=wkDateRangeLabel(w); return `<option value="${esc(w)}">${esc(w)}${r?` (${r})`:''}</option>`; }).join('');
+    if(prev) wkSel.value=prev; }
+  // Cluster options mirror the dashboard cluster filter (single source; no new list).
+  const src=document.getElementById('filterCluster'); const tc=document.getElementById('teamCluster');
+  if(src && tc){ const prev=tc.value; tc.innerHTML=src.innerHTML; if(tc.options[0]) tc.options[0].textContent='All Clusters'; if(prev) tc.value=prev; }
+  buildTLOptions('teamTL', getTLsForUser(document.getElementById('teamCluster')?.value||''), 'All TLs');
+  // Coaching Type mirrors the form's supported types (single source of truth, v25).
+  const form=document.getElementById('fCoachingType'); const tt=document.getElementById('teamType');
+  if(form && tt){ const prev=tt.value; const types=[...form.options].map(o=>(o.value||o.textContent||'').trim()).filter(Boolean);
+    tt.innerHTML='<option value="">All Coaching Types</option>'+types.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+    if(prev && types.includes(prev)) tt.value=prev; }
+}
+function onTeamClusterChange(){ const t=document.getElementById('teamTL'); if(t) t.value=''; buildTLOptions('teamTL', getTLsForUser(document.getElementById('teamCluster')?.value||''),'All TLs'); renderLogTable(); }
+function clearTeamFilters(){ ['teamWK','teamCluster','teamTL','teamType','teamStatus'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';}); buildTLOptions('teamTL', getTLsForUser(''),'All TLs'); renderLogTable(); }
+// ── INDIVIDUAL AGENT PROGRESS filters (Agent list, optionally filtered by latest Primary Opportunity) ──
+function populateAgentFilters(){
+  const sel=document.getElementById('iaAgent'); if(!sel) return; const prev=sel.value;
+  const opp=document.getElementById('iaOpp')?.value||'';
+  const vis=(typeof getVisibleEntries==='function')?getVisibleEntries():[];
+  const byAgent={};
+  vis.forEach(e=>{ const k=e.agentName||''; if(!k) return; const cur=byAgent[k];
+    if(!cur || (wkNum(e)>wkNum(cur)) || (wkNum(e)===wkNum(cur) && String(e.dateOfCoaching||'')>String(cur.dateOfCoaching||''))) byAgent[k]=e; });
+  let names=Object.keys(byAgent);
+  if(opp) names=names.filter(n=>opportunityForEntry(byAgent[n])===opp);
+  names.sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML='<option value="">— Select an agent —</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if(prev && names.includes(prev)) sel.value=prev;
+}
+function onIaOppChange(){ populateAgentFilters(); renderAgentProgress(); }
+function clearAgentFilters(){ ['iaAgent','iaOpp'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';}); const r=document.getElementById('iaRange'); if(r) r.value='6'; const m=document.getElementById('iaMetric'); if(m) m.value='TCR'; populateAgentFilters(); renderAgentProgress(); }
 function progPopulateAgents(){
   const tl=document.getElementById('progTL')?.value||''; const cl=document.getElementById('progCluster')?.value||'';
   const agEl=document.getElementById('progAgent'); if(!agEl) return; const prev=agEl.value;
@@ -3377,7 +3474,13 @@ function cpWeeklyTrend(scopedTyped, weeks, classifyFn){
 
 function cpAgentList(names){ return names.length ? '<ul>'+names.slice().sort().map(n=>`<li>${esc(n)}</li>`).join('')+'</ul>' : '<div class="cp-note">None.</div>'; }
 
+// v59: the donut-heavy Coaching Progress Dashboard was removed from the Coaching Log UX. This entry
+// point now drives the new Individual Agent Progress section, so every legacy caller keeps working.
+// The code below the `return` is the retired v27 dashboard body — unreachable (its #cpBody host no
+// longer exists) and kept only to avoid a large deletion; it never executes.
 function renderCoachingProgress(){
+  try { renderAgentProgress(); } catch(e){ /* individual section optional */ }
+  return;
   const host=document.getElementById('cpBody'); if(!host) return;
   const s=cpScope();
   const scoped=cpScopedEntries(s);                 // Cluster/TL/Agent scope (all weeks, all types)
@@ -3542,14 +3645,234 @@ function renderCoachingProgress(){
     insight('Most Persistent Limiter', persistTop?`${persistTop.lim} — ${persistTop.set.size} agent${persistTop.set.size===1?'':'s'}`:'', persistTop?[...persistTop.set]:[])+
     '</div>';
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INDIVIDUAL AGENT PROGRESS (v59) — light, action-oriented. 100% in-memory from `entries` +
+// `rmEntries`, role-scoped via getVisibleEntries()/getVisibleRmEntries(). Reuses the authoritative
+// helpers only: _perfAvgFromEntry (4-week trailing), opportunityForEntry, rmAdherence, BENCH_TCR/CSR.
+// NEVER reads perfData[0] (Week 1) for any headline/trend value. Zero SheetDB requests.
+// ═══════════════════════════════════════════════════════════════════════════
+const IA_UP='#2e7d32', IA_DOWN='#c62828', IA_FLAT='#8a8f98';
+function iaMetricMeta(metric){
+  if(metric==='TCR') return {label:'TCR', unit:'%', goal:BENCH_TCR, kind:'rate', dp:1};
+  if(metric==='CSR') return {label:'CSR', unit:'%', goal:BENCH_CSR, kind:'rate', dp:1};
+  if(metric==='LT')  return {label:'Leads Touched', unit:'', goal:null, kind:'lt', dp:0};
+  return {label:'Rainmaker', unit:'%', goal:null, kind:'rate', dp:0};   // RM — no official benchmark
+}
+function iaVisibleRmMap(){ const m={}; (typeof getVisibleRmEntries==='function'?getVisibleRmEntries():[]).forEach(r=>{ if(r && r.coachingEntryId) m[String(r.coachingEntryId)]=r; }); return m; }
+function iaMetricValue(e, metric, rmMap){
+  if(metric==='RM'){ const r=rmMap[String(e.id)]; if(!r) return null; const a=rmAdherence(r); return (a && a.pct!=null)?a.pct:null; }
+  const A=_perfAvgFromEntry(e);   // authoritative 4-week trailing helper (never Week 1)
+  if(metric==='TCR') return (A.n>0 && A.avgTCR!=null)?A.avgTCR:null;
+  if(metric==='CSR') return (A.n>0 && A.avgCSR!=null)?A.avgCSR:null;
+  if(metric==='LT')  return (A.n>0 && A.avgLT>0)?A.avgLT:null;
+  return null;
+}
+function iaAgentEntriesAsc(agentName){
+  const vis=(typeof getVisibleEntries==='function')?getVisibleEntries():[];
+  return vis.filter(e=>e.agentName===agentName)
+            .sort((a,b)=>(wkNum(a)-wkNum(b)) || String(a.dateOfCoaching||'').localeCompare(String(b.dateOfCoaching||'')));
+}
+function iaRangeEntries(all, N){ if(!all.length) return []; const latest=wkNum(all[all.length-1]); return all.filter(e=>wkNum(e) >= latest-(N-1)); }
+function iaChange(before, current, kind){
+  if(before==null || current==null) return {arrow:'→', color:IA_FLAT, word:'—'};
+  const d=current-before;
+  if(kind==='lt'){ const rel = before!==0 ? d/Math.abs(before) : (d>0?1:(d<0?-1:0));
+    if(rel>CP_LT_TOL) return {arrow:'↑',color:IA_UP,word:'Improving'};
+    if(rel<-CP_LT_TOL) return {arrow:'↓',color:IA_DOWN,word:'Declining'};
+    return {arrow:'→',color:IA_FLAT,word:'Flat'}; }
+  if(d>CP_RATE_TOL) return {arrow:'↑',color:IA_UP,word:'Improving'};
+  if(d<-CP_RATE_TOL) return {arrow:'↓',color:IA_DOWN,word:'Declining'};
+  return {arrow:'→',color:IA_FLAT,word:'Flat'};
+}
+function iaFmt(v, meta){ return v==null ? '—' : (Number(v).toFixed(meta.dp)+meta.unit); }
+// One simple inline-SVG line chart. Actual points only; consecutive available points are connected,
+// gaps (e.g. sessions with no Rainmaker review) are left open. Optional goal/benchmark reference line.
+function iaTrendSVG(points, meta){
+  const vals=points.map(p=>p.value).filter(v=>v!=null);
+  if(!vals.length) return '<div style="color:#888;padding:22px 4px">No data for this metric in the selected range.</div>';
+  const W=680,H=240,padL=46,padR=16,padT=16,padB=44;
+  let ymin=Math.min(...vals), ymax=Math.max(...vals);
+  if(meta.goal!=null){ ymin=Math.min(ymin,meta.goal); ymax=Math.max(ymax,meta.goal); }
+  if(ymin===ymax){ ymin-=1; ymax+=1; }
+  const gpad=(ymax-ymin)*0.15||1; ymin-=gpad; ymax+=gpad; if(meta.kind!=='lt' && ymin<0) ymin=0;
+  const n=points.length;
+  const X=i=> padL + (n<=1 ? (W-padL-padR)/2 : i*(W-padL-padR)/(n-1));
+  const Y=v=> padT + (H-padT-padB)*(1-(v-ymin)/(ymax-ymin));
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;font-family:inherit" role="img" aria-label="${esc(meta.label)} trend">`;
+  // y axis frame + 3 gridlines
+  for(let g=0;g<=2;g++){ const val=ymin+(ymax-ymin)*g/2; const yy=Y(val);
+    svg+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#eee"/>`;
+    svg+=`<text x="${padL-6}" y="${yy+3}" text-anchor="end" font-size="10" fill="#999">${val.toFixed(meta.dp)}${meta.unit}</text>`; }
+  // goal/benchmark line
+  if(meta.goal!=null){ const gy=Y(meta.goal);
+    svg+=`<line x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    svg+=`<text x="${W-padR}" y="${gy-4}" text-anchor="end" font-size="10" fill="#2e7d32" font-weight="700">Goal ${meta.goal}${meta.unit}</text>`; }
+  // connect consecutive available points (leave gaps open)
+  let seg=[];
+  const flush=()=>{ if(seg.length>1){ svg+=`<polyline fill="none" stroke="#2f6fd6" stroke-width="2.5" points="${seg.map(p=>p.x+','+p.y).join(' ')}"/>`; } seg=[]; };
+  points.forEach((p,i)=>{ if(p.value==null){ flush(); } else { seg.push({x:X(i),y:Y(p.value)}); } });
+  flush();
+  // dots + x labels (each point = one coaching session)
+  points.forEach((p,i)=>{ const xx=X(i);
+    if(p.value!=null){ svg+=`<circle cx="${xx}" cy="${Y(p.value)}" r="4" fill="#2f6fd6" stroke="#1c4a99" stroke-width="1"/>`;
+      svg+=`<text x="${xx}" y="${Y(p.value)-9}" text-anchor="middle" font-size="9.5" fill="#555" font-weight="700">${Number(p.value).toFixed(meta.dp)}</text>`; }
+    else { svg+=`<circle cx="${xx}" cy="${H-padB}" r="2.5" fill="#ccc"/>`; }
+    svg+=`<text x="${xx}" y="${H-padB+16}" text-anchor="middle" font-size="9.5" fill="#888">${esc(p.label||'')}</text>`;
+    svg+=`<text x="${xx}" y="${H-padB+28}" text-anchor="middle" font-size="8.5" fill="#bbb">${esc((p.sub||'').slice(5))}</text>`; });
+  svg+=`</svg>`;
+  return svg;
+}
+function iaCard(label, valueHtml, accent){
+  return `<div style="flex:1;min-width:150px;background:#fff;border:1px solid #eee;border-top:3px solid ${accent||'#f4c430'};border-radius:10px;padding:12px 14px">
+    <div style="font-size:.68rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#999;margin-bottom:6px">${esc(label)}</div>
+    <div style="font-size:1.05rem;font-weight:800;color:#1a3353">${valueHtml}</div></div>`;
+}
+function renderAgentProgress(){
+  const body=document.getElementById('iaBody'); if(!body) return;
+  const agent=document.getElementById('iaAgent')?.value||'';
+  if(!agent){ body.innerHTML='<div class="empty-state" style="padding:28px;color:#888">Select an agent to see their coaching progress.</div>'; return; }
+  const N=parseInt(document.getElementById('iaRange')?.value||'6')||6;
+  const metric=document.getElementById('iaMetric')?.value||'TCR';
+  const meta=iaMetricMeta(metric);
+  const all=iaAgentEntriesAsc(agent);
+  if(!all.length){ body.innerHTML=`<div class="empty-state" style="padding:28px;color:#888">No coaching records for ${esc(agent)} in your view.</div>`; return; }
+  const rmMap=iaVisibleRmMap();
+  const range=iaRangeEntries(all, N);
+  const latest=all[all.length-1];
+  const eFirst=range[0]||latest, eLast=range[range.length-1]||latest;
+  const cluster=latest.cluster || (ROSTER.find(a=>a.name===agent)||{}).cluster || '—';
+  const opp=opportunityForEntry(latest);
+  const lim = latest.limiter ? (latest.callObjLimiter?`${latest.limiter} — ${latest.callObjLimiter}`:latest.limiter) : '—';
+
+  // ── Summary (avatar + identity + 3 cards) ──
+  const initials = (agent.trim().split(/\s+/).map(w=>w[0]||'').slice(0,2).join('')||'?').toUpperCase();
+  const tenure = latest.tenure ? esc(String(latest.tenure)) : null;
+  const oppSub = opp==='TCR'?'Improve connect rate':(opp==='CSR'?'Improve sales per connect':(opp==='On Track'?'Meeting the benchmarks':'Not enough data yet'));
+  const statusSub = (function(st){ st=st||'Pending';
+    if(st==='On Track') return 'Continue the current approach';
+    if(st==='Needs Monitoring') return 'Continue coaching and monitor progress';
+    if(/Escalated/.test(st)) return 'Needs immediate attention';
+    if(/Resolved/.test(st)) return 'Issue resolved';
+    return 'Awaiting first coaching outcome'; })(latest.coachingStatus);
+  const summary = `<div style="display:flex;gap:14px;align-items:center">
+      <div class="cl-avatar">${esc(initials)}</div>
+      <div>
+        <div style="font-size:1.2rem;font-weight:800;color:#1a2a44">${esc(agent)}</div>
+        <div style="font-size:.82rem;color:#8a93a6;line-height:1.6">Team Lead: <b style="color:#4a5468">${esc(latest.teamLead||'—')}</b><br>Cluster: <b style="color:#4a5468">${esc(cluster)}</b>${tenure?` · Tenure: <b style="color:#4a5468">${tenure}</b>`:''}<br>Status: ${clStatusBadge(latest.coachingStatus||'Pending')}</div>
+      </div>
+    </div>
+    <div class="cl-sumcards">
+      <div class="cl-sumcard"><div class="cl-l">Primary Opportunity</div><div class="cl-v" style="color:#2559c4">${esc(opp)}</div><div class="cl-d">${esc(oppSub)}</div></div>
+      <div class="cl-sumcard"><div class="cl-l">Primary Limiter</div><div class="cl-v" style="font-size:.92rem">${esc(lim)}</div><div class="cl-d">Main area to focus on</div></div>
+      <div class="cl-sumcard"><div class="cl-l">Coaching Status</div><div class="cl-v">${clStatusBadge(latest.coachingStatus||'Pending')}</div><div class="cl-d">${esc(statusSub)}</div></div>
+    </div>`;
+
+  // ── Coaching Impact (immediately previous session vs current/latest session), horizontal flow ──
+  const cur=latest, prev = all.length>=2 ? all[all.length-2] : null;
+  let impactInner;
+  if(!prev){ impactInner = `<div style="color:#a76a10;background:#fffdf3;border:1px solid #f0e6b8;border-radius:9px;padding:12px 14px;font-size:.83rem">No previous coaching session available for comparison.</div>`; }
+  else {
+    const focus = (opportunityForEntry(cur)==='TCR')?'TCR':'CSR';
+    const fMeta = iaMetricMeta(focus), rmMeta=iaMetricMeta('RM');
+    const bV=iaMetricValue(prev,focus,rmMap), cV=iaMetricValue(cur,focus,rmMap);
+    const fCh=iaChange(bV,cV,fMeta.kind);
+    const rmB = rmMap[String(prev.id)]?rmAdherence(rmMap[String(prev.id)]).pct:null;
+    const rmC = rmMap[String(cur.id)]?rmAdherence(rmMap[String(cur.id)]).pct:null;
+    const dlt=(b,c,unit)=>{ if(b==null||c==null) return ''; const d=c-b; const s=(d>=0?'+':'')+d.toFixed(unit==='pts'?1:0)+(unit==='pts'?' pts':''); const col=d>0?IA_UP:(d<0?IA_DOWN:IA_FLAT); return ` <span style="color:${col};font-weight:700;font-size:.72rem">(${s})</span>`; };
+    const curLim = cur.limiter ? (cur.callObjLimiter?`${cur.limiter} — ${cur.callObjLimiter}`:cur.limiter):'—';
+    const arrow='<div class="cl-impact-arrow">→</div>';
+    const stepSession = `<div class="cl-impact-step"><div class="cl-l">📅 ${esc(fmtCoachingDate(cur.dateOfCoaching)||'—')}</div><div class="cl-v" style="margin-top:4px">Coaching Session</div><div style="font-size:.72rem;color:#8a93a6;margin-top:4px">Focus:<br>${esc(curLim)}</div></div>`;
+    const stepBefore = `<div class="cl-impact-step"><div class="cl-l">📊 Before (${esc(prev.wkNumber||'')})</div><div class="cl-v" style="margin-top:4px">${esc(focus)}: ${iaFmt(bV,fMeta)}</div>${rmB!=null?`<div class="cl-v">Rainmaker: ${iaFmt(rmB,rmMeta)}</div>`:''}</div>`;
+    const stepAfter = `<div class="cl-impact-step"><div class="cl-l">📈 After (${esc(cur.wkNumber||'')})</div><div class="cl-v" style="margin-top:4px">${esc(focus)}: ${iaFmt(cV,fMeta)}${dlt(bV,cV,'pts')}</div>${rmC!=null?`<div class="cl-v">Rainmaker: ${iaFmt(rmC,rmMeta)}${dlt(rmB,rmC,'pts')}</div>`:''}</div>`;
+    const stepResult = `<div class="cl-impact-step" style="background:#f4faf6;border-color:#cde8d5"><div class="cl-l">🏆 Result</div><div class="cl-v" style="margin-top:4px;color:${fCh.color};font-size:.95rem">${fCh.arrow} ${esc(fCh.word)}</div><div style="font-size:.7rem;color:#8a93a6;margin-top:3px">Performance after coaching</div></div>`;
+    impactInner = `<div class="cl-impact-row">${stepSession}${arrow}${stepBefore}${arrow}${stepAfter}${arrow}${stepResult}</div>
+      <div style="font-size:.7rem;color:#aab1c0;margin-top:8px">Shows performance <b>after</b> coaching — association over time, not proof that coaching caused the change.</div>`;
+  }
+
+  // ── Performance vs Previous (earliest-vs-latest within the selected Week Range) ──
+  const rows = [
+    {m:'TCR', before:iaMetricValue(eFirst,'TCR',rmMap), current:iaMetricValue(eLast,'TCR',rmMap), goal:BENCH_TCR+'%', meta:iaMetricMeta('TCR')},
+    {m:'CSR', before:iaMetricValue(eFirst,'CSR',rmMap), current:iaMetricValue(eLast,'CSR',rmMap), goal:BENCH_CSR+'%', meta:iaMetricMeta('CSR')},
+    {m:'Leads Touched', before:iaMetricValue(eFirst,'LT',rmMap), current:iaMetricValue(eLast,'LT',rmMap), goal:'—', meta:iaMetricMeta('LT')},
+  ];
+  const rmRange = range.filter(e=>rmMap[String(e.id)]);
+  if(rmRange.length){ rows.push({m:'Rainmaker Score', before:rmAdherence(rmMap[String(rmRange[0].id)]).pct, current:rmAdherence(rmMap[String(rmRange[rmRange.length-1].id)]).pct, goal:'85%', meta:iaMetricMeta('RM')}); }
+  let pvp = `<h4>Performance vs Previous</h4>
+    <div class="cl-tablewrap"><table class="cl-table" style="font-size:.83rem">
+    <thead><tr><th>Metric</th><th>Before Coaching<br><span style="font-weight:600;text-transform:none;color:#c3ccdb">(${esc(eFirst.wkNumber||'—')})</span></th><th>Current<br><span style="font-weight:600;text-transform:none;color:#c3ccdb">(${esc(eLast.wkNumber||'—')})</span></th><th>Goal</th><th>Change</th></tr></thead><tbody>`;
+  rows.forEach(r=>{ const ch=iaChange(r.before,r.current,r.meta.kind);
+    const delta=(r.before!=null&&r.current!=null)?((r.current-r.before>=0?'+':'')+(r.current-r.before).toFixed(r.meta.dp)+(r.meta.kind==='rate'?'%':'')):'';
+    pvp += `<tr><td style="font-weight:700">${esc(r.m)}</td>
+      <td>${iaFmt(r.before,r.meta)}</td>
+      <td style="font-weight:800">${iaFmt(r.current,r.meta)}</td>
+      <td style="color:#8a93a6">${esc(r.goal)}</td>
+      <td style="color:${ch.color};font-weight:800;white-space:nowrap">${ch.arrow} ${esc(delta||ch.word)}</td></tr>`; });
+  pvp += `</tbody></table></div>`;
+  if(all.length<2){ pvp += `<div style="font-size:.74rem;color:#a76a10;margin-top:8px">Only one coaching session on record — before/after uses that single session until a second exists.</div>`; }
+
+  // ── Trend (one chart; metric pills switch the SAME chart) ──
+  const pts = range.map(e=>({ label:e.wkNumber||'', sub:fmtCoachingDate(e.dateOfCoaching)||'', value:iaMetricValue(e, metric, rmMap) }));
+  const rmCount = pts.filter(p=>p.value!=null).length;
+  let trendInner;
+  if(metric==='RM' && rmCount<2){
+    trendInner = `<div style="color:#a76a10;background:#fffdf3;border:1px solid #f0e6b8;border-radius:9px;padding:14px 16px;font-size:.84rem">Not enough Rainmaker reviews to show a trend (${rmCount} review${rmCount===1?'':'s'} in range).</div>`;
+  } else { trendInner = iaTrendSVG(pts, meta); }
+  const pill=(v,l)=>`<button class="cl-pill ${metric===v?'cl-on':''}" onclick="iaSetMetric('${v}')">${l}</button>`;
+  const trend = `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <h4 style="margin:0">Trend <span style="font-weight:600;color:#9aa3b4;font-size:.8rem">(Last ${N} Weeks)</span></h4>
+      <div class="cl-pills">${pill('TCR','TCR')}${pill('CSR','CSR')}${pill('LT','Leads Touched')}${pill('RM','Rainmaker')}</div>
+    </div>
+    <div style="font-weight:800;color:#1a2a44;margin-bottom:4px;font-size:.9rem">${esc(meta.label)} Trend</div>
+    ${trendInner}`;
+
+  // ── Latest Coaching Details (+ View Full Log via existing viewEntry) ──
+  const s=latest.star||{};
+  const commit = (s.situation||s.task||s.action||s.result||s.timeline)
+    ? `${esc(s.task||s.situation||'—')}` : '<span style="color:#9aa3b4">No commitment submitted.</span>';
+  const dRow=(l,v)=>`<div style="display:flex;gap:10px;padding:5px 0;border-bottom:1px solid #f4f6fa"><div style="min-width:130px;color:#8a93a6;font-size:.78rem">${esc(l)}</div><div style="font-size:.84rem;font-weight:600;color:#2a3242">${v}</div></div>`;
+  const details = `<div style="display:flex;align-items:center;justify-content:space-between"><h4 style="margin:0">Latest Coaching Details</h4><button class="cl-viewbtn" onclick="viewEntry('${latest.id}')">View Full Log</button></div>
+    <div style="margin-top:8px">
+    ${dRow('Date', esc(fmtCoachingDate(latest.dateOfCoaching)||'—'))}
+    ${dRow('Coaching Type', esc(latest.coachingType||'—'))}
+    ${dRow('Primary Opportunity', clOppBadge(opportunityForEntry(latest)))}
+    ${dRow('Focus Area', esc(lim))}
+    ${dRow('Commitment', commit)}
+    ${dRow('Coaching Status', clStatusBadge(latest.coachingStatus||'Pending'))}
+    ${dRow('Agent Status', clAgentBadge(agentStatusCoaching(latest)))}
+    ${dRow('Next Follow-Up', esc(latest.followUpDate||'—'))}
+    </div>`;
+
+  body.innerHTML =
+    `<div class="cl-ia-grid">
+       <div>${summary}</div>
+       <div class="cl-panel"><h4>Coaching Impact</h4>${impactInner}</div>
+     </div>
+     <div class="cl-ia-grid2">
+       <div class="cl-panel">${pvp}</div>
+       <div class="cl-panel">${trend}</div>
+     </div>
+     <div style="padding:0 18px 18px"><div class="cl-panel">${details}</div></div>`;
+}
+function iaSetMetric(m){ const el=document.getElementById('iaMetric'); if(el) el.value=m; renderAgentProgress(); }
+// v59 TEAM filters — Week, Cluster, Team Lead, Coaching Type, Coaching Status. No Agent filter (that
+// lives in Individual Agent Progress). Operates ONLY on team controls, so it can never affect the
+// Individual section. Role scope is already applied upstream via getVisibleEntries().
 function applyLogFilters(list) {
-  const wk = document.getElementById('logFilterWK')?.value || '';
-  const tl = document.getElementById('logFilterTL')?.value || '';
-  const ag = document.getElementById('logFilterAgent')?.value || '';
+  const wk = document.getElementById('teamWK')?.value || '';
+  const cl = document.getElementById('teamCluster')?.value || '';
+  const tl = document.getElementById('teamTL')?.value || '';
+  const ct = document.getElementById('teamType')?.value || '';
+  const st = document.getElementById('teamStatus')?.value || '';
   return list.filter(e => {
     if (wk && e.wkNumber !== wk) return false;
     if (tl && e.teamLead !== tl) return false;
-    if (ag && e.agentName !== ag) return false;
+    if (ct && (e.coachingType||'') !== ct) return false;
+    if (st && (e.coachingStatus||'Pending') !== st) return false;
+    if (cl) {
+      const tlEntry = Object.values(TL_EMAILS).find(t=>t.display===e.teamLead);
+      if (!tlEntry || tlEntry.cluster !== cl) return false;
+    }
     return true;
   });
 }
@@ -3623,6 +3946,18 @@ function ctWeekNumberForDate(input){
   const target = _mondayEpochDay(c.y, c.m, c.d);
   const anchor = _mondayEpochDay(a.y, a.m, a.d);
   return WK_ANCHOR.wk + Math.round((target - anchor) / 7);
+}
+// v60: inverse of ctWeekNumberForDate — WK number → its Mon–Sun calendar range, e.g.
+// "Sep 7 – Sep 13, 2026". Reuses WK_ANCHOR + _mondayEpochDay (no hardcoded ranges). Display-only.
+const _WK_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function wkDateRangeLabel(wk){
+  const n=parseInt(String(wk).replace(/\D/g,'')); if(!n) return '';
+  const a=_ctYMD(WK_ANCHOR.monday); if(!a) return '';
+  const anchorMon=_mondayEpochDay(a.y,a.m,a.d);
+  const mon=anchorMon + (n - WK_ANCHOR.wk)*7, sun=mon+6;
+  const md=ed=>{ const dt=new Date(ed*86400000); return {mo:dt.getUTCMonth(),d:dt.getUTCDate(),y:dt.getUTCFullYear()}; };
+  const s=md(mon), e=md(sun);
+  return `${_WK_MONTHS[s.mo]} ${s.d} – ${_WK_MONTHS[e.mo]} ${e.d}, ${e.y}`;
 }
 // Ensure a WK option exists in a <select> so a programmatic value always displays (dropdown
 // is a fixed WK551–WK1000 list; an out-of-range auto/stored WK is injected on demand).
@@ -4827,8 +5162,74 @@ function renderOMBreakdown(filtered, weeks4, targetWeek){
 function renderLogTable() {
   const filtered = applyLogFilters(getVisibleEntries());
   const sorted = [...filtered].sort((a,b) => (wkNum(b)-wkNum(a)) || String(b.dateOfCoaching||'').localeCompare(String(a.dateOfCoaching||'')));
-  renderTable('logTableBody', sorted, true);
+  renderTeamTable(sorted);
 }
+// v59 TEAM COACHING LOG table — columns: Agent, WK, Date, Coaching Type, Primary Opportunity,
+// Primary Limiter, Coaching Status, Agent Status, Next Follow-Up, Actions. Primary Opportunity comes
+// from the authoritative opportunityForEntry(e) (4-week avg); Primary Limiter is the stored e.limiter
+// (+ sub-limiter). View/Edit/Delete permissions unchanged (canManageEntries). Delete logic untouched.
+// Colored Primary Opportunity badge (mockup palette): TCR/CSR blue, Leads Touched purple, On Track green.
+function clOppBadge(o){
+  if(o==='On Track') return '<span class="cl-badge cl-b-green">On Track</span>';
+  if(o==='TCR'||o==='CSR') return `<span class="cl-badge cl-b-blue">${esc(o)}</span>`;
+  if(o==='Leads Touched') return '<span class="cl-badge cl-b-purple">Leads Touched</span>';
+  return `<span class="cl-badge cl-b-gray">${esc(o||'—')}</span>`;   // Insufficient Data
+}
+// Coaching Status badge in the mockup palette (maps the real stored coachingStatus values).
+function clStatusBadge(s){
+  s=s||'Pending';
+  if(s==='On Track'||s==='Completed') return `<span class="cl-badge cl-b-green">${esc(s)}</span>`;
+  if(s==='Needs Monitoring'||s==='In Progress') return `<span class="cl-badge cl-b-amber">${esc(s)}</span>`;
+  if(/Escalated|Not Met/.test(s)) return `<span class="cl-badge cl-b-red">${esc(s)}</span>`;
+  if(/Resolved/.test(s)) return `<span class="cl-badge cl-b-blue">${esc(s)}</span>`;
+  return `<span class="cl-badge cl-b-gray">${esc(s)}</span>`;
+}
+function clAgentBadge(label){ return label==='Agent Complete'
+  ? '<span class="cl-badge cl-b-green">Agent Complete</span>'
+  : '<span class="cl-badge cl-b-amber">Agent Pending</span>'; }
+var TEAM_PAGE = 1; const TEAM_PAGE_SIZE = 10;
+function renderTeamTable(list){
+  const tbody = document.getElementById('logTableBody'); if(!tbody) return;
+  const countEl=document.getElementById('teamCountLine'), pagerEl=document.getElementById('teamPager');
+  if(!list.length){ tbody.innerHTML = `<tr><td colspan="11" class="empty-state">No entries found.</td></tr>`;
+    if(countEl) countEl.textContent='Showing 0 agents'; if(pagerEl) pagerEl.innerHTML=''; return; }
+  const total=list.length, pages=Math.max(1, Math.ceil(total/TEAM_PAGE_SIZE));
+  if(TEAM_PAGE>pages) TEAM_PAGE=pages; if(TEAM_PAGE<1) TEAM_PAGE=1;
+  const start=(TEAM_PAGE-1)*TEAM_PAGE_SIZE, page=list.slice(start, start+TEAM_PAGE_SIZE);
+  const canEdit = canManageEntries(), canDelete = canManageEntries();
+  tbody.innerHTML = page.map((e,i)=>{
+    const opp = opportunityForEntry(e);
+    const lim = e.limiter ? (e.callObjLimiter ? `${e.limiter} — ${e.callObjLimiter}` : e.limiter) : '—';
+    return `<tr>
+      <td class="cl-num">${start+i+1}</td>
+      <td title="${esc(e.agentName||'')}"><a href="#" class="cl-agent-link" onclick="openCommitmentView('${e.id}');return false;">${truncate(e.agentName||'—',22)}</a>${getSyncState(e.id)==='failed' ? ' <span class="cl-badge cl-b-red" style="font-size:.6rem" title="Saved locally but not synced to the server — open Recovery to retry">⚠ Not Synced</span>' : ''}</td>
+      <td>${e.wkNumber||'—'}</td>
+      <td>${fmtCoachingDate(e.dateOfCoaching)||'—'}</td>
+      <td>${e.coachingType||'—'}</td>
+      <td>${clOppBadge(opp)}</td>
+      <td title="${esc((e.limiter||'')+(e.callObjLimiter?(' — '+e.callObjLimiter):''))}">${truncate(lim,26)}</td>
+      <td>${clStatusBadge(e.coachingStatus||'Pending')}</td>
+      <td>${clAgentBadge(agentStatusCoaching(e))}</td>
+      <td>${e.followUpDate||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="cl-viewbtn" onclick="viewEntry('${e.id}')">View</button>
+        ${canEdit?`<button class="cl-mini" onclick="editEntry('${e.id}')">Edit</button>`:''}
+        ${canDelete?`<button class="cl-mini" onclick="deleteEntry('${e.id}')" style="color:#c1352f">Delete</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+  if(countEl) countEl.textContent = `Showing ${start+1}–${start+page.length} of ${total} agents`;
+  if(pagerEl){
+    if(pages<=1){ pagerEl.innerHTML=''; }
+    else {
+      let h=`<button onclick="teamGoPage(${TEAM_PAGE-1})" ${TEAM_PAGE===1?'disabled':''}>‹</button>`;
+      for(let p=1;p<=pages;p++){ h+=`<button class="${p===TEAM_PAGE?'cl-on':''}" onclick="teamGoPage(${p})">${p}</button>`; }
+      h+=`<button onclick="teamGoPage(${TEAM_PAGE+1})" ${TEAM_PAGE===pages?'disabled':''}>›</button>`;
+      pagerEl.innerHTML=h;
+    }
+  }
+}
+function teamGoPage(p){ TEAM_PAGE=p; renderLogTable(); }
 function renderTable(tbodyId, list, showType=false) {
   const tbody = document.getElementById(tbodyId);
   if (!list.length) {
