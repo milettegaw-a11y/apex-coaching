@@ -1113,11 +1113,15 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div class="form-grid">
             <div class="form-group" style="grid-column:1/-1">
               <label>Aircall Call Link</label>
-              <input type="url" id="rmcAircall" placeholder="https://…" oninput="rmcRecalc()"/>
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <input type="url" id="rmcAircall" placeholder="https://…" oninput="rmcRecalc()" style="flex:1"/>
+                <button type="button" class="btn-add" onclick="rmcAiPrefill()" id="rmcAiPrefillBtn" style="white-space:nowrap" title="Scores the synced transcript for this call against the Rainmaker Script and fills in the checklist below">🤖 AI Pre-fill</button>
+              </div>
               <div id="rmcAircallErr" style="display:none;color:#c62828;font-size:.75rem;margin-top:3px">Please enter a valid URL (starting with http:// or https://).</div>
+              <div id="rmcAiPrefillStatus" style="display:none;font-size:.78rem;margin-top:4px"></div>
             </div>
           </div>
-          <div style="font-size:.8rem;color:#666;margin:8px 0 6px">Mark each step: <b>Followed</b> / <b>Needs Coaching</b> / <b>N/A</b>. N/A is excluded from Adherence.</div>
+          <div style="font-size:.8rem;color:#666;margin:8px 0 6px">Mark each step: <b>Followed</b> / <b>Needs Coaching</b> / <b>N/A</b>. N/A is excluded from Adherence. AI pre-fill is a starting point — review and correct before saving.</div>
           <div id="rmcChecklist"></div>
           <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:14px">
             <div class="stat-card" style="flex:1;min-width:170px"><div class="label">Rainmaker Adherence</div><div class="value" id="rmcAdherenceLive">—</div><div class="sublabel">Followed ÷ applicable (N/A excluded)</div></div>
@@ -6717,6 +6721,46 @@ function rmcRecalc(){
   const airErr = document.getElementById('rmcAircallErr');
   if (air && airErr) airErr.style.display = rmValidUrl(air.value.trim()) ? 'none' : 'block';
 }
+
+// ── AI Pre-fill (Aircall Behavior Scorer integration) ───────────────────────
+// Calls the separately-deployed Aircall Behavior Scorer (a Homeaglow internal
+// tool that scores a synced call transcript against the Rainmaker Script)
+// and pours its result straight into this SAME checklist via the existing
+// rmcSetChecklist()/rmcRecalc() — makes 0 Firestore/SheetDB requests itself.
+// Token is a shared-abuse-deterrent, not a real secret (visible in page
+// source like any static-frontend credential, e.g. the Firebase apiKey
+// above) — real protection is server-side rate/cost limits on that app.
+const RM_AI_PREFILL_URL = 'https://vercel-app-clayton-7053.vercel.app/api/rainmaker/prefill';
+const RM_AI_PREFILL_TOKEN = 'bf18b9d1e3703a74c893e700e891430cecf1647868ad5cf2';
+async function rmcAiPrefill(){
+  const btn = document.getElementById('rmcAiPrefillBtn');
+  const statusEl = document.getElementById('rmcAiPrefillStatus');
+  const air = document.getElementById('rmcAircall');
+  const url = (air && air.value || '').trim();
+  if (!url || !rmValidUrl(url)){
+    if (statusEl){ statusEl.style.display='block'; statusEl.style.color='#c62828'; statusEl.textContent='Enter a valid Aircall call link above first.'; }
+    return;
+  }
+  if (btn) btn.disabled = true;
+  if (statusEl){ statusEl.style.display='block'; statusEl.style.color='#666'; statusEl.textContent='Scoring transcript against the Rainmaker Script…'; }
+  try {
+    const resp = await fetch(RM_AI_PREFILL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Integration-Token': RM_AI_PREFILL_TOKEN },
+      body: JSON.stringify({ aircallUrl: url })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.message || ('HTTP ' + resp.status));
+    rmcSetChecklist(data.checklist || {});
+    rmcRecalc();
+    rmcToggleBody(true);
+    if (statusEl){ statusEl.style.color='#2f7a3c'; statusEl.textContent='✓ Pre-filled from AI scoring — review each step before saving.'; }
+  } catch(e){
+    if (statusEl){ statusEl.style.color='#c62828'; statusEl.textContent='AI pre-fill failed: ' + (e.message || String(e)); }
+  }
+  if (btn) btn.disabled = false;
+}
+
 // Live cured 4-week WK1 CVR average from the curing-table inputs (NEW entries only).
 function rmcLiveCuredAvg(){
   const arr = [1,2,3,4,5].map(n => ({ lr:(document.getElementById('wcLR'+n)||{}).value||'', s:(document.getElementById('wcS'+n)||{}).value||'' }));
