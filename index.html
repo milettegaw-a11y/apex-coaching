@@ -191,9 +191,13 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .perf-group .perf-table th{white-space:normal;word-break:normal;overflow-wrap:break-word;padding:7px 6px;font-size:.73rem}
 .perf-group .perf-table td{padding:6px 6px}
 .perf-group .perf-table th:first-child,.perf-group .perf-table td:first-child{text-align:left;padding-left:8px}
-.perf-group .perf-table col.pt-week{width:46%}
-.perf-group .perf-table col.pt-val{width:29%}
-.perf-group .perf-table col.pt-pct{width:25%}
+.perf-group .perf-table col.pt-week{width:50%}
+.perf-group .perf-table col.pt-val{width:28%}
+.perf-group .perf-table col.pt-pct{width:22%}
+/* v65: performance-week labels are longer (they carry the real WK#). Let the label cell WRAP
+   instead of truncating with an ellipsis, so "(Most Recent)" / "(Most Recent Cured Week)" stay
+   fully readable at any width. Display-only. */
+.perf-table td:first-child{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
 .focus-on-bar{display:flex;align-items:center;gap:10px;background:#fffbef;border:1.5px solid #ffe082;border-radius:8px;padding:10px 14px;margin-bottom:14px;flex-wrap:wrap}
 .focus-on-bar .focus-label{font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#555;white-space:nowrap}
 .focus-on-bar label{display:inline-flex;align-items:center;gap:5px;font-size:.84rem;font-weight:700;cursor:pointer;padding:4px 12px;border-radius:20px;border:1.5px solid #e0e0e0;background:#fff;transition:all .15s;user-select:none}
@@ -965,10 +969,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <colgroup><col class="pt-week"><col class="pt-val"><col class="pt-pct"></colgroup>
               <thead><tr><th>Week</th><th>Leads Touched</th><th>TCR%</th></tr></thead>
               <tbody>
-              <tr><td>Week 1 (Most Recent)</td><td><input type="number" id="lt1" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr1">—</td></tr>
-              <tr><td>Week 2</td><td><input type="number" id="lt2" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr2">—</td></tr>
-              <tr><td>Week 3</td><td><input type="number" id="lt3" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr3">—</td></tr>
-              <tr><td>Week 4</td><td><input type="number" id="lt4" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr4">—</td></tr>
+              <tr><td id="pwLT1">Week 1 (Most Recent)</td><td><input type="number" id="lt1" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr1">—</td></tr>
+              <tr><td id="pwLT2">Week 2</td><td><input type="number" id="lt2" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr2">—</td></tr>
+              <tr><td id="pwLT3">Week 3</td><td><input type="number" id="lt3" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr3">—</td></tr>
+              <tr><td id="pwLT4">Week 4</td><td><input type="number" id="lt4" oninput="calcPerf()" min="0"/></td><td class="calc" id="tcr4">—</td></tr>
               <tr style="background:#fffbef;font-weight:700"><td>4-Week Avg</td><td id="avgLT">—</td><td id="avgTCR">—</td></tr>
               </tbody>
             </table>
@@ -979,10 +983,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <colgroup><col class="pt-week"><col class="pt-val"><col class="pt-pct"></colgroup>
               <thead><tr><th>Week</th><th>Connected Calls</th><th>CSR%</th></tr></thead>
               <tbody>
-              <tr><td>Week 1 (Most Recent)</td><td><input type="number" id="cc1" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr1">—</td></tr>
-              <tr><td>Week 2</td><td><input type="number" id="cc2" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr2">—</td></tr>
-              <tr><td>Week 3</td><td><input type="number" id="cc3" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr3">—</td></tr>
-              <tr><td>Week 4</td><td><input type="number" id="cc4" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr4">—</td></tr>
+              <tr><td id="pwCC1">Week 1 (Most Recent)</td><td><input type="number" id="cc1" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr1">—</td></tr>
+              <tr><td id="pwCC2">Week 2</td><td><input type="number" id="cc2" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr2">—</td></tr>
+              <tr><td id="pwCC3">Week 3</td><td><input type="number" id="cc3" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr3">—</td></tr>
+              <tr><td id="pwCC4">Week 4</td><td><input type="number" id="cc4" oninput="calcPerf()" min="0"/></td><td class="calc" id="csr4">—</td></tr>
               <tr style="background:#fffbef;font-weight:700"><td>4-Week Avg</td><td id="avgCC">—</td><td id="avgCSR">—</td></tr>
               </tbody>
             </table>
@@ -993,10 +997,10 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
               <colgroup><col class="pt-week"><col class="pt-val"><col class="pt-pct"></colgroup>
               <thead><tr><th>Week</th><th>Sales</th><th>CVR%</th></tr></thead>
               <tbody>
-              <tr><td>Week 1 (Most Recent)</td><td><input type="number" id="s1" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr1">—</td></tr>
-              <tr><td>Week 2</td><td><input type="number" id="s2" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr2">—</td></tr>
-              <tr><td>Week 3</td><td><input type="number" id="s3" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr3">—</td></tr>
-              <tr><td>Week 4</td><td><input type="number" id="s4" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr4">—</td></tr>
+              <tr><td id="pwS1">Week 1 (Most Recent)</td><td><input type="number" id="s1" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr1">—</td></tr>
+              <tr><td id="pwS2">Week 2</td><td><input type="number" id="s2" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr2">—</td></tr>
+              <tr><td id="pwS3">Week 3</td><td><input type="number" id="s3" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr3">—</td></tr>
+              <tr><td id="pwS4">Week 4</td><td><input type="number" id="s4" oninput="calcPerf()" min="0"/></td><td class="calc" id="cvr4">—</td></tr>
               <tr style="background:#fffbef;font-weight:700"><td>4-Week Avg</td><td id="avgS">—</td><td id="avgCVR">—</td></tr>
               </tbody>
             </table>
@@ -1013,11 +1017,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <colgroup><col style="width:30%"><col style="width:18%"><col style="width:14%"><col style="width:19%"><col style="width:19%"></colgroup>
           <thead><tr><th>Week</th><th>Leads Received</th><th>Sales</th><th>WK1 CVR</th><th>Sales Deficit</th></tr></thead>
           <tbody>
-            <tr><td style="text-align:left;padding-left:8px;">Week 1 (Curing Week)</td><td><input type="number" id="wcLR1" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS1" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR1">—</td><td class="calc" id="wcDEF1">—</td></tr>
-            <tr><td style="text-align:left;padding-left:8px;">Week 2 (Most Recent Cured Week)</td><td><input type="number" id="wcLR2" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS2" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR2">—</td><td class="calc" id="wcDEF2">—</td></tr>
-            <tr><td style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="wcLR3" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS3" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR3">—</td><td class="calc" id="wcDEF3">—</td></tr>
-            <tr><td style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="wcLR4" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS4" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR4">—</td><td class="calc" id="wcDEF4">—</td></tr>
-            <tr><td style="text-align:left;padding-left:8px;">Week 5</td><td><input type="number" id="wcLR5" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS5" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR5">—</td><td class="calc" id="wcDEF5">—</td></tr>
+            <tr><td id="pwCV1" style="text-align:left;padding-left:8px;">Week 1 (Curing Week)</td><td><input type="number" id="wcLR1" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS1" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR1">—</td><td class="calc" id="wcDEF1">—</td></tr>
+            <tr><td id="pwCV2" style="text-align:left;padding-left:8px;">Week 2 (Most Recent Cured Week)</td><td><input type="number" id="wcLR2" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS2" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR2">—</td><td class="calc" id="wcDEF2">—</td></tr>
+            <tr><td id="pwCV3" style="text-align:left;padding-left:8px;">Week 3</td><td><input type="number" id="wcLR3" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS3" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR3">—</td><td class="calc" id="wcDEF3">—</td></tr>
+            <tr><td id="pwCV4" style="text-align:left;padding-left:8px;">Week 4</td><td><input type="number" id="wcLR4" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS4" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR4">—</td><td class="calc" id="wcDEF4">—</td></tr>
+            <tr><td id="pwCV5" style="text-align:left;padding-left:8px;">Week 5</td><td><input type="number" id="wcLR5" oninput="calcWk1Cvr5()" min="0"/></td><td><input type="number" id="wcS5" oninput="calcWk1Cvr5()" min="0"/></td><td class="calc" id="wcCVR5">—</td><td class="calc" id="wcDEF5">—</td></tr>
             <tr style="background:#fffbef;font-weight:700"><td style="text-align:left;padding-left:8px;">4-Week Avg (Weeks 2–5)</td><td class="calc" id="wcLRavg">—</td><td class="calc" id="wcSavg">—</td><td class="calc" id="wcCVRavg">—</td><td>—</td></tr>
           </tbody>
         </table>
@@ -1113,15 +1117,11 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <div class="form-grid">
             <div class="form-group" style="grid-column:1/-1">
               <label>Aircall Call Link</label>
-              <div style="display:flex;gap:8px;align-items:flex-start">
-                <input type="url" id="rmcAircall" placeholder="https://…" oninput="rmcRecalc()" style="flex:1"/>
-                <button type="button" class="btn-add" onclick="rmcAiPrefill()" id="rmcAiPrefillBtn" style="white-space:nowrap" title="Scores the synced transcript for this call against the Rainmaker Script and fills in the checklist below">🤖 AI Pre-fill</button>
-              </div>
+              <input type="url" id="rmcAircall" placeholder="https://…" oninput="rmcRecalc()"/>
               <div id="rmcAircallErr" style="display:none;color:#c62828;font-size:.75rem;margin-top:3px">Please enter a valid URL (starting with http:// or https://).</div>
-              <div id="rmcAiPrefillStatus" style="display:none;font-size:.78rem;margin-top:4px"></div>
             </div>
           </div>
-          <div style="font-size:.8rem;color:#666;margin:8px 0 6px">Mark each step: <b>Followed</b> / <b>Needs Coaching</b> / <b>N/A</b>. N/A is excluded from Adherence. AI pre-fill is a starting point — review and correct before saving.</div>
+          <div style="font-size:.8rem;color:#666;margin:8px 0 6px">Mark each step: <b>Followed</b> / <b>Needs Coaching</b> / <b>N/A</b>. N/A is excluded from Adherence.</div>
           <div id="rmcChecklist"></div>
           <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:14px">
             <div class="stat-card" style="flex:1;min-width:170px"><div class="label">Rainmaker Adherence</div><div class="value" id="rmcAdherenceLive">—</div><div class="sublabel">Followed ÷ applicable (N/A excluded)</div></div>
@@ -1595,7 +1595,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-09-coaching-log-redesign-PROD-v62";
+const APEX_BUILD = "2026-09-24-roster-tl-demotions-PROD-v66";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -1638,13 +1638,10 @@ const SEED_TL_EMAILS = {
   'kailelaquindanum@homeaglowsalestwo.com':{display:'TL Kaii',    fullName:'Kaile Laquindanum',      cluster:'Jubee'},
   'leoniedeonaga@homeaglowsalesone.com':   {display:'TL Lei',     fullName:'Leonie Deonaga',         cluster:'Jubee'},
   'kennethhistoriador@homeaglowsales.com': {display:'TL Kenneth', fullName:'Kenneth Historiador Jr.',cluster:'Jubee'},
-  'krizelletaino@homeaglowsalesone.com':   {display:'TL Krizelle',fullName:'Krizelle Taiño',         cluster:'Jubee'},
-  'euniceolaguer@homeaglowsalestwo.com':   {display:'TL Eunice',  fullName:'Eunice Olaguer',         cluster:'Jubee'},
   // TL Anna — mapping is live (agents map to her), but her LOGIN email is NOT yet confirmed.
   // The key below is a flagged placeholder, NOT a real credential: it can never match a typed
   // Homeaglow login. Replace it with her confirmed email to enable her TL sign-in.
   'PENDING_LOGIN_EMAIL::anna-pascual':     {display:'TL Anna',    fullName:'Anna Pascual',           cluster:'Jubee'},
-  'jovanjalandoni@homeaglowsales.com':     {display:'TL Jovan',   fullName:'Jovan Philip Jalandoni', cluster:'Arielle'},
   'jaydimiranda@homeaglowsalestwo.com':    {display:'TL Jaydi',   fullName:'Jaydi Miranda',          cluster:'Arielle'},
   'mariaglaizasy@homeaglowsales.com':      {display:'TL Glai',    fullName:'Maria Glaiza Sy',        cluster:'Arielle'},
   'catherinefuente@homeaglowsales.com':    {display:'TL Cath',    fullName:'Catherine Dela Fuente',  cluster:'Arielle'},
@@ -1653,7 +1650,6 @@ const SEED_TL_EMAILS = {
   'mayclaveron@homeaglowsales.com':        {display:'TL Mhae',     fullName:'May Claveron',           cluster:'Kendryck'},
   'karlovalencia@homeaglowsalestwo.com':   {display:'TL Karlo',    fullName:'Karlo Miccolai Valencia',cluster:'Kendryck'},
   'basilllamedo@homeaglowsales.com':       {display:'TL Barbie',   fullName:'Basil Llamedo',          cluster:'Kendryck'},
-  'henrielyn@homeaglowsales.com':          {display:'TL Henrielyn',fullName:'Henrielyn Makiling',          cluster:'Kendryck'},
   'asherbalway@homeaglowsalestwo.com':     {display:'TL Asher',   fullName:'Asher Jessica Faith Balway',   cluster:'Kendryck'},
   // TL Nikka — consolidated identity (formerly also shown as "Nikka Tejana"). Confirmed login email.
   'nikkatejana@homeaglowsales.com':        {display:'TL Nikka',   fullName:'Nikka Tejana',                 cluster:'Kendryck'},
@@ -3759,7 +3755,7 @@ function iaTrendSVG(points, meta){
   flush();
   // dots + x labels (each point = one coaching session)
   points.forEach((p,i)=>{ const xx=X(i);
-    if(p.value!=null){ svg+=`<circle cx="${xx}" cy="${Y(p.value)}" r="4" fill="#2f6fd6" stroke="#1c4a99" stroke-width="1"/>`;
+    if(p.value!=null){ svg+=`<circle cx="${xx}" cy="${Y(p.value)}" r="4" fill="#2f6fd6" stroke="#1c4a99" stroke-width="1">${p.tip?`<title>${esc(p.tip)}</title>`:''}</circle>`;
       svg+=`<text x="${xx}" y="${Y(p.value)-9}" text-anchor="middle" font-size="9.5" fill="#555" font-weight="700">${Number(p.value).toFixed(meta.dp)}</text>`; }
     else { svg+=`<circle cx="${xx}" cy="${H-padB}" r="2.5" fill="#ccc"/>`; }
     svg+=`<text x="${xx}" y="${H-padB+16}" text-anchor="middle" font-size="9.5" fill="#888">${esc(p.label||'')}</text>`;
@@ -3827,8 +3823,8 @@ function renderAgentProgress(){
     const curLim = cur.limiter ? (cur.callObjLimiter?`${cur.limiter} — ${cur.callObjLimiter}`:cur.limiter):'—';
     const arrow='<div class="cl-impact-arrow">→</div>';
     const stepSession = `<div class="cl-impact-step"><div class="cl-l">📅 ${esc(fmtCoachingDate(cur.dateOfCoaching)||'—')}</div><div class="cl-v" style="margin-top:4px">Coaching Session</div><div style="font-size:.72rem;color:#8a93a6;margin-top:4px">Focus:<br>${esc(curLim)}</div></div>`;
-    const stepBefore = `<div class="cl-impact-step"><div class="cl-l">📊 Before (${esc(prev.wkNumber||'')})</div><div class="cl-v" style="margin-top:4px">${esc(focus)}: ${iaFmt(bV,fMeta)}</div>${rmB!=null?`<div class="cl-v">Rainmaker: ${iaFmt(rmB,rmMeta)}</div>`:''}</div>`;
-    const stepAfter = `<div class="cl-impact-step"><div class="cl-l">📈 After (${esc(cur.wkNumber||'')})</div><div class="cl-v" style="margin-top:4px">${esc(focus)}: ${iaFmt(cV,fMeta)}${dlt(bV,cV,'pts')}</div>${rmC!=null?`<div class="cl-v">Rainmaker: ${iaFmt(rmC,rmMeta)}${dlt(rmB,rmC,'pts')}</div>`:''}</div>`;
+    const stepBefore = `<div class="cl-impact-step"><div class="cl-l">📊 Before</div><div class="cl-v" style="margin-top:4px">${esc(focus)} · 4W Avg ending ${perfWeekTag(prev.wkNumber,1)||'—'}: ${iaFmt(bV,fMeta)}</div>${rmB!=null?`<div class="cl-v">Rainmaker (actual review): ${iaFmt(rmB,rmMeta)}</div>`:''}</div>`;
+    const stepAfter = `<div class="cl-impact-step"><div class="cl-l">📈 After</div><div class="cl-v" style="margin-top:4px">${esc(focus)} · 4W Avg ending ${perfWeekTag(cur.wkNumber,1)||'—'}: ${iaFmt(cV,fMeta)}${dlt(bV,cV,'pts')}</div>${rmC!=null?`<div class="cl-v">Rainmaker (actual review): ${iaFmt(rmC,rmMeta)}${dlt(rmB,rmC,'pts')}</div>`:''}</div>`;
     const stepResult = `<div class="cl-impact-step" style="background:#f4faf6;border-color:#cde8d5"><div class="cl-l">🏆 Result</div><div class="cl-v" style="margin-top:4px;color:${fCh.color};font-size:.95rem">${fCh.arrow} ${esc(fCh.word)}</div><div style="font-size:.7rem;color:#8a93a6;margin-top:3px">Performance after coaching</div></div>`;
     impactInner = `<div class="cl-impact-row">${stepSession}${arrow}${stepBefore}${arrow}${stepAfter}${arrow}${stepResult}</div>
       <div style="font-size:.7rem;color:#aab1c0;margin-top:8px">Shows performance <b>after</b> coaching — association over time, not proof that coaching caused the change.</div>`;
@@ -3841,10 +3837,10 @@ function renderAgentProgress(){
     {m:'Leads Touched', before:iaMetricValue(eFirst,'LT',rmMap), current:iaMetricValue(eLast,'LT',rmMap), goal:'—', meta:iaMetricMeta('LT')},
   ];
   const rmRange = range.filter(e=>rmMap[String(e.id)]);
-  if(rmRange.length){ rows.push({m:'Rainmaker Score', before:rmAdherence(rmMap[String(rmRange[0].id)]).pct, current:rmAdherence(rmMap[String(rmRange[rmRange.length-1].id)]).pct, goal:'85%', meta:iaMetricMeta('RM')}); }
+  if(rmRange.length){ rows.push({m:'Rainmaker (actual review)', before:rmAdherence(rmMap[String(rmRange[0].id)]).pct, current:rmAdherence(rmMap[String(rmRange[rmRange.length-1].id)]).pct, goal:'85%', meta:iaMetricMeta('RM')}); }
   let pvp = `<h4>Performance vs Previous</h4>
     <div class="cl-tablewrap"><table class="cl-table" style="font-size:.83rem">
-    <thead><tr><th>Metric</th><th>Before Coaching<br><span style="font-weight:600;text-transform:none;color:#c3ccdb">(${esc(eFirst.wkNumber||'—')})</span></th><th>Current<br><span style="font-weight:600;text-transform:none;color:#c3ccdb">(${esc(eLast.wkNumber||'—')})</span></th><th>Goal</th><th>Change</th></tr></thead><tbody>`;
+    <thead><tr><th>Metric</th><th>Before Coaching<br><span style="font-weight:600;text-transform:none;color:#c3ccdb">4W Avg ending ${perfWeekTag(eFirst.wkNumber,1)||'—'}</span></th><th>Current<br><span style="font-weight:600;text-transform:none;color:#c3ccdb">4W Avg ending ${perfWeekTag(eLast.wkNumber,1)||'—'}</span></th><th>Goal</th><th>Change</th></tr></thead><tbody>`;
   rows.forEach(r=>{ const ch=iaChange(r.before,r.current,r.meta.kind);
     const delta=(r.before!=null&&r.current!=null)?((r.current-r.before>=0?'+':'')+(r.current-r.before).toFixed(r.meta.dp)+(r.meta.kind==='rate'?'%':'')):'';
     pvp += `<tr><td style="font-weight:700">${esc(r.m)}</td>
@@ -3853,13 +3849,20 @@ function renderAgentProgress(){
       <td style="color:#8a93a6">${esc(r.goal)}</td>
       <td style="color:${ch.color};font-weight:800;white-space:nowrap">${ch.arrow} ${esc(delta||ch.word)}</td></tr>`; });
   pvp += `</tbody></table></div>`;
+  pvp += `<div style="font-size:.72rem;color:#9aa3b4;margin-top:8px">TCR, CSR and Leads Touched are <b>4-week trailing averages</b> ending the week shown. Rainmaker is the actual review, not a 4-week average.</div>`;
   if(all.length<2){ pvp += `<div style="font-size:.74rem;color:#a76a10;margin-top:8px">Only one coaching session on record — before/after uses that single session until a second exists.</div>`; }
 
   // ── Trend (one chart; metric pills switch the SAME chart) ──
   // v61: ONE point per unique WK (chronological). Duplicate coaching records in the same WK collapse to
   // that week's latest-valid snapshot; the underlying entries are untouched (still shown in the log).
   const weekGroups = iaWeekGroups(range);
-  const pts = weekGroups.map(g=>({ label:'WK'+g.wk, sub:fmtCoachingDate(iaWeekRepEntry(g).dateOfCoaching)||'', value:iaWeekMetricValue(g, metric, rmMap) }));
+  const pts = weekGroups.map(g=>{
+    const pw=g.wk-1;   // performance week (ending week of the trailing window)
+    const tip = (metric==='RM')
+      ? ('Rainmaker review · WK'+pw)                                   // actual review, NOT a 4-week average
+      : ('4-Week Avg ending WK'+pw+' · WK'+(g.wk-4)+'–WK'+pw);        // trailing window made explicit
+    return { label:(perfWeekTag(g.wk,1)||('WK'+g.wk)), sub:fmtCoachingDate(iaWeekRepEntry(g).dateOfCoaching)||'', value:iaWeekMetricValue(g, metric, rmMap), tip };
+  });
   const rmCount = pts.filter(p=>p.value!=null).length;
   let trendInner;
   if(metric==='RM' && rmCount<2){
@@ -3870,7 +3873,8 @@ function renderAgentProgress(){
       <h4 style="margin:0">Trend <span style="font-weight:600;color:#9aa3b4;font-size:.8rem">(Last ${N} Weeks)</span></h4>
       <div class="cl-pills">${pill('TCR','TCR')}${pill('CSR','CSR')}${pill('LT','Leads Touched')}${pill('RM','Rainmaker')}</div>
     </div>
-    <div style="font-weight:800;color:#1a2a44;margin-bottom:4px;font-size:.9rem">${esc(meta.label)} Trend</div>
+    <div style="font-weight:800;color:#1a2a44;margin-bottom:4px;font-size:.9rem">${esc(meta.label)} Trend${metric!=='RM'?' — 4-Week Trailing Average':''}</div>
+    <div style="font-size:.72rem;color:#9aa3b4;margin-bottom:6px">${metric==='RM'?'Each point = the actual Rainmaker review for that week (not a 4-week average).':'Each point = 4-week trailing average ending the week shown — hover a point for its WK window.'}</div>
     ${trendInner}`;
 
   // ── Latest Coaching Details (+ View Full Log via existing viewEntry) ──
@@ -3924,6 +3928,22 @@ function applyLogFilters(list) {
   });
 }
 function wkNum(e){ return parseInt(String(e && e.wkNumber || '').replace(/\D/g,'')) || 0; }
+// v63 — Performance-week labels derived from the coaching record's Coaching Week (the anchor),
+// NEVER from today's date. Trailing/curing rows are stored by POSITION only, so row k (1-based)
+// represents Coaching Week − k (Week 1 = most recent = cw−1). Pure in-memory display; 0 SheetDB.
+// The cw→cw−k map is bijective, so using it as a label/grouping key never changes any average,
+// dedup, or point count — it only shows the true performance WK number.
+function perfWeekNum(cw, k){ const n = parseInt(String(cw==null?'':cw).replace(/\D/g,'')) || 0; return n>0 ? (n-k) : 0; }
+function perfWeekTag(cw, k){ const w = perfWeekNum(cw, k); return w>0 ? ('WK'+w) : ''; }
+// Relabels the coaching FORM's 4-week trailing rows (3 tables) + 5-week WK1 CVR rows from fWK.
+// Called whenever the Coaching Week can change (date change) or the form is (re)populated.
+function relabelPerfWeeks(){
+  const cw = (document.getElementById('fWK')||{}).value || '';
+  const t4 = k => { const tag=perfWeekTag(cw,k); return (tag?tag+' — ':'')+'Week '+k+(k===1?' (Most Recent)':''); };
+  ['LT','CC','S'].forEach(p=>{ for(let k=1;k<=4;k++){ const el=document.getElementById('pw'+p+k); if(el) el.textContent=t4(k); } });
+  const cvSub={1:' (Curing Week)',2:' (Most Recent Cured Week)'};
+  for(let k=1;k<=5;k++){ const el=document.getElementById('pwCV'+k); if(el){ const tag=perfWeekTag(cw,k); el.textContent=(tag?tag+' — ':'')+'Week '+k+(cvSub[k]||''); } }
+}
 // Display a saved coaching date as YYYY-MM-DD WITHOUT any timezone conversion.
 // Accepts "2026-08-16" (ISO, optionally with time) or "8/16/2026" (US). Never invents a date.
 function fmtCoachingDate(v){
@@ -4026,6 +4046,7 @@ function onCoachingDateChange(){
   const val = 'WK' + wk;
   ensureWkOption(wkEl, val);
   wkEl.value = val;
+  relabelPerfWeeks();   // v63: performance-week labels follow the Coaching Week immediately
 }
 // Dynamically find the latest N valid week numbers present in a list (no hardcoding).
 function latestWeeks(list, n){
@@ -4173,13 +4194,10 @@ const DC_TL_SCHEDULES = [
   { email:'rafaelmanansala@homeaglowsales.com',    disp:'TL RB',       cluster:'Jubee',    days:{1:1,2:2,3:3,4:4,5:5} },                 // RD Sat-Sun
   { email:'kennethhistoriador@homeaglowsales.com', disp:'TL Kenneth',  cluster:'Jubee',    days:{0:1,1:2,2:3,3:4,4:5} },                 // RD Fri-Sat
   { email:'leoniedeonaga@homeaglowsalesone.com',   disp:'TL Lei',      cluster:'Jubee',    days:{3:1,4:2,5:3,6:4,0:5} },                 // RD Mon-Tue
-  { email:'euniceolaguer@homeaglowsalestwo.com',   disp:'TL Eunice',   cluster:'Jubee',    days:{6:1,0:2,1:3,2:4,3:5} },                 // RD Thu-Fri
   { email:'PENDING_LOGIN_EMAIL::anna-pascual',     disp:'TL Anna',     cluster:'Jubee',    days:{4:1,5:2,6:3,0:4,1:5} },                 // RD Tue-Wed
-  { email:'krizelletaino@homeaglowsalesone.com',   disp:'TL Krizelle', cluster:'Jubee',    days:{3:1,4:2,5:3,6:4,0:5} },                 // RD Mon-Tue
   { email:'kailelaquindanum@homeaglowsalestwo.com',disp:'TL Kaii',     cluster:'Jubee',    days:{1:1,2:2,3:3,4:4,5:5} },                 // Mon-Fri (D1=Mon..D5=Fri), RD Sat-Sun
   // ── CLUSTER ARIELLE (confirmed updated) ──
   { email:'mariaglaizasy@homeaglowsales.com',      disp:'TL Glai',     cluster:'Arielle',  days:{5:1,6:2,0:3,1:4,2:5} },                 // RD Wed-Thu
-  { email:'jovanjalandoni@homeaglowsales.com',     disp:'TL Jovan',    cluster:'Arielle',  days:{4:1,5:2,6:3,0:4,1:5} },                 // RD Tue-Wed
   { email:'catherinefuente@homeaglowsales.com',    disp:'TL Cath',     cluster:'Arielle',  days:{3:1,4:2,5:3,6:4,0:5} },                 // RD Mon-Tue
   { email:'kimberlysabandal@homeaglowsalestwo.com',disp:'TL Kim',      cluster:'Arielle',  days:{5:1,6:2,0:3,1:4,2:5} },                 // RD Wed-Thu
   { email:'jaydimiranda@homeaglowsalestwo.com',    disp:'TL Jaydi',    cluster:'Arielle',  days:{2:1,3:2,4:3,5:4,6:5} },                 // RD Sun-Mon
@@ -4188,7 +4206,6 @@ const DC_TL_SCHEDULES = [
   { email:'mayclaveron@homeaglowsales.com',        disp:'TL Mhae',     cluster:'Kendryck', days:{2:1,3:2,4:3,5:4,6:5} },                 // RD Sun-Mon  (TL May)
   { email:'basilllamedo@homeaglowsales.com',       disp:'TL Barbie',   cluster:'Kendryck', days:{6:1,0:2,1:3,2:4,3:5} },                 // RD Thu-Fri
   { email:'asherbalway@homeaglowsalestwo.com',     disp:'TL Asher',    cluster:'Kendryck', days:{0:1,1:2,2:3,3:4,4:5} },                 // RD Fri-Sat
-  { email:'henrielyn@homeaglowsales.com',          disp:'TL Henrielyn',cluster:'Kendryck', days:{5:1,6:2,0:3,1:4,2:5} },                 // RD Wed-Thu  (TL Henrie)
   { email:'karlovalencia@homeaglowsalestwo.com',   disp:'TL Karlo',    cluster:'Kendryck', days:{6:1,0:2,1:3,2:4,3:5} },                 // RD Thu-Fri
   { email:'nikkatejana@homeaglowsales.com',        disp:'TL Nikka',    cluster:'Kendryck', days:{0:1,1:2,2:3,3:4,4:5} },                 // RD Fri-Sat
 ];
@@ -5661,6 +5678,7 @@ function calcTenure() {
   badge.textContent = tenure;
 }
 function calcPerf() {
+  relabelPerfWeeks();   // v63: keep trailing-row WK labels in sync (also covers form populate on edit)
   let totalLT=0,totalCC=0,totalS=0,validRows=0;
   const tcrVals=[], csrVals=[], cvrVals=[];
   for(let i=1;i<=4;i++){
@@ -5697,6 +5715,7 @@ function calcPerf() {
 // WK1 CVR = Sales / Leads Received (2 dp). Sales Deficit = MAX(0, CEILING(Leads×10%) − Sales).
 // Blank/zero Leads Received renders "—" (never NaN/Infinity). Read-only cells.
 function calcWk1Cvr5() {
+  relabelPerfWeeks();   // v63: keep 5-week WK1 CVR row labels in sync with the Coaching Week
   for (let i=1;i<=5;i++){
     const lrEl=document.getElementById('wcLR'+i), sEl=document.getElementById('wcS'+i);
     const cvrEl=document.getElementById('wcCVR'+i), defEl=document.getElementById('wcDEF'+i);
@@ -6721,46 +6740,6 @@ function rmcRecalc(){
   const airErr = document.getElementById('rmcAircallErr');
   if (air && airErr) airErr.style.display = rmValidUrl(air.value.trim()) ? 'none' : 'block';
 }
-
-// ── AI Pre-fill (Aircall Behavior Scorer integration) ───────────────────────
-// Calls the separately-deployed Aircall Behavior Scorer (a Homeaglow internal
-// tool that scores a synced call transcript against the Rainmaker Script)
-// and pours its result straight into this SAME checklist via the existing
-// rmcSetChecklist()/rmcRecalc() — makes 0 Firestore/SheetDB requests itself.
-// Token is a shared-abuse-deterrent, not a real secret (visible in page
-// source like any static-frontend credential, e.g. the Firebase apiKey
-// above) — real protection is server-side rate/cost limits on that app.
-const RM_AI_PREFILL_URL = 'https://vercel-app-clayton-7053.vercel.app/api/rainmaker/prefill';
-const RM_AI_PREFILL_TOKEN = 'bf18b9d1e3703a74c893e700e891430cecf1647868ad5cf2';
-async function rmcAiPrefill(){
-  const btn = document.getElementById('rmcAiPrefillBtn');
-  const statusEl = document.getElementById('rmcAiPrefillStatus');
-  const air = document.getElementById('rmcAircall');
-  const url = (air && air.value || '').trim();
-  if (!url || !rmValidUrl(url)){
-    if (statusEl){ statusEl.style.display='block'; statusEl.style.color='#c62828'; statusEl.textContent='Enter a valid Aircall call link above first.'; }
-    return;
-  }
-  if (btn) btn.disabled = true;
-  if (statusEl){ statusEl.style.display='block'; statusEl.style.color='#666'; statusEl.textContent='Scoring transcript against the Rainmaker Script…'; }
-  try {
-    const resp = await fetch(RM_AI_PREFILL_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Integration-Token': RM_AI_PREFILL_TOKEN },
-      body: JSON.stringify({ aircallUrl: url })
-    });
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.message || ('HTTP ' + resp.status));
-    rmcSetChecklist(data.checklist || {});
-    rmcRecalc();
-    rmcToggleBody(true);
-    if (statusEl){ statusEl.style.color='#2f7a3c'; statusEl.textContent='✓ Pre-filled from AI scoring — review each step before saving.'; }
-  } catch(e){
-    if (statusEl){ statusEl.style.color='#c62828'; statusEl.textContent='AI pre-fill failed: ' + (e.message || String(e)); }
-  }
-  if (btn) btn.disabled = false;
-}
-
 // Live cured 4-week WK1 CVR average from the curing-table inputs (NEW entries only).
 function rmcLiveCuredAvg(){
   const arr = [1,2,3,4,5].map(n => ({ lr:(document.getElementById('wcLR'+n)||{}).value||'', s:(document.getElementById('wcS'+n)||{}).value||'' }));
@@ -7512,7 +7491,7 @@ function viewEntry(id) {
   if (!e) return;
   const perf = (e.perfData||[]).map((r,i)=>`
     <tr>
-      <td>Week ${i+1}</td>
+      <td>${perfWeekTag(e.wkNumber,i+1)?perfWeekTag(e.wkNumber,i+1)+' — ':''}Week ${i+1}${i===0?' (Most Recent)':''}</td>
       <td>${r.lt||'—'}</td><td>${r.cc||'—'}</td><td>${r.s||'—'}</td>
       <td>${r.lt>0?(parseFloat(r.cc||0)/parseFloat(r.lt)*100).toFixed(1)+'%':'—'}</td>
       <td>${r.cc>0?(parseFloat(r.s||0)/parseFloat(r.cc)*100).toFixed(1)+'%':'—'}</td>
@@ -7795,7 +7774,8 @@ function agentWk1Cvr5Html(e){
     const cvr = hasLR ? (sales/lr*100).toFixed(2)+'%' : '—';
     const def = hasLR ? String(Math.max(0, Math.ceil(lr*0.10) - sales)) : '—';
     if (i>=1 && hasLR) cured.push(sales/lr*100);
-    return `<tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left">${labels[i]||('Week '+(i+1))}</td><td style="padding:4px 8px;border:1px solid #eee">${(r.lr!=null&&String(r.lr).trim()!=='')?rmEsc(String(r.lr)):'—'}</td><td style="padding:4px 8px;border:1px solid #eee">${(r.s!=null&&String(r.s).trim()!=='')?rmEsc(String(r.s)):'—'}</td><td style="padding:4px 8px;border:1px solid #eee">${cvr}</td><td style="padding:4px 8px;border:1px solid #eee">${def}</td></tr>`;
+    const _lbl = (perfWeekTag(e.wkNumber,i+1)?perfWeekTag(e.wkNumber,i+1)+' — ':'')+(labels[i]||('Week '+(i+1)));
+    return `<tr><td style="padding:4px 8px;border:1px solid #eee;text-align:left;white-space:normal;overflow:visible;text-overflow:clip">${_lbl}</td><td style="padding:4px 8px;border:1px solid #eee">${(r.lr!=null&&String(r.lr).trim()!=='')?rmEsc(String(r.lr)):'—'}</td><td style="padding:4px 8px;border:1px solid #eee">${(r.s!=null&&String(r.s).trim()!=='')?rmEsc(String(r.s)):'—'}</td><td style="padding:4px 8px;border:1px solid #eee">${cvr}</td><td style="padding:4px 8px;border:1px solid #eee">${def}</td></tr>`;
   }).join('');
   const curedAvg = cured.length ? (cured.reduce((a,b)=>a+b,0)/cured.length) : null;
   const avgRow = `<tr style="background:#fffbef;font-weight:700"><td style="padding:4px 8px;border:1px solid #eee;text-align:left">4-Week Avg (Cured Weeks 2–5)</td><td style="padding:4px 8px;border:1px solid #eee">—</td><td style="padding:4px 8px;border:1px solid #eee">—</td><td style="padding:4px 8px;border:1px solid #eee">${curedAvg!=null?curedAvg.toFixed(2)+'%':'—'}</td><td style="padding:4px 8px;border:1px solid #eee">—</td></tr>`;
@@ -8141,7 +8121,7 @@ function openCommitmentView(entryId) {
   const star = e.star || {};
   const perfRows = (e.perfData || []).map((p,i) => `
     <tr>
-      <td style="padding:5px 8px;border:1px solid #ddd;font-weight:600">Week ${i+1}</td>
+      <td style="padding:5px 8px;border:1px solid #ddd;font-weight:600">${perfWeekTag(e.wkNumber,i+1)?perfWeekTag(e.wkNumber,i+1)+' — ':''}Week ${i+1}${i===0?' (Most Recent)':''}</td>
       <td style="padding:5px 8px;border:1px solid #ddd">${p.lt||'—'}</td>
       <td style="padding:5px 8px;border:1px solid #ddd">${p.cc||'—'}</td>
       <td style="padding:5px 8px;border:1px solid #ddd">${p.sales||p.s||'—'}</td>
