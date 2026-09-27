@@ -509,6 +509,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <button id="navSomHealth" onclick="showView('somhealth')" style="display:none">🩺 SOM Health Check</button>
     <button id="navStorageUsage" onclick="showView('storageusage')" style="display:none">📦 Storage & Usage</button>
     <button id="navWeeklySales" onclick="showView('weeklysales')" style="display:none">📊 Weekly TL Write-Up</button>
+    <button id="navWeeklyTLSummary" onclick="showView('weeklytlsummary')" style="display:none">📈 Weekly TL Write-Up Summary</button>
     <!-- NTE top-level tab removed from the UI (data + functions retained/dormant; NTE Logs sheet untouched). -->
   </nav>
   <main>
@@ -740,6 +741,35 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div id="wsrFilterPills" class="wsr-pills" style="display:none"></div>
       <div id="wsrBody"></div>
       <div id="wsrNote" style="font-size:.72rem;color:#7a8aa0;margin-top:16px"></div>
+    </div>
+    <!-- ══════════ v68 — WEEKLY TL WRITE-UP SUMMARY (leadership-only) ══════════ -->
+    <div id="viewWeeklyTLSummary" style="display:none">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <h1 class="cl-pagetitle">Weekly TL Write-Up Summary</h1>
+          <div class="cl-pagesub" id="wsumHeaderSub">Consolidated leadership view of TL-reported sales movement — copy-ready for your weekly write-up.</div>
+        </div>
+      </div>
+      <div class="filter-bar" style="margin-top:14px">
+        <div>
+          <label>Review Week</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn-add" style="padding:6px 11px" onclick="wsumWeekStep(-1)">‹ Prev</button>
+            <select id="wsumWeek" onchange="wsumOnWeekChange()" style="min-width:110px"></select>
+            <button class="btn-add" style="padding:6px 11px" onclick="wsumWeekStep(1)">Next ›</button>
+            <button class="btn-add" style="padding:6px 11px" onclick="wsumThisWeek()">This Week</button>
+          </div>
+        </div>
+        <div id="wsumClusterWrap"><label>Cluster</label><select id="wsumCluster" onchange="wsumOnClusterChange()"><option value="">All Clusters</option></select></div>
+        <div id="wsumTLWrap"><label>Team Lead</label><select id="wsumTL" onchange="wsumRender()"><option value="">All TLs</option></select></div>
+        <div><label>Movement</label><select id="wsumMovement" onchange="wsumRender()">
+          <option value="">All Movement</option><option value="decreased">Decreased</option><option value="increased">Increased</option><option value="nochange">No Change</option>
+        </select></div>
+        <div><label>Primary Driver</label><select id="wsumDriver" onchange="wsumRender()"><option value="">All Drivers</option></select></div>
+      </div>
+      <div id="wsumSummary" style="margin-bottom:14px"></div>
+      <div id="wsumBody"></div>
+      <div id="wsumNote" style="font-size:.72rem;color:#7a8aa0;margin-top:16px"></div>
     </div>
     <div id="viewLog" style="display:none">
       <!-- ══ COACHING LOG (v60 mockup redesign) — two independent areas: Team Coaching Log + Individual
@@ -1434,6 +1464,14 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
     </div>
   </div>
 </div>
+<!-- v68 — read-only TL write-up viewer for the leadership summary -->
+<div class="modal-overlay" id="wsumViewModal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header"><h3 id="wsumVwTitle">TL Write-Up</h3><button class="modal-close" onclick="closeModal('wsumViewModal')">✕</button></div>
+    <div class="modal-body" id="wsumVwBody"></div>
+    <div class="modal-footer"><button class="btn-add" style="background:#8a8f98;color:#fff" onclick="closeModal('wsumViewModal')">Close</button></div>
+  </div>
+</div>
 <div class="modal-overlay" id="viewModal">
   <div class="modal">
     <div class="modal-header">
@@ -1711,7 +1749,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-27-weekly-sales-review-PROD-v67";
+const APEX_BUILD = "2026-09-27-weekly-tl-summary-PROD-v68";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -3043,6 +3081,7 @@ function initApp() {
   { const su=document.getElementById('navStorageUsage'); if(su) su.style.display = suCanAccess(currentUser) ? 'inline-block' : 'none'; }
   // v67: Weekly Sales Review — TL/OM/SOM/Director (Agent/Admin hidden).
   { const ws=document.getElementById('navWeeklySales'); if(ws) ws.style.display = wsrCanAccess(currentUser) ? 'inline-block' : 'none'; }
+  { const ws=document.getElementById('navWeeklyTLSummary'); if(ws) ws.style.display = wsrSumCanAccess(currentUser) ? 'inline-block' : 'none'; }
   // v39: legacy bulk "Migrate roster" button is removed and hard-disabled. Never show it, even if a
   // stale element is present in a cached DOM.
   const bm=document.getElementById('btnMigrate');
@@ -3141,6 +3180,7 @@ function sbBuildModel(){
   if(canManageRoster()) mgmt.push({ic:'👥',label:'Roster',action:'openRosterManager'});
   if(weeklyStatusCanAccess(u)) mgmt.push({ic:'👥',label:'Weekly Agent Status',view:'weeklystatus'});
   if(wsrCanAccess(u)) mgmt.push({ic:'📊',label:'Weekly TL Write-Up',view:'weeklysales'});
+  if(wsrSumCanAccess(u)) mgmt.push({ic:'📈',label:'Weekly TL Write-Up Summary',view:'weeklytlsummary'});
   if(somCanAccess(u))   mgmt.push({ic:'🩺',label:'SOM Health Check',view:'somhealth'});
   if(suCanAccess(u))    mgmt.push({ic:'📦',label:'Storage & Usage',view:'storageusage'});
   return {coaching,mgmt};
@@ -3229,6 +3269,7 @@ function showView(view) {
   setDisp('viewStorageUsage', view==='storageusage');         // v46
   setDisp('viewWeeklyStatus', view==='weeklystatus');         // v54
   setDisp('viewWeeklySalesReview', view==='weeklysales');     // v67
+  setDisp('viewWeeklyTLSummary', view==='weeklytlsummary');   // v68
   setAct('navDashboard', view==='dashboard');
   setAct('navLog',       view==='log');
   setAct('navNTE',       view==='nte');              // guarded — button removed from UI
@@ -3248,6 +3289,7 @@ function showView(view) {
   // v54: Weekly Agent Status (OM/SOM/Director). Guard + render from in-memory roster + cached week doc.
   if (view==='weeklystatus' && typeof openWeeklyStatusTool==='function') openWeeklyStatusTool();
   if (view==='weeklysales' && typeof openWeeklySalesReview==='function') openWeeklySalesReview();   // v67
+  if (view==='weeklytlsummary' && typeof openWeeklyTLSummary==='function') openWeeklyTLSummary();   // v68
   if (typeof sbSetActive==='function') sbSetActive(view);   // v51: sync sidebar active highlight
 }
 function onClusterChange() {
@@ -6260,7 +6302,7 @@ const WSR_IMPROVE_DRIVERS = [
   ['faster_stl','Faster Speed to Lead'],['higher_tcr','Higher TCR'],['higher_csr','Higher CSR'],['better_wk1cvr','Improved WK1 CVR'],
   ['better_pipelining','Better Pipelining / Follow-Up'],['better_callback','Better Callback Execution'],['ot','OT Participation'],
   ['coaching','Coaching Improvement Observed'],['rainmaker','Rainmaker / Script Improvement'],['better_discovery','Better Discovery'],
-  ['better_objection','Better Objection Handling'],['better_offer','Better Offer Handling'],['attendance_up','Improved Attendance'],['other','Other'] ];
+  ['better_objection','Better Objection Handling'],['better_offer','Better Offer Handling'],['attendance_up','Improved Attendance / More Working Hours'],['other','Other'] ];
 function wsrDriverLabel(key, movement){
   const list = movement==='increased'?WSR_IMPROVE_DRIVERS:WSR_DECLINE_DRIVERS;
   const hit=list.find(d=>d[0]===key); if(hit) return hit[1];
@@ -6494,7 +6536,10 @@ function wsrStatusChip(s){ if(s==='completed') return '<span class="wsr-statuspi
 function wsrShortRange(wk){ return wkDateRangeLabel(wk).replace(/,\s*\d{4}$/,''); }
 function wsrSetFilter(f){ wsrState.filter=f; wsrRender(); }
 function wsrScard(l,v,s,color){ return '<div class="wsr-scard"><div class="l">'+escHtml(l)+'</div><div class="v"'+(color?(' style="color:'+color+'"'):'')+'>'+v+'</div>'+(s?'<div class="s">'+escHtml(s)+'</div>':'')+'</div>'; }
-function wsrWriteScard(l,doneWU,reqWU){ const pct=reqWU>0?Math.round(doneWU/reqWU*100):100; return '<div class="wsr-scard"><div class="l">'+escHtml(l)+'</div><div class="v">'+doneWU+' / '+reqWU+'</div><div class="wsr-prog"><span style="width:'+pct+'%"></span></div><div class="s" style="text-align:right;font-weight:800;color:#2f9e44">'+pct+'%</div></div>'; }
+function wsrWriteScard(l,doneWU,reqWU){
+  if(reqWU<=0){ return '<div class="wsr-scard"><div class="l">'+escHtml(l)+'</div><div class="v">0 / 0</div><div class="wsr-prog"><span style="width:0%;background:#cfd6dd"></span></div><div class="s">No write-ups required yet</div></div>'; }
+  const pct=Math.round(doneWU/reqWU*100);
+  return '<div class="wsr-scard"><div class="l">'+escHtml(l)+'</div><div class="v">'+doneWU+' / '+reqWU+'</div><div class="wsr-prog"><span style="width:'+pct+'%"></span></div><div class="s" style="text-align:right;font-weight:800;color:#2f9e44">'+pct+'%</div></div>'; }
 function wsrWriteupCell(a, st, editable){
   if(st.nab || !st.mv.complete || st.mv.movement==='nochange') return '';
   if(st.writeUpStatus==='completed') return `<button class="wsr-act-btn wsr-act-view" onclick="wsrOpenWriteup('${wsrJsStr(a.email)}')">${editable?'Edit Write-Up':'View'}</button>`;
@@ -6783,6 +6828,183 @@ async function wsrReopenWeek(wk, action, reason){
   try{ if(SHEETDB_API_URL){ const res=await fetch(SHEETDB_API_URL,{ method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify({ data:[rec], sheet:WSR_REOPEN_COL }) }); if(!res.ok){ alert('Could not '+verb+' the week: '+sheetErrorMessage(res.status)); return { ok:false, error:sheetErrorMessage(res.status) }; } }
     WSR_REOPEN.byWeek[wkKey(wk)]={ action, by:meName, byEmail:me, at:wsrTsOrder(nowIso), atDisplay:nowIso, note:reason }; wsrRender(); return { ok:true };
   }catch(e){ alert('Could not '+verb+' the week — network error.'); return { ok:false, error:'network' }; } finally{ WSR_INFLIGHT.delete(key); }
+}
+// ══════════════════════════════════════════════════════════════════════════════
+// v68 — WEEKLY TL WRITE-UP SUMMARY (leadership-only, read-only, copy-ready)
+// Reuses the v67 records (WSR_CACHE via wsrFetchWeek) — no new SheetDB request types; 1 GET per
+// distinct week viewed (shared with the Weekly TL Write-Up cache). All aggregation/sort/filter/
+// copy is in memory. Never writes.
+// ══════════════════════════════════════════════════════════════════════════════
+function wsrSumCanAccess(u){ u=u||(typeof currentUser!=='undefined'?currentUser:null); return !!u && (u.role==='OM'||u.role==='SOM'||u.role==='Director'); }  // TL/Agent: no
+const wsrSumState = { wk:'', cluster:'', tl:'', movement:'', driver:'' };
+function openWeeklyTLSummary(){
+  const body=document.getElementById('wsumBody');
+  if(!wsrSumCanAccess(currentUser)){ if(body) body.innerHTML='<div class="cp-empty">You do not have access to this page.</div>'; return; }
+  const wkEl=document.getElementById('wsumWeek');
+  if(wkEl && !wkEl.dataset.built){ const cur=wsrCurrentWkNum(); const opts=[]; for(let n=cur+1;n>=cur-25;n--) opts.push('WK'+n); wkEl.innerHTML=opts.map(w=>`<option value="${w}">${w}${w==='WK'+cur?' (Current)':''}</option>`).join(''); wkEl.value='WK'+cur; wkEl.dataset.built='1'; }
+  wsrSumState.wk = wkEl?wkEl.value:currentWkString();
+  wsumSetupClusterTL();
+  wsrFetchWeek(wsrSumState.wk).then(()=>wsumRender());   // reuses cache; 1 GET only if this week not already loaded
+  wsumRender();
+}
+function wsumSetupClusterTL(){
+  const u=currentUser; const clEl=document.getElementById('wsumCluster');
+  if(clEl){ const clusters=[...new Set(Object.values(TL_EMAILS).map(t=>t.cluster))].filter(Boolean).sort();
+    clEl.innerHTML='<option value="">All Clusters</option>'+clusters.map(c=>`<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+    if(u.role==='OM' && u.omInfo){ clEl.value=u.omInfo.cluster; clEl.disabled=true; wsrSumState.cluster=u.omInfo.cluster; } else { clEl.disabled=false; } }
+  wsumPopulateTLFilter();
+}
+function wsumPopulateTLFilter(){
+  const el=document.getElementById('wsumTL'); if(!el) return;
+  let tls=Object.values(TL_EMAILS);
+  if(currentUser.role==='OM' && currentUser.omInfo) tls=tls.filter(t=>t.cluster===currentUser.omInfo.cluster);
+  if(wsrSumState.cluster) tls=tls.filter(t=>t.cluster===wsrSumState.cluster);
+  const seen=new Set(); tls=tls.filter(t=>{ if(!t.display||seen.has(t.display))return false; seen.add(t.display); return true; }).sort((a,b)=>a.display.localeCompare(b.display));
+  const prev=el.value; el.innerHTML='<option value="">All TLs</option>'+tls.map(t=>`<option value="${escHtml(t.display)}">${escHtml(t.display)}</option>`).join(''); if(prev && [...el.options].some(o=>o.value===prev)) el.value=prev; else el.value='';
+  wsrSumState.tl=el.value;
+}
+function wsumOnWeekChange(){ wsrSumState.wk=document.getElementById('wsumWeek').value; if(!WSR_LOADED.has(wkKey(wsrSumState.wk))) wsrFetchWeek(wsrSumState.wk).then(wsumRender); wsumRender(); }
+function wsumWeekStep(d){ const el=document.getElementById('wsumWeek'); const n=wsrWkNumOf(el.value)+d; if(n<=0) return; ensureWkOption(el,'WK'+n); el.value='WK'+n; wsumOnWeekChange(); }
+function wsumThisWeek(){ const el=document.getElementById('wsumWeek'); const w='WK'+wsrCurrentWkNum(); ensureWkOption(el,w); el.value=w; wsumOnWeekChange(); }
+function wsumOnClusterChange(){ wsrSumState.cluster=document.getElementById('wsumCluster').value; wsumPopulateTLFilter(); wsumRender(); }
+// Scope = OM own cluster / dept-wide, plus the Cluster+TL filters. (Movement/Driver applied separately to lists.)
+function wsumScopeStates(){
+  const wk=wsrSumState.wk; const cacheRows=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows)||{};
+  let list=ROSTER.slice(); const u=currentUser;
+  if(u.role==='OM' && u.omInfo) list=list.filter(a=>a.cluster===u.omInfo.cluster);
+  if(wsrSumState.cluster) list=list.filter(a=>a.cluster===wsrSumState.cluster);
+  if(wsrSumState.tl){ const t=Object.values(TL_EMAILS).find(x=>x.display===wsrSumState.tl); list=t?list.filter(a=>a.manager===t.fullName):[]; }
+  return list.map(a=>{ const rid=wsrRecordId(wk,a.email); const saved=cacheRows[rid]||null; const tlDisp=(saved&&saved.tlName)||MANAGER_TO_TL_DISPLAY[a.manager]||a.manager||''; const cluster=(saved&&saved.cluster)||a.cluster||''; return { a, tlDisp, cluster, st:wsrRowState(a,wk,saved,null), saved }; });
+}
+// Additional Movement + Driver narrowing for the detail tables and copy detail lists.
+function wsumApplyListFilters(states){
+  const mv=wsrSumState.movement, drv=wsrSumState.driver;
+  let out=states;
+  if(mv) out=out.filter(x=>!x.st.nab && x.st.mv.complete && x.st.mv.movement===mv);
+  if(drv) out=out.filter(x=>x.saved && x.saved.writeUpForMovement===x.st.mv.movement && x.saved.primaryDriver===drv);
+  return out;
+}
+function wsumPopulateDriverFilter(scope){
+  const el=document.getElementById('wsumDriver'); if(!el) return;
+  const keys=[]; const seen=new Set();
+  scope.forEach(x=>{ if(x.saved && x.st.mv.complete && x.saved.writeUpForMovement===x.st.mv.movement && x.saved.primaryDriver){ if(!seen.has(x.saved.primaryDriver)){ seen.add(x.saved.primaryDriver); keys.push(x.saved.primaryDriver); } } });
+  keys.sort((a,b)=>wsrDriverLabel(a).localeCompare(wsrDriverLabel(b)));
+  const prev=el.value; el.innerHTML='<option value="">All Drivers</option>'+keys.map(k=>`<option value="${escHtml(k)}">${escHtml(wsrDriverLabel(k))}</option>`).join(''); if(prev && keys.indexOf(prev)>=0) el.value=prev; else el.value=''; wsrSumState.driver=el.value;
+}
+// driver counts among COMPLETED write-ups in a movement; pct = of applicable (written-up) agents in that movement.
+function wsumDriverAgg(scope, movement){
+  const counts={}; let applicable=0;
+  scope.forEach(x=>{ if(x.st.nab||!x.st.mv.complete||x.st.mv.movement!==movement) return; if(x.saved && x.saved.writeUpStatus==='completed' && x.saved.writeUpForMovement===movement){ applicable++; counts[x.saved.primaryDriver]=(counts[x.saved.primaryDriver]||0)+1; } });
+  const rows=Object.keys(counts).map(k=>({key:k,label:wsrDriverLabel(k,movement),n:counts[k],pct:applicable>0?Math.round(counts[k]/applicable*100):0})).sort((a,b)=>b.n-a.n);
+  return { rows, applicable };
+}
+function wsumRender(){
+  if(!wsrSumCanAccess(currentUser)) return;
+  // sync filter state from the controls (Movement/TL/Driver selects call wsumRender directly)
+  { const tlEl=document.getElementById('wsumTL'), mvEl=document.getElementById('wsumMovement'), drvEl=document.getElementById('wsumDriver'), clEl=document.getElementById('wsumCluster');
+    if(tlEl) wsrSumState.tl=tlEl.value; if(mvEl) wsrSumState.movement=mvEl.value; if(drvEl) wsrSumState.driver=drvEl.value; if(clEl && !clEl.disabled) wsrSumState.cluster=clEl.value; }
+  const wk=wsrSumState.wk, pwk='WK'+wsrPrevWeekNum(wk);
+  const sub=document.getElementById('wsumHeaderSub'); if(sub) sub.innerHTML=`<b>${escHtml(wk)}</b> · ${escHtml(wsrShortRange(wk))}<br>Comparison: <b>${escHtml(pwk)}</b> · ${escHtml(wsrShortRange(pwk))} &nbsp;→&nbsp; <b>${escHtml(wk)}</b> · ${escHtml(wsrShortRange(wk))}`;
+  const body=document.getElementById('wsumBody'), summ=document.getElementById('wsumSummary');
+  if(!WSR_LOADED.has(wkKey(wk))){ if(body) body.innerHTML='<div class="cp-empty">Loading week…</div>'; if(summ) summ.innerHTML=''; return; }
+  const scope=wsumScopeStates();
+  wsumPopulateDriverFilter(scope);
+  // ── cards (scope; NAB & incomplete excluded from totals/movement) ──
+  let totPrev=0,totCurr=0,dec=0,inc=0,nc=0,reviewed=0,reqWU=0,doneWU=0;
+  scope.forEach(({st})=>{ if(st.nab||!st.mv.complete) return; reviewed++; totPrev+=st.prev; totCurr+=st.curr; if(st.mv.movement==='decreased')dec++; else if(st.mv.movement==='increased')inc++; else nc++; if(st.mv.movement!=='nochange'){ reqWU++; if(st.writeUpStatus==='completed')doneWU++; } });
+  const net=totCurr-totPrev, netColor=net<0?'#c92a2a':(net>0?'#2f9e44':'#868e96');
+  if(summ) summ.innerHTML='<div style="display:flex;gap:12px;flex-wrap:wrap">'
+    + wsrScard('Total Agents Reviewed', reviewed, 'both weeks entered', '#111')
+    + wsrScard('WK'+wsrPrevWeekNum(wk)+' Sales', totPrev, 'previous week', '#111')
+    + wsrScard('WK'+wsrWkNumOf(wk)+' Sales', totCurr, 'current week', '#111')
+    + wsrScard('Net Sales Change', (net>0?'+':'')+net, '', netColor)
+    + wsrScard('Agents Decreased', '<span style="color:#c92a2a">▼</span> '+dec, '', '#c92a2a')
+    + wsrScard('Agents Increased', '<span style="color:#2f9e44">▲</span> '+inc, '', '#2f9e44')
+    + wsrScard('No Change', nc, '', '#868e96')
+    + wsrWriteScard('TL Write-Ups Completed', doneWU, reqWU)
+    + '</div>';
+  // ── driver summaries (scope) ──
+  const decAgg=wsumDriverAgg(scope,'decreased'), incAgg=wsumDriverAgg(scope,'increased');
+  const driverBlock=(title,agg,color)=>{ const rows=agg.rows.length?agg.rows.map(r=>`<div class="wsr-dbar-row"><span class="wsr-dbar-label">${escHtml(r.label)}</span><span class="wsr-dbar-track"><span class="wsr-dbar-fill" style="width:${agg.rows[0].n>0?Math.round(r.n/agg.rows[0].n*100):0}%;background:${color}"></span></span><span class="wsr-dbar-n">${r.n}</span><span style="flex:0 0 46px;text-align:right;color:#888">${r.pct}%</span></div>`).join(''):'<div class="cp-empty">No submitted TL write-ups.</div>';
+    return `<div style="flex:1;min-width:320px"><h3 style="font-size:1rem;margin-bottom:4px">${title}</h3><div style="font-size:.72rem;color:#9aa0a6;margin-bottom:8px">TL-Reported Drivers · % of written-up agents in this movement</div>${rows}</div>`; };
+  // ── detail tables (scope + movement/driver filters) ──
+  const filtered=wsumApplyListFilters(scope);
+  const decRows=filtered.filter(x=>!x.st.nab&&x.st.mv.complete&&x.st.mv.movement==='decreased').sort((a,b)=>a.st.mv.change-b.st.mv.change);
+  const incRows=filtered.filter(x=>!x.st.nab&&x.st.mv.complete&&x.st.mv.movement==='increased').sort((a,b)=>b.st.mv.change-a.st.mv.change);
+  const detailTable=(title,rows,cls)=>{ const b=rows.length?rows.map(x=>{ const drv=(x.saved&&x.saved.writeUpForMovement===x.st.mv.movement)?wsrDriverLabel(x.saved.primaryDriver,x.st.mv.movement):'—'; const canView=x.saved&&x.saved.writeUpStatus==='completed'; return `<tr><td class="proj-label" style="text-align:left">${escHtml(x.a.name)}</td><td>${escHtml(x.tlDisp)}</td><td>${escHtml(x.cluster)}</td><td>${x.st.prev}</td><td>${x.st.curr}</td><td class="${cls}">${x.st.mv.change>0?'+':''}${x.st.mv.change}</td><td>${x.st.mv.pct===null?'—':(x.st.mv.pct>0?'+':'')+x.st.mv.pct+'%'}</td><td>${escHtml(drv)}</td><td>${canView?`<button class="wsr-act-btn wsr-act-view" onclick="wsumViewWriteup('${wsrJsStr(x.a.email)}')">View Write-Up</button>`:'<span style="color:#b9bdc2;font-size:.75rem">pending</span>'}</td></tr>`; }).join('') : '<tr><td colspan="9" class="cp-empty">None.</td></tr>';
+    return `<div style="margin-top:20px"><h3 style="font-size:1rem;margin-bottom:6px">${title}</h3><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header"><th style="text-align:left">Agent</th><th>TL</th><th>Cluster</th><th>WK${wsrPrevWeekNum(wk)}</th><th>WK${wsrWkNumOf(wk)}</th><th>Change</th><th>% Change</th><th>TL-Reported Primary Driver</th><th>Write-Up</th></tr></thead><tbody>${b}</tbody></table></div></div>`; };
+  // ── copy-ready ──
+  const copyText=wsumBuildCopyText(scope, filtered, {totPrev,totCurr,net,dec,inc,nc});
+  body.innerHTML =
+    `<div style="margin-top:6px;display:flex;gap:26px;flex-wrap:wrap">${driverBlock('Top Drivers of Sales Decrease',decAgg,'#e8836f')}${driverBlock('Top Drivers of Sales Increase',incAgg,'#6bbf82')}</div>`
+    + `<div style="margin-top:22px"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3 style="font-size:1rem;margin:0">Copy-Ready Weekly Summary</h3><button class="btn-add btn-add-green" id="wsumCopyBtn" onclick="wsumCopy()">📋 Copy Summary</button></div>`
+    + `<div style="font-size:.72rem;color:#9aa0a6;margin:4px 0 8px">Plain text of the current scope/filters — paste into Claude to draft the weekly management write-up. TL narratives are preserved verbatim.</div>`
+    + `<textarea id="wsumCopyText" readonly style="width:100%;min-height:220px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;padding:12px;border:1.5px solid var(--border);border-radius:8px;white-space:pre;overflow:auto"></textarea></div>`
+    + detailTable('Sales Decreases',decRows,'wsr-mv-dec')
+    + detailTable('Sales Increases',incRows,'wsr-mv-inc');
+  const ta=document.getElementById('wsumCopyText'); if(ta) ta.value=copyText;
+  const note=document.getElementById('wsumNote'); if(note) note.textContent='Read-only leadership summary. Reuses the Weekly TL Write-Up records already loaded for the selected week (1 GET per week, cached; no per-agent/per-driver requests). Cards & driver summary reflect your Cluster/TL scope; the tables & copy also honor the Movement/Driver filters.';
+}
+function wsumFmtSales(v){ return (v===null||v===undefined)?'(not entered)':String(v); }
+function wsumBuildCopyText(scope, filtered, tot){
+  const wk=wsrSumState.wk, pwk='WK'+wsrPrevWeekNum(wk); const L=[];
+  const scopeLabel = (currentUser.role==='OM'&&currentUser.omInfo)?('Cluster '+currentUser.omInfo.cluster):(wsrSumState.cluster?('Cluster '+wsrSumState.cluster):'All Clusters')
+    + (wsrSumState.tl?(' · TL '+wsrSumState.tl):'') + (wsrSumState.movement?(' · Movement '+wsrSumState.movement):'') + (wsrSumState.driver?(' · Driver '+wsrDriverLabel(wsrSumState.driver)):'');
+  L.push('WEEKLY TL WRITE-UP SUMMARY');
+  L.push('Review Week: '+wk+' · '+wsrShortRange(wk));
+  L.push('Comparison Week: '+pwk+' · '+wsrShortRange(pwk));
+  L.push('Scope: '+scopeLabel);
+  L.push('Previous Week Total Sales: '+tot.totPrev);
+  L.push('Current Week Total Sales: '+tot.totCurr);
+  L.push('Net Change: '+(tot.net>0?'+':'')+tot.net);
+  L.push('Number of Agents Decreased: '+tot.dec);
+  L.push('Number of Agents Increased: '+tot.inc);
+  L.push('Number With No Change: '+tot.nc);
+  const section=(title,movement,cls)=>{
+    L.push(''); L.push('============================'); L.push(title);
+    const agg=wsumDriverAgg(scope,movement);
+    L.push('TL-Reported Drivers:');
+    if(agg.rows.length) agg.rows.forEach(r=>L.push('- '+r.label+' — '+r.n+' agent'+(r.n===1?'':'s')+' ('+r.pct+'%)'));
+    else L.push('- (none submitted)');
+    L.push('');
+    const rows=filtered.filter(x=>!x.st.nab&&x.st.mv.complete&&x.st.mv.movement===movement).sort((a,b)=> movement==='decreased'?(a.st.mv.change-b.st.mv.change):(b.st.mv.change-a.st.mv.change));
+    if(!rows.length){ L.push('(no agents in current scope/filters)'); return; }
+    rows.forEach(x=>{ const s=x.saved; const matched=s&&s.writeUpForMovement===movement;
+      L.push('Agent: '+x.a.name);
+      L.push('TL: '+x.tlDisp+' | Cluster: '+x.cluster);
+      L.push('WK'+wsrPrevWeekNum(wk)+' Sales: '+wsumFmtSales(x.st.prev)+' | WK'+wsrWkNumOf(wk)+' Sales: '+wsumFmtSales(x.st.curr)+' | Change: '+(x.st.mv.change>0?'+':'')+x.st.mv.change+' | % Change: '+(x.st.mv.pct===null?'—':(x.st.mv.pct>0?'+':'')+x.st.mv.pct+'%'));
+      L.push('TL-Reported Primary Driver: '+(matched&&s.primaryDriver?wsrDriverLabel(s.primaryDriver,movement):'(not yet submitted)'));
+      L.push('What happened: '+((matched&&s.whatHappened)?s.whatHappened:'(write-up pending)'));
+      L.push('Investigation / Findings: '+((matched&&s.investigation)?s.investigation:'(write-up pending)'));
+      L.push('Action Plan: '+((matched&&s.plan)?s.plan:'(write-up pending)'));
+      L.push('---');
+    });
+  };
+  section('SALES DECREASE','decreased'); section('SALES INCREASE','increased');
+  return L.join('\n');
+}
+function wsumCopy(){
+  const txt=document.getElementById('wsumCopyText'); if(!txt) return;
+  const done=()=>{ const b=document.getElementById('wsumCopyBtn'); if(b){ const o=b.textContent; b.textContent='Copied ✓'; setTimeout(()=>{ b.textContent=o; },1500); } };
+  try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt.value).then(done, ()=>{ txt.select(); try{document.execCommand('copy');}catch(e){} done(); }); return; } }catch(e){}
+  txt.select(); try{ document.execCommand('copy'); }catch(e){} done();
+}
+function wsumViewWriteup(email){
+  const wk=wsrSumState.wk; const rid=wsrRecordId(wk,email); const s=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows[rid])||null;
+  if(!s){ return; }
+  const mv=s.movement||''; const inc=mv==='increased';
+  document.getElementById('wsumVwTitle').textContent='TL Write-Up — '+(s.agentName||email);
+  const q1=inc?'What improved?':'What caused the decrease?'; const q2=inc?'What specifically drove the improvement?':'What did you find during your investigation?'; const q3=inc?'What to continue next week':'Action Plan';
+  const chgTxt=(s.change===null||s.change===undefined||s.change==='')?'—':((s.change>0?'+':'')+s.change);
+  const pctTxt=(s.pct===null||s.pct===undefined||s.pct==='')?'—':((s.pct>0?'+':'')+s.pct+'%');
+  document.getElementById('wsumVwBody').innerHTML=
+    `<div style="background:#f2f7fb;border:1px solid #d7e3f4;border-radius:8px;padding:10px 14px;font-size:.86rem;margin-bottom:12px"><b>${escHtml(s.agentName||email)}</b> — TL ${escHtml(s.tlName||'')} · Cluster ${escHtml(s.cluster||'')}<br>WK${wsrPrevWeekNum(wk)} Sales: <b>${wsumFmtSales(s.prev)}</b> &nbsp;|&nbsp; WK${wsrWkNumOf(wk)} Sales: <b>${wsumFmtSales(s.curr)}</b></div>`
+    + `<div style="font-size:.86rem;line-height:1.6"><div><b>Movement:</b> ${escHtml(mv||'—')} &nbsp; <b>Change:</b> ${escHtml(chgTxt)} &nbsp; <b>% Change:</b> ${escHtml(pctTxt)}</div>`
+    + `<div style="margin-top:8px"><b>TL-Reported Primary Driver:</b> ${escHtml(s.primaryDriver?wsrDriverLabel(s.primaryDriver,mv):'—')}</div>`
+    + `<div style="margin-top:8px"><b>${escHtml(q1)}</b><br>${escHtml(s.whatHappened||'(none)')}</div>`
+    + `<div style="margin-top:8px"><b>${escHtml(q2)}</b><br>${escHtml(s.investigation||'(none)')}</div>`
+    + `<div style="margin-top:8px"><b>${escHtml(q3)}</b><br>${escHtml(s.plan||'(none)')}</div></div>`;
+  openModal('wsumViewModal');
 }
 // ── Lightweight per-user fetch cache (in-memory + localStorage timestamp) ──────
 // Gates the four login GETs so a reload within TTL reuses already-loaded data
