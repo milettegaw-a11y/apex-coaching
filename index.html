@@ -145,6 +145,44 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .badge-red{background:#ffebee;color:var(--red)}
 .badge-blue{background:#e3f2fd;color:#1565c0}
 .badge-gray{background:#f5f5f5;color:#555}
+.wsr-flabel{display:block;font-size:.82rem;font-weight:700;margin-bottom:5px;color:#333}
+.wsr-salesinput{width:78px;padding:6px 8px;border:1.5px solid var(--border);border-radius:5px;font-size:.88rem;text-align:center;outline:none}
+.wsr-salesinput:focus{border-color:var(--yellow)}
+.wsr-salesinput.wsr-dirty{border-color:#f0a500;background:#fffdf5}
+.wsr-mv-dec{color:var(--red);font-weight:800}
+.wsr-mv-inc{color:var(--green);font-weight:800}
+.wsr-mv-nc{color:#888;font-weight:800}
+.wsr-rowbtn{padding:5px 12px;border:none;border-radius:5px;font-weight:700;font-size:.8rem;cursor:pointer}
+.wsr-rowbtn[disabled]{opacity:.5;cursor:not-allowed}
+.wsr-chip{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.72rem;font-weight:700}
+.wsr-pills{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 14px}
+.wsr-pill{border:1.5px solid var(--border);background:#fff;border-radius:20px;padding:6px 14px;font-size:.82rem;font-weight:700;cursor:pointer;color:#555;display:inline-flex;align-items:center;gap:6px}
+.wsr-pill:hover{border-color:var(--yellow)}
+.wsr-pill.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+.wsr-pill .wsr-pillc{font-weight:800;opacity:.75}
+.wsr-pill.active .wsr-pillc{opacity:1}
+.wsr-scard{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:15px 18px;min-width:118px;flex:1}
+.wsr-scard .l{font-size:.7rem;font-weight:800;color:#8a8f98;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.wsr-scard .v{font-size:1.85rem;font-weight:900;line-height:1}
+.wsr-scard .s{font-size:.7rem;color:#9aa0a6;margin-top:4px}
+.wsr-prog{height:7px;background:#edf0f2;border-radius:5px;overflow:hidden;margin-top:9px}
+.wsr-prog>span{display:block;height:100%;background:#2f9e44;border-radius:5px}
+.wsr-statuspill{display:inline-block;padding:3px 12px;border-radius:12px;font-size:.75rem;font-weight:700}
+.wsr-st-req{background:#ffe3e3;color:#c92a2a}
+.wsr-st-done{background:#e6f7ec;color:#2f9e44}
+.wsr-st-na{background:#f1f3f5;color:#868e96}
+.wsr-st-nab{background:#e3f2fd;color:#1565c0}
+.wsr-st-enter{background:#fff3cd;color:#9a6b00}
+.wsr-act-btn{background:#1c7ed6;color:#fff;border:none;border-radius:6px;padding:6px 16px;font-weight:700;font-size:.8rem;cursor:pointer}
+.wsr-act-btn:hover{background:#1971c2}
+.wsr-act-view{background:#e7f5ff;color:#1971c2}
+.wsr-dbar-row{display:flex;align-items:center;gap:10px;margin:5px 0;font-size:.82rem}
+.wsr-dbar-label{flex:0 0 210px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wsr-dbar-track{flex:1;background:#f1f3f5;border-radius:4px;height:15px;overflow:hidden}
+.wsr-dbar-fill{height:100%;border-radius:4px}
+.wsr-dbar-n{flex:0 0 26px;text-align:right;font-weight:800}
+.wsr-badge-dec{background:#ffe3e3;color:#c92a2a;padding:3px 11px;border-radius:12px;font-size:.78rem;font-weight:800}
+.wsr-badge-inc{background:#e6f7ec;color:#2f9e44;padding:3px 11px;border-radius:12px;font-size:.78rem;font-weight:800}
 .action-btns{display:flex;gap:6px}
 .btn-sm{padding:4px 10px;border-radius:4px;border:none;font-size:.77rem;font-weight:700;cursor:pointer;transition:opacity .2s}
 .btn-sm:hover{opacity:.8}
@@ -470,6 +508,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <button id="navDailyCompletion" onclick="showView('dailycompletion')" style="display:none">🗓️ Daily Coaching Completion</button>
     <button id="navSomHealth" onclick="showView('somhealth')" style="display:none">🩺 SOM Health Check</button>
     <button id="navStorageUsage" onclick="showView('storageusage')" style="display:none">📦 Storage & Usage</button>
+    <button id="navWeeklySales" onclick="showView('weeklysales')" style="display:none">📊 Weekly TL Write-Up</button>
     <!-- NTE top-level tab removed from the UI (data + functions retained/dormant; NTE Logs sheet untouched). -->
   </nav>
   <main>
@@ -658,6 +697,50 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <span id="wasSaveMsg" style="margin-left:12px;font-size:.85rem"></span>
       </div>
       <div id="wasNote" style="font-size:.72rem;color:#7a8aa0;margin-top:16px"></div>
+    </div>
+    <!-- ══════════ v67 — WEEKLY TL WRITE-UP (backend storage tab: "Weekly Sales Review") ══════════ -->
+    <div id="viewWeeklySalesReview" style="display:none">
+      <div id="wsrTestBar" style="display:none;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.86rem;font-weight:600"></div>
+      <div id="wsrPreviewBanner" style="display:none;background:#fff3cd;border:1.5px solid #ffe08a;color:#7a5b00;border-radius:8px;padding:11px 15px;margin-bottom:14px;font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <span id="wsrPreviewBannerText"></span>
+        <button class="btn-add" style="background:#8a8f98;color:#fff;padding:6px 14px;flex:0 0 auto" onclick="wsrExitPreview()">Exit TL Preview</button>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <h1 class="cl-pagetitle">Weekly TL Write-Up</h1>
+          <div class="cl-pagesub" id="wsrHeaderSub">Weekly write-ups explaining why each agent's sales moved week over week.</div>
+        </div>
+        <div id="wsrSomViewCtl" style="display:none;text-align:right">
+          <label style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">View</label>
+          <select id="wsrViewMode" onchange="wsrOnViewModeChange()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem">
+            <option value="som">SOM View</option>
+            <option value="tl">TL View</option>
+          </select>
+          <span id="wsrPreviewTLWrap" style="display:none;margin-left:8px">
+            <label style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-right:4px">Preview TL</label>
+            <select id="wsrPreviewTL" onchange="wsrOnPreviewTLChange()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:.87rem"><option value="">Select a TL</option></select>
+          </span>
+        </div>
+      </div>
+      <div class="filter-bar" style="margin-top:14px">
+        <div>
+          <label>Review Week</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn-add" style="padding:6px 11px" onclick="wsrWeekStep(-1)" title="Previous week">‹ Prev</button>
+            <select id="wsrWeek" onchange="wsrOnWeekChange()" style="min-width:110px"></select>
+            <button class="btn-add" style="padding:6px 11px" onclick="wsrWeekStep(1)" title="Next week">Next ›</button>
+            <button class="btn-add" style="padding:6px 11px" onclick="wsrThisWeek()">This Week</button>
+          </div>
+        </div>
+        <div id="wsrClusterWrap"><label>Cluster</label><select id="wsrCluster" onchange="wsrOnClusterChange()"><option value="">All Clusters</option></select></div>
+        <div id="wsrTLWrap"><label>Team Lead</label><select id="wsrTL" onchange="wsrRender()"><option value="">All TLs</option></select></div>
+        <div style="flex:1;min-width:180px"><label>Search</label><input id="wsrSearch" type="text" placeholder="Search agent…" oninput="wsrRender()" style="width:100%"></div>
+      </div>
+      <div id="wsrLockNote" style="display:none;font-size:.82rem;margin:-8px 0 12px;padding:8px 12px;border-radius:6px"></div>
+      <div id="wsrSummary" style="margin-bottom:14px"></div>
+      <div id="wsrFilterPills" class="wsr-pills" style="display:none"></div>
+      <div id="wsrBody"></div>
+      <div id="wsrNote" style="font-size:.72rem;color:#7a8aa0;margin-top:16px"></div>
     </div>
     <div id="viewLog" style="display:none">
       <!-- ══ COACHING LOG (v60 mockup redesign) — two independent areas: Team Coaching Log + Individual
@@ -1318,6 +1401,40 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
     </div>
   </div>
 </div>
+<!-- ══════════ v67 — WEEKLY SALES REVIEW WRITE-UP MODAL ══════════ -->
+<div class="modal-overlay" id="wsrWriteupModal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <h3 id="wsrWuTitle">Agent Write-Up</h3>
+      <button class="modal-close" onclick="closeModal('wsrWriteupModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="wsrWuMeta" style="background:#f2f7fb;border:1px solid #d7e3f4;border-radius:8px;padding:10px 14px;font-size:.86rem;display:flex;gap:18px;flex-wrap:wrap"></div>
+      <div id="wsrWuReadonlyNote" style="display:none;margin-top:10px;font-size:.82rem;color:#7a5b00;font-weight:700"></div>
+      <div style="margin-top:14px">
+        <label class="wsr-flabel" id="wsrWuDriverLabel">Primary Driver <span style="color:#d33">*</span></label>
+        <select id="wsrWuDriver" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem"></select>
+      </div>
+      <div style="margin-top:12px">
+        <label class="wsr-flabel" id="wsrWuWhatLabel">What caused the decrease? <span style="color:#d33">*</span></label>
+        <textarea id="wsrWuWhat" rows="3" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;resize:vertical"></textarea>
+      </div>
+      <div style="margin-top:12px" id="wsrWuInvWrap">
+        <label class="wsr-flabel" id="wsrWuInvLabel">What did you find during your investigation? <span style="color:#d33">*</span></label>
+        <textarea id="wsrWuInv" rows="3" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;resize:vertical"></textarea>
+      </div>
+      <div style="margin-top:12px">
+        <label class="wsr-flabel" id="wsrWuPlanLabel">Action Plan for Next Week <span style="color:#d33">*</span></label>
+        <textarea id="wsrWuPlan" rows="3" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;resize:vertical"></textarea>
+      </div>
+      <div id="wsrWuMsg" style="margin-top:10px;font-size:.85rem"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-add" style="background:#8a8f98;color:#fff" onclick="closeModal('wsrWriteupModal')">Cancel</button>
+      <button class="btn-add btn-add-green" id="wsrWuSaveBtn" onclick="wsrSaveWriteup()">Save Write-Up</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="viewModal">
   <div class="modal">
     <div class="modal-header">
@@ -1595,7 +1712,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-24-roster-tl-demotions-PROD-v66";
+const APEX_BUILD = "2026-09-27-weekly-sales-review-PROD-v67";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -2925,6 +3042,8 @@ function initApp() {
   { const sh=document.getElementById('navSomHealth'); if(sh) sh.style.display = somCanAccess(currentUser) ? 'inline-block' : 'none'; }
   // v46: Storage & Usage tab — SOM ONLY (Director/OM/TL/Agent/Admin hidden).
   { const su=document.getElementById('navStorageUsage'); if(su) su.style.display = suCanAccess(currentUser) ? 'inline-block' : 'none'; }
+  // v67: Weekly Sales Review — TL/OM/SOM/Director (Agent/Admin hidden).
+  { const ws=document.getElementById('navWeeklySales'); if(ws) ws.style.display = wsrCanAccess(currentUser) ? 'inline-block' : 'none'; }
   // v39: legacy bulk "Migrate roster" button is removed and hard-disabled. Never show it, even if a
   // stale element is present in a cached DOM.
   const bm=document.getElementById('btnMigrate');
@@ -3022,6 +3141,7 @@ function sbBuildModel(){
   const mgmt=[];
   if(canManageRoster()) mgmt.push({ic:'👥',label:'Roster',action:'openRosterManager'});
   if(weeklyStatusCanAccess(u)) mgmt.push({ic:'👥',label:'Weekly Agent Status',view:'weeklystatus'});
+  if(wsrCanAccess(u)) mgmt.push({ic:'📊',label:'Weekly TL Write-Up',view:'weeklysales'});
   if(somCanAccess(u))   mgmt.push({ic:'🩺',label:'SOM Health Check',view:'somhealth'});
   if(suCanAccess(u))    mgmt.push({ic:'📦',label:'Storage & Usage',view:'storageusage'});
   return {coaching,mgmt};
@@ -3109,6 +3229,7 @@ function showView(view) {
   setDisp('viewSomHealth', view==='somhealth');               // v45
   setDisp('viewStorageUsage', view==='storageusage');         // v46
   setDisp('viewWeeklyStatus', view==='weeklystatus');         // v54
+  setDisp('viewWeeklySalesReview', view==='weeklysales');     // v67
   setAct('navDashboard', view==='dashboard');
   setAct('navLog',       view==='log');
   setAct('navNTE',       view==='nte');              // guarded — button removed from UI
@@ -3127,6 +3248,7 @@ function showView(view) {
   if (view==='storageusage' && typeof renderStorageUsage==='function') renderStorageUsage();
   // v54: Weekly Agent Status (OM/SOM/Director). Guard + render from in-memory roster + cached week doc.
   if (view==='weeklystatus' && typeof openWeeklyStatusTool==='function') openWeeklyStatusTool();
+  if (view==='weeklysales' && typeof openWeeklySalesReview==='function') openWeeklySalesReview();   // v67
   if (typeof sbSetActive==='function') sbSetActive(view);   // v51: sync sidebar active highlight
 }
 function onClusterChange() {
@@ -6112,6 +6234,582 @@ function sheetErrorMessage(status){
   if (status === 401 || status === 403) return 'Access/authentication issue — this account is not permitted to make this change. Please contact your admin.';
   if (status >= 500) return 'The database service had a server/API error. Nothing was saved — please try again shortly.';
   return 'The save did not succeed (HTTP ' + status + '). Nothing was saved — please try again.';
+}
+// ══════════════════════════════════════════════════════════════════════════════
+// v67 — WEEKLY SALES REVIEW  (dedicated SheetDB tab; 1 GET/week → cache → write on save)
+// ONE ROW per Agent+ReviewWeek, keyed by deterministic Record ID (week + '__' + norm email).
+// Roster/roles come from the authoritative in-memory roster (never a GET). No rows are
+// auto-created; a row is written only when a TL saves that agent. Sales entry saves
+// independently of the write-up. Agent/TL/Cluster snapshots are frozen at first save and
+// never overwritten from the current roster. Blank ≠ 0.
+// ══════════════════════════════════════════════════════════════════════════════
+const WSR_COL = 'Weekly Sales Review';                       // BACKEND storage tab name — unchanged (UI feature name is "Weekly TL Write-Up")
+const WSR_REOPEN_COL = 'Weekly Sales Review Reopen Log';     // BACKEND storage tab name — unchanged
+// ── TEMPORARY controlled-test gate (flip WSR_TEST_MODE=false to launch to all approved roles) ──
+let WSR_TEST_MODE = true;                                    // TEMP: controlled-test phase active on this gated build (flip to false to launch to all approved roles)
+const WSR_TEST_ALLOWLIST = ['jubee@homeaglowsales.com'];    // verified authenticated SOM (SEED_DEPT_WIDE_ACCOUNTS + live auth); no guessing
+const WSR_TEST_AGENT = { email:'wsr-test@homeaglowsales.com', name:'WSR TEST — DO NOT USE', manager:'WSR TEST', cluster:'WSR TEST' };  // in-memory only; NEVER written to Firestore
+function wsrTestAllowed(u){ u=u||(typeof currentUser!=='undefined'?currentUser:null); return !!u && WSR_TEST_MODE && WSR_TEST_ALLOWLIST.includes(normEmail(u.email||'')); }
+function wsrTestActive(){ return (typeof wsrState!=='undefined') && !!wsrState.testMode && wsrTestAllowed(); }
+function wsrCanAccess(u){ u=u||(typeof currentUser!=='undefined'?currentUser:null); if(!u) return false;
+  if(WSR_TEST_MODE) return WSR_TEST_ALLOWLIST.includes(normEmail(u.email||''));   // controlled-test phase: ONLY the allowlisted SOM
+  return (u.role==='TL'||u.role==='OM'||u.role==='SOM'||u.role==='Director'); }
+function wsrIsLeadership(u){ u=u||currentUser; return !!u && (u.role==='OM'||u.role==='SOM'||u.role==='Director'); }
+function wsrIsSOM(u){ u=u||currentUser; return !!u && u.role==='SOM'; }
+const WSR_DECLINE_DRIVERS = [
+  ['attendance','Attendance / Lost Hours'],['leads_received','Lower Leads Received'],['leads_touched','Lower Leads Touched'],
+  ['call_cadence','Call Cadence'],['speed_to_lead','Speed to Lead'],['tcr','Lower TCR'],['csr','Lower CSR'],['wk1cvr','Lower WK1 CVR'],
+  ['pipelining','Pipelining / Follow-Up'],['missed_callbacks','Missed Callbacks'],['low_ot','Low OT Participation'],
+  ['equipment','Equipment / Internet'],['call_quality','Call Quality / Background Noise'],['discovery','Discovery'],
+  ['objection','Objection Handling'],['pricing','Pricing / Offer Handling'],['process','Process Compliance'],['other','Other'] ];
+const WSR_IMPROVE_DRIVERS = [
+  ['more_leads','More Leads Received'],['higher_touched','Higher Leads Touched'],['better_cadence','Better Call Cadence'],
+  ['faster_stl','Faster Speed to Lead'],['higher_tcr','Higher TCR'],['higher_csr','Higher CSR'],['better_wk1cvr','Improved WK1 CVR'],
+  ['better_pipelining','Better Pipelining / Follow-Up'],['better_callback','Better Callback Execution'],['ot','OT Participation'],
+  ['coaching','Coaching Improvement Observed'],['rainmaker','Rainmaker / Script Improvement'],['better_discovery','Better Discovery'],
+  ['better_objection','Better Objection Handling'],['better_offer','Better Offer Handling'],['attendance_up','Improved Attendance'],['other','Other'] ];
+function wsrDriverLabel(key, movement){
+  const list = movement==='increased'?WSR_IMPROVE_DRIVERS:WSR_DECLINE_DRIVERS;
+  const hit=list.find(d=>d[0]===key); if(hit) return hit[1];
+  const any=WSR_DECLINE_DRIVERS.concat(WSR_IMPROVE_DRIVERS).find(d=>d[0]===key); return any?any[1]:(key||''); }
+// caches / state
+const WSR_CACHE = {};            // wkKey -> { rows: { recordId: row } }
+const WSR_LOADED = new Set();
+let   WSR_REOPEN = { loaded:false, byWeek:{} };   // wkKey -> {action,by,byEmail,at,note}
+const WSR_INFLIGHT = new Set();  // recordIds / reopen keys being written (double-submit guard)
+const wsrState = { wk:'', somView:'som', previewTL:'', preview:false, previewSales:{}, filter:'all', testMode:false };
+// helpers
+function wsrCssId(s){ return String(s).replace(/[^a-z0-9]/gi,'_'); }
+function wsrJsStr(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function wsrWkNumOf(wk){ return parseInt(String(wk).replace(/\D/g,''))||0; }
+function wsrPrevWeekNum(wk){ const n=wsrWkNumOf(wk); return n>0?(n-1):0; }
+function wsrNextWeekNum(wk){ return wsrWkNumOf(wk)+1; }
+function wsrCurrentWkNum(){ return wsrWkNumOf(currentWkString()); }
+function wsrRecordId(wk, email){ return wkKey(wk)+'__'+normEmail(email); }
+// ── US Central Time (America/Chicago) timestamps — DST-aware; offset generated from the tz, never hard-coded ──
+function wsrCentralISO(ms){
+  const d=new Date(typeof ms==='number'?ms:Date.now());
+  const parts={};
+  try{ new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZoneName:'longOffset'}).formatToParts(d).forEach(p=>{parts[p.type]=p.value;}); }
+  catch(e){ return d.toISOString(); }
+  let off=(parts.timeZoneName||'').replace(/GMT|UTC/,'').trim();
+  if(!off||off==='Z') off='+00:00';
+  if(/^[+-]\d$/.test(off)) off=off[0]+'0'+off.slice(1)+':00';   // -5 → -05:00
+  else if(/^[+-]\d\d$/.test(off)) off=off+':00';                // -05 → -05:00
+  let hh=parts.hour==='24'?'00':parts.hour;
+  const msPart=String(d.getUTCMilliseconds()).padStart(3,'0');   // ms component is tz-independent (offsets are whole minutes)
+  return `${parts.year}-${parts.month}-${parts.day}T${hh}:${parts.minute}:${parts.second}.${msPart}${off}`;
+}
+function wsrNowCentralISO(){ return wsrCentralISO(Date.now()); }
+// Sortable order from a CT-ISO string (or a legacy epoch-ms string) — used for dedup / latest-wins.
+function wsrTsOrder(v){ if(v==null||v==='') return 0; const s=String(v); if(/^\d{10,}$/.test(s)) return Number(s); const n=Date.parse(s); return isNaN(n)?0:n; }
+// STRICT blank vs zero: '' / null / undefined -> null; else non-negative integer or null.
+function wsrParseSales(v){ if(v===null||v===undefined) return null; const s=String(v).trim(); if(s==='') return null; if(!/^\d+$/.test(s)) return null; return parseInt(s,10); }
+function wsrHasSales(n){ return typeof n==='number' && !isNaN(n); }
+function wsrComputeMovement(prev, curr){
+  const p=wsrHasSales(prev)?prev:null, c=wsrHasSales(curr)?curr:null;
+  if(p===null||c===null) return { change:null, pct:null, movement:null, complete:false };
+  const change=c-p; const pct=(p===0)?null:Math.round(((c-p)/p)*1000)/10;
+  const movement=change<0?'decreased':(change>0?'increased':'nochange');
+  return { change, pct, movement, complete:true }; }
+function wsrBool(v){ return v===true||v==='true'||v==='TRUE'||v==='1'||v===1; }
+function wsrParseSuperseded(raw){ if(!raw) return []; try{ const a=JSON.parse(raw); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function wsrRowFromSheet(r){
+  return { recordId:r['Record ID']||'', reviewWeek:r['Review Week']||'', previousWeek:r['Previous Week']||'',
+    agentEmail:r['Agent Email']||'', agentName:r['Agent Name']||'', tlEmail:r['TL Email']||'', tlName:r['TL Name']||'', cluster:r['Cluster']||'',
+    prev:wsrParseSales(r['Previous Week Sales']), curr:wsrParseSales(r['Current Week Sales']),
+    notActiveBothWeeks:wsrBool(r['Not Active Both Weeks']), writeUpStatus:r['Write-Up Status']||'',
+    primaryDriver:r['Primary Driver']||'', whatHappened:r['What Happened']||'', investigation:r['Investigation']||'', plan:r['Plan']||'',
+    writeUpForMovement:r['Write-Up For Movement']||'', supersededRaw:r['Superseded Write-Ups']||'',
+    createdAt:r['Created At']||'', createdBy:r['Created By']||'', updatedAt:r['Updated At']||'', updatedBy:r['Updated By']||'' }; }
+function wsrSheetPayload(row, includeCreate){
+  const p={ 'Record ID':row.recordId, 'Review Week':row.reviewWeek, 'Previous Week':row.previousWeek,
+    'Agent Email':row.agentEmail, 'Agent Name':row.agentName, 'TL Email':row.tlEmail, 'TL Name':row.tlName, 'Cluster':row.cluster,
+    'Previous Week Sales':(row.prev===null||row.prev===undefined)?'':String(row.prev),
+    'Current Week Sales':(row.curr===null||row.curr===undefined)?'':String(row.curr),
+    'Change':(row.change===null||row.change===undefined)?'':String(row.change),
+    'Percent Change':(row.pct===null||row.pct===undefined)?'':String(row.pct),
+    'Movement':row.movement||'', 'Not Active Both Weeks':row.notActiveBothWeeks?'true':'false',
+    'Write-Up Status':row.writeUpStatus||'', 'Primary Driver':row.primaryDriver||'',
+    'What Happened':row.whatHappened||'', 'Investigation':row.investigation||'', 'Plan':row.plan||'',
+    'Write-Up For Movement':row.writeUpForMovement||'', 'Superseded Write-Ups':row.supersededRaw||'',
+    'Updated At':row.updatedAt||'', 'Updated By':row.updatedBy||'' };
+  if(includeCreate){ p['Created At']=row.createdAt||''; p['Created By']=row.createdBy||''; }
+  return p; }
+// One GET per week (search by Review Week), cached. Dedup by latest Updated At. Degrades to empty.
+async function wsrFetchWeek(wk){
+  const key=wkKey(wk); if(!key) return {};
+  if(WSR_LOADED.has(key)) return WSR_CACHE[key].rows;
+  const rows={};
+  if(typeof SHEETDB_API_URL==='string' && SHEETDB_API_URL){
+    try{
+      const url=`${SHEETDB_API_URL}/search?sheet=${encodeURIComponent(WSR_COL)}&Review%20Week=${encodeURIComponent(key)}`;
+      const res=await fetch(url,{ headers:{ 'Accept':'application/json' } });
+      if(res.ok){ const arr=await res.json().catch(()=>[]); (Array.isArray(arr)?arr:[]).forEach(r=>{ const row=wsrRowFromSheet(r); if(!row.recordId) row.recordId=wsrRecordId(key,row.agentEmail); const ex=rows[row.recordId]; if(!ex || wsrTsOrder(row.updatedAt)>=wsrTsOrder(ex.updatedAt)) rows[row.recordId]=row; }); }
+    }catch(e){}
+  }
+  WSR_CACHE[key]={ rows }; WSR_LOADED.add(key); return rows; }
+async function wsrFetchReopenLog(){
+  if(WSR_REOPEN.loaded) return WSR_REOPEN.byWeek;
+  const byWeek={};
+  if(typeof SHEETDB_API_URL==='string' && SHEETDB_API_URL){
+    try{ const res=await fetch(`${SHEETDB_API_URL}?sheet=${encodeURIComponent(WSR_REOPEN_COL)}`,{ headers:{ 'Accept':'application/json' } });
+      if(res.ok){ const arr=await res.json().catch(()=>[]); (Array.isArray(arr)?arr:[]).forEach(r=>{ const wk=wkKey(r['Review Week']||''); if(!wk) return; const at=wsrTsOrder(r['Timestamp']); const ex=byWeek[wk]; if(!ex||at>=ex.at) byWeek[wk]={ action:String(r['Action']||'').toLowerCase(), by:r['Actor Name']||r['Actor Email']||'', byEmail:r['Actor Email']||'', at, atDisplay:r['Timestamp']||'', note:r['Note']||'' }; }); }
+    }catch(e){}
+  }
+  WSR_REOPEN={ loaded:true, byWeek }; return byWeek; }
+// Concurrency-safe writer: POST for a new Record ID, PATCH by Record ID for an existing one.
+// Preserves Created At/By (only written on the initial POST). updated:0 → one existence check, else single POST.
+async function wsrWriteRow(key, recordId, mutate){
+  if(WSR_INFLIGHT.has(recordId)) return { ok:false, error:'A save for this agent is already in progress.' };
+  WSR_INFLIGHT.add(recordId);
+  try{
+    const cache = WSR_CACHE[key] ? WSR_CACHE[key].rows : (await wsrFetchWeek(key));
+    const existing = cache[recordId]; const nowIso=wsrNowCentralISO(); const me=(currentUser&&currentUser.email)||'';
+    let row = existing ? Object.assign({}, existing) : { recordId, reviewWeek:key, previousWeek:wkKey(wsrPrevWeekNum(key)),
+      agentEmail:'', agentName:'', tlEmail:'', tlName:'', cluster:'', prev:null, curr:null, notActiveBothWeeks:false,
+      writeUpStatus:'', primaryDriver:'', whatHappened:'', investigation:'', plan:'', writeUpForMovement:'', supersededRaw:'',
+      createdAt:'', createdBy:'', updatedAt:'', updatedBy:'' };
+    mutate(row);
+    const mv=wsrComputeMovement(row.prev,row.curr); row.change=mv.change; row.pct=mv.pct; row.movement=mv.movement;
+    if(row.notActiveBothWeeks) row.writeUpStatus='na_both_weeks';
+    else if(!mv.complete) row.writeUpStatus='not_entered';
+    else if(row.movement==='nochange') row.writeUpStatus='not_required';
+    else row.writeUpStatus=(row.writeUpForMovement===row.movement && row.whatHappened)?'completed':'pending';
+    row.updatedAt=nowIso; row.updatedBy=me;
+    const isNew=!existing; if(isNew){ row.createdAt=nowIso; row.createdBy=me; }
+    if(!SHEETDB_API_URL) return { ok:false, error:'No database endpoint configured.' };
+    if(isNew){
+      const res=await fetch(SHEETDB_API_URL,{ method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify({ data:[wsrSheetPayload(row,true)], sheet:WSR_COL }) });
+      if(!res.ok) return { ok:false, error:sheetErrorMessage(res.status) };
+    } else {
+      const res=await fetch(sheetRowUrl(WSR_COL,'Record ID',recordId),{ method:'PATCH', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify({ data:wsrSheetPayload(row,false) }) });
+      if(!res.ok) return { ok:false, error:sheetErrorMessage(res.status) };
+      const j=await res.json().catch(()=>({}));
+      if(j && typeof j.updated!=='undefined' && j.updated===0){
+        const chk=await fetch(sheetRowUrl(WSR_COL,'Record ID',recordId),{ headers:{'Accept':'application/json'} });
+        let found=[]; if(chk.ok) found=await chk.json().catch(()=>[]);
+        if(!(Array.isArray(found)&&found.length>=1)){
+          const cp=wsrSheetPayload(row,true); if(!cp['Created At']){ cp['Created At']=nowIso; cp['Created By']=me; }
+          const pr=await fetch(SHEETDB_API_URL,{ method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify({ data:[cp], sheet:WSR_COL }) });
+          if(!pr.ok) return { ok:false, error:sheetErrorMessage(pr.status) };
+        }
+      }
+    }
+    cache[recordId]=row; if(!WSR_CACHE[key]) WSR_CACHE[key]={rows:cache}; WSR_LOADED.add(key);
+    return { ok:true, row };
+  }catch(e){ return { ok:false, error:'Could not reach the database — nothing was saved.' }; }
+  finally{ WSR_INFLIGHT.delete(recordId); }
+}
+// Editability: current + immediately-previous review week editable for TLs; older read-only unless SOM-reopened; future never.
+function wsrWeekEditableForTL(wk){ const n=wsrWkNumOf(wk), cur=wsrCurrentWkNum(); if(n>cur) return false; if(n>=cur-1) return true; const rp=WSR_REOPEN.byWeek[wkKey(wk)]; return !!(rp && rp.action==='reopened'); }
+function wsrWeekIsFuture(wk){ return wsrWkNumOf(wk) > wsrCurrentWkNum(); }
+function wsrModalEditable(){ return wsrCanEditRows(); }
+function wsrEffectiveTL(){
+  if(wsrTestActive()) return { display:'WSR TEST (Test Mode)', fullName:'WSR TEST', cluster:'WSR TEST', test:true };
+  if(wsrState.preview && wsrState.previewTL){ const t=Object.values(TL_EMAILS).find(x=>x.display===wsrState.previewTL); return { display:wsrState.previewTL, fullName:t?t.fullName:'', cluster:t?t.cluster:'' }; }
+  if(currentUser.role==='TL') return { display:currentUser.tlInfo.display, fullName:currentUser.tlInfo.fullName, cluster:currentUser.tlInfo.cluster };
+  return { display:'', fullName:'', cluster:'' }; }
+// Active team = the injected fake agent in Test Mode, else the effective TL's roster team.
+function wsrActiveTeam(){ if(wsrTestActive()) return [WSR_TEST_AGENT]; const eff=wsrEffectiveTL(); return eff.display?getAgentsForTL(eff.display):[]; }
+function wsrFindActiveAgent(email){ return wsrActiveTeam().find(a=>normEmail(a.email)===normEmail(email)) || null; }
+// Rows are editable by a TL on an editable week, OR by the allowlisted SOM in Test Mode. Never in preview.
+function wsrCanEditRows(){ return wsrTestActive() || (!!currentUser && currentUser.role==='TL' && !wsrState.preview && wsrWeekEditableForTL(wsrState.wk)); }
+// Freeze TL/cluster snapshot on a new row. Test Mode stamps clearly-fake TEST identity (never a real TL).
+function wsrStampTL(row, agent){
+  if(wsrTestActive()){ if(!row.tlName) row.tlName='WSR TEST'; if(!row.tlEmail) row.tlEmail=normEmail((currentUser&&currentUser.email)||''); if(!row.cluster) row.cluster=(agent&&agent.cluster)||'WSR TEST'; }
+  else { if(!row.tlName) row.tlName=currentUser.tlInfo.display; if(!row.tlEmail) row.tlEmail=normEmail(currentUser.email); if(!row.cluster) row.cluster=(agent&&agent.cluster)||(currentUser.tlInfo&&currentUser.tlInfo.cluster)||''; }
+}
+// per-agent live view state (saved row merged with any preview sample)
+function wsrRowState(agent, wk, saved, sample){
+  const rid=wsrRecordId(wk, agent?agent.email:(saved?saved.agentEmail:''));
+  let prev=saved?saved.prev:null, curr=saved?saved.curr:null, nab=saved?saved.notActiveBothWeeks:false;
+  if(sample){ if('prev' in sample) prev=sample.prev; if('curr' in sample) curr=sample.curr; if('nab' in sample) nab=sample.nab; }
+  const mv=wsrComputeMovement(prev,curr); const salesStatus=mv.complete?'entered':'not_entered';
+  let writeUpStatus;
+  if(nab) writeUpStatus='na_both_weeks';
+  else if(!mv.complete) writeUpStatus='not_entered';
+  else if(mv.movement==='nochange') writeUpStatus='not_required';
+  else writeUpStatus=(saved && saved.writeUpStatus==='completed' && saved.writeUpForMovement===mv.movement)?'completed':'pending';
+  return { rid, prev, curr, nab, mv, salesStatus, writeUpStatus, saved }; }
+// ── open / setup ──
+function openWeeklySalesReview(){
+  const body=document.getElementById('wsrBody');
+  if(!wsrCanAccess(currentUser)){ if(body) body.innerHTML='<div class="cp-empty">You do not have access to this tool.</div>'; return; }
+  const wkEl=document.getElementById('wsrWeek');
+  if(wkEl && !wkEl.dataset.built){ const cur=wsrCurrentWkNum(); const opts=[]; for(let n=cur+1;n>=cur-25;n--) opts.push('WK'+n); wkEl.innerHTML=opts.map(w=>`<option value="${w}">${w}${w==='WK'+cur?' (Current)':''}</option>`).join(''); wkEl.value='WK'+cur; wkEl.dataset.built='1'; }
+  wsrState.wk = wkEl?wkEl.value:currentWkString();
+  const somCtl=document.getElementById('wsrSomViewCtl'); if(somCtl) somCtl.style.display=wsrIsSOM(currentUser)?'block':'none';
+  wsrSetupClusterTL();
+  Promise.all([wsrFetchReopenLog(), wsrFetchWeek(wsrState.wk)]).then(()=>wsrRender());
+  wsrRender();
+}
+function wsrSetupClusterTL(){
+  const u=currentUser; const clWrap=document.getElementById('wsrClusterWrap'), tlWrap=document.getElementById('wsrTLWrap');
+  const clEl=document.getElementById('wsrCluster');
+  const leadership = wsrIsLeadership(u) && !wsrState.preview && !wsrTestActive() && !(wsrIsSOM(u) && wsrState.somView==='tl');
+  if(clEl){ const clusters=[...new Set(Object.values(TL_EMAILS).map(t=>t.cluster))].filter(Boolean).sort();
+    clEl.innerHTML='<option value="">All Clusters</option>'+clusters.map(c=>`<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+    if(u.role==='OM' && u.omInfo){ clEl.value=u.omInfo.cluster; clEl.disabled=true; } else clEl.disabled=false; }
+  if(clWrap) clWrap.style.display=leadership?'block':'none';
+  if(tlWrap) tlWrap.style.display=leadership?'block':'none';
+  if(leadership) wsrPopulateTLFilter();
+}
+function wsrPopulateTLFilter(){
+  const el=document.getElementById('wsrTL'); if(!el) return;
+  const cl=document.getElementById('wsrCluster')?document.getElementById('wsrCluster').value:'';
+  let tls=Object.values(TL_EMAILS);
+  if(currentUser.role==='OM' && currentUser.omInfo) tls=tls.filter(t=>t.cluster===currentUser.omInfo.cluster);
+  if(cl) tls=tls.filter(t=>t.cluster===cl);
+  const seen=new Set(); tls=tls.filter(t=>{ if(!t.display||seen.has(t.display))return false; seen.add(t.display); return true; }).sort((a,b)=>a.display.localeCompare(b.display));
+  const prev=el.value; el.innerHTML='<option value="">All TLs</option>'+tls.map(t=>`<option value="${escHtml(t.display)}">${escHtml(t.display)}</option>`).join(''); if(prev) el.value=prev;
+}
+function wsrPopulatePreviewTL(){
+  const el=document.getElementById('wsrPreviewTL'); if(!el) return;
+  let tls=Object.values(TL_EMAILS); const seen=new Set();
+  tls=tls.filter(t=>{ if(!t.display||seen.has(t.display))return false; seen.add(t.display); return true; }).sort((a,b)=>a.display.localeCompare(b.display));
+  const prev=el.value; el.innerHTML='<option value="">Select a TL</option>'+tls.map(t=>`<option value="${escHtml(t.display)}">${escHtml(t.display)}</option>`).join(''); if(prev) el.value=prev;
+}
+// ── Test Mode (allowlisted SOM only, gated build) ──
+function wsrPaintTestBar(){
+  const el=document.getElementById('wsrTestBar'); if(!el) return;
+  if(!wsrTestAllowed()){ el.style.display='none'; return; }
+  el.style.display='block';
+  if(wsrState.testMode){ el.style.background='#ffe3e3'; el.style.border='1.5px solid #e8836f'; el.style.color='#b23b3b';
+    el.innerHTML='<b>TEST MODE — Weekly TL Write-Up controlled integration test</b> · one in-memory fake test agent (<code>'+escHtml(WSR_TEST_AGENT.email)+'</code>) is shown; Save and Add Write-Up use the real SheetDB path. <button class="wsr-rowbtn" style="background:#8a8f98;color:#fff;margin-left:8px" onclick="wsrExitTestMode()">Exit Test Mode</button>';
+  } else { el.style.background='#fff8e1'; el.style.border='1.5px solid #ffe08a'; el.style.color='#7a5b00';
+    el.innerHTML='SOM controlled-test build (this module is visible to your account only). <button class="wsr-rowbtn" style="background:var(--yellow);margin-left:8px" onclick="wsrEnterTestMode()">Enter Test Mode</button>';
+  }
+}
+function wsrEnterTestMode(){ if(!wsrTestAllowed()) return; wsrState.testMode=true; wsrState.preview=false; wsrState.previewTL=''; wsrState.somView='som';
+  const wkEl=document.getElementById('wsrWeek'); if(wkEl){ ensureWkOption(wkEl,'WK'+wsrCurrentWkNum()); wkEl.value='WK'+wsrCurrentWkNum(); wsrState.wk=wkEl.value; }
+  if(!WSR_LOADED.has(wkKey(wsrState.wk))) wsrFetchWeek(wsrState.wk).then(wsrRender);
+  wsrSetupClusterTL(); wsrRender(); }
+function wsrExitTestMode(){ wsrState.testMode=false; wsrSetupClusterTL(); wsrRender(); }
+// ── events ──
+function wsrOnWeekChange(){ wsrState.wk=document.getElementById('wsrWeek').value; wsrState.previewSales={}; if(!WSR_LOADED.has(wkKey(wsrState.wk))) wsrFetchWeek(wsrState.wk).then(wsrRender); wsrRender(); }
+function wsrWeekStep(d){ const el=document.getElementById('wsrWeek'); const n=wsrWkNumOf(el.value)+d; if(n<=0) return; ensureWkOption(el,'WK'+n); el.value='WK'+n; wsrOnWeekChange(); }
+function wsrThisWeek(){ const el=document.getElementById('wsrWeek'); const w='WK'+wsrCurrentWkNum(); ensureWkOption(el,w); el.value=w; wsrOnWeekChange(); }
+function wsrOnClusterChange(){ wsrPopulateTLFilter(); wsrRender(); }
+function wsrOnViewModeChange(){ const m=document.getElementById('wsrViewMode').value; wsrState.somView=m; const wrap=document.getElementById('wsrPreviewTLWrap');
+  if(m==='tl'){ if(wrap) wrap.style.display='inline'; wsrPopulatePreviewTL(); wsrState.preview=false; wsrState.previewTL=''; } else { if(wrap) wrap.style.display='none'; wsrState.preview=false; wsrState.previewTL=''; const pv=document.getElementById('wsrPreviewTL'); if(pv) pv.value=''; }
+  wsrSetupClusterTL(); wsrRender(); }
+function wsrOnPreviewTLChange(){ wsrState.previewTL=document.getElementById('wsrPreviewTL').value; wsrState.preview=!!wsrState.previewTL; wsrState.previewSales={}; wsrSetupClusterTL(); wsrRender(); }
+function wsrExitPreview(silent){ wsrState.preview=false; wsrState.previewTL=''; wsrState.previewSales={}; wsrState.somView='som';
+  const vm=document.getElementById('wsrViewMode'); if(vm) vm.value='som'; const wrap=document.getElementById('wsrPreviewTLWrap'); if(wrap) wrap.style.display='none'; const pv=document.getElementById('wsrPreviewTL'); if(pv) pv.value='';
+  wsrSetupClusterTL(); if(!silent) wsrRender(); }
+// ── master render ──
+function wsrRender(){
+  if(!wsrCanAccess(currentUser)) return;
+  const wk=wsrState.wk;
+  const banner=document.getElementById('wsrPreviewBanner');
+  if(banner){ if(wsrState.preview){ banner.style.display='flex'; document.getElementById('wsrPreviewBannerText').textContent='PREVIEW MODE — Viewing Weekly TL Write-Up as '+wsrState.previewTL+'. Changes will not be saved.'; } else banner.style.display='none'; }
+  const sub=document.getElementById('wsrHeaderSub'); const pwk='WK'+wsrPrevWeekNum(wk); if(sub) sub.innerHTML=`<b>${escHtml(wk)}</b> · ${escHtml(wsrShortRange(wk))}<br>Comparison: <b>${escHtml(pwk)}</b> · ${escHtml(wsrShortRange(pwk))} &nbsp;→&nbsp; <b>${escHtml(wk)}</b> · ${escHtml(wsrShortRange(wk))}`;
+  wsrPaintTestBar();
+  if(!WSR_LOADED.has(wkKey(wk))){ document.getElementById('wsrBody').innerHTML='<div class="cp-empty">Loading week…</div>'; document.getElementById('wsrSummary').innerHTML=''; return; }
+  if(wsrTestActive()){ wsrRenderTL(); return; }   // Test Mode: editable single fake agent, real save path
+  const somTLmode = wsrIsSOM(currentUser) && wsrState.somView==='tl';
+  if(somTLmode && !wsrState.preview){ document.getElementById('wsrSummary').innerHTML=''; document.getElementById('wsrBody').innerHTML='<div class="cp-empty">Select a TL above to preview their Weekly TL Write-Up.</div>'; const ln=document.getElementById('wsrLockNote'); if(ln) ln.style.display='none'; const pc=document.getElementById('wsrFilterPills'); if(pc) pc.style.display='none'; return; }
+  if(wsrState.preview) wsrRenderTL();
+  else if(wsrIsLeadership(currentUser)) wsrRenderLeadership();
+  else wsrRenderTL();
+}
+// ── shared UI bits ──
+function wsrCards(items){ return '<div style="display:flex;gap:14px;flex-wrap:wrap">'+items.map(it=>`<div class="stat-card" style="min-width:120px;flex:1"><div class="label">${escHtml(it[0])}</div><div class="value">${it[2]?it[2]+' ':''}${escHtml(String(it[1]))}</div></div>`).join('')+'</div>'; }
+function wsrMovementPill(m, complete){ if(!complete) return '<span class="wsr-mv-nc">—</span>'; if(m==='decreased') return '<span class="wsr-mv-dec">▼ Decreased</span>'; if(m==='increased') return '<span class="wsr-mv-inc">▲ Increased</span>'; return '<span class="wsr-mv-nc">≈ No Change</span>'; }
+function wsrStatusChip(s){ if(s==='completed') return '<span class="wsr-statuspill wsr-st-done">Completed</span>'; if(s==='pending') return '<span class="wsr-statuspill wsr-st-req">Write-Up Required</span>'; if(s==='not_required') return '<span class="wsr-statuspill wsr-st-na">No Change · Not Required</span>'; if(s==='na_both_weeks') return '<span class="wsr-statuspill wsr-st-nab">Not Active Both Wks</span>'; return '<span class="wsr-statuspill wsr-st-enter">Enter Sales</span>'; }
+function wsrShortRange(wk){ return wkDateRangeLabel(wk).replace(/,\s*\d{4}$/,''); }
+function wsrSetFilter(f){ wsrState.filter=f; wsrRender(); }
+function wsrScard(l,v,s,color){ return '<div class="wsr-scard"><div class="l">'+escHtml(l)+'</div><div class="v"'+(color?(' style="color:'+color+'"'):'')+'>'+v+'</div>'+(s?'<div class="s">'+escHtml(s)+'</div>':'')+'</div>'; }
+function wsrWriteScard(l,doneWU,reqWU){ const pct=reqWU>0?Math.round(doneWU/reqWU*100):100; return '<div class="wsr-scard"><div class="l">'+escHtml(l)+'</div><div class="v">'+doneWU+' / '+reqWU+'</div><div class="wsr-prog"><span style="width:'+pct+'%"></span></div><div class="s" style="text-align:right;font-weight:800;color:#2f9e44">'+pct+'%</div></div>'; }
+function wsrWriteupCell(a, st, editable){
+  if(st.nab || !st.mv.complete || st.mv.movement==='nochange') return '';
+  if(st.writeUpStatus==='completed') return `<button class="wsr-act-btn wsr-act-view" onclick="wsrOpenWriteup('${wsrJsStr(a.email)}')">${editable?'Edit Write-Up':'View'}</button>`;
+  return `<button class="wsr-act-btn" onclick="wsrOpenWriteup('${wsrJsStr(a.email)}')">${(editable||wsrState.preview)?'Add Write-Up':'View'}</button>`;
+}
+function wsrRecalcRow(email){
+  const id=wsrCssId(email);
+  const pEl=document.getElementById('wsrIn_prev_'+id), cEl=document.getElementById('wsrIn_curr_'+id);
+  const prev=wsrParseSales(pEl?pEl.value:''), curr=wsrParseSales(cEl?cEl.value:''); const mv=wsrComputeMovement(prev,curr);
+  const chg=document.getElementById('wsrChg_'+id), pctc=document.getElementById('wsrPct_'+id), mvc=document.getElementById('wsrMv_'+id);
+  if(chg) chg.textContent = mv.change===null?'—':(mv.change>0?'+':'')+mv.change;
+  if(pctc) pctc.textContent = mv.pct===null?'—':((mv.pct>0?'+':'')+mv.pct+'%');
+  if(mvc) mvc.innerHTML = wsrMovementPill(mv.movement, mv.complete);
+  if(wsrState.preview){ const rid=wsrRecordId(wsrState.wk,email); wsrState.previewSales[rid]=Object.assign({}, wsrState.previewSales[rid], {prev,curr}); }
+  const btn=document.getElementById('wsrSaveSalesBtn_'+id); if(btn){ btn.disabled=false; }
+  if(pEl) pEl.classList.add('wsr-dirty'); if(cEl) cEl.classList.add('wsr-dirty');
+}
+// ── TL VIEW (also used by SOM preview, read-only) ──
+// Shared team-state computation from CACHE (+preview sample) — no DOM reads, so it never disturbs
+// unsaved inputs. Used by the full render and by the in-place post-save updaters.
+function wsrComputeTeamStates(){
+  const wk=wsrState.wk; const eff=wsrEffectiveTL(); if(!eff.display) return {eff,agents:[],states:[]};
+  const agents=wsrActiveTeam().slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  const cacheRows=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows)||{};
+  const states=agents.map(a=>{ const rid=wsrRecordId(wk,a.email); const saved=cacheRows[rid]||null; const sample=wsrState.preview?wsrState.previewSales[rid]:null; return { a, st:wsrRowState(a,wk,saved,sample) }; });
+  return {eff,agents,states};
+}
+// Paint ONLY the summary cards + filter pills (never the table body → inputs are untouched).
+function wsrPaintTLSummary(agents, states){
+  let dec=0,inc=0,nc=0,nab=0,reqWU=0,doneWU=0,salesEntered=0;
+  states.forEach(({st})=>{ if(st.nab){ nab++; return; } if(st.mv.complete){ salesEntered++; if(st.mv.movement==='decreased')dec++; else if(st.mv.movement==='increased')inc++; else nc++; if(st.mv.movement!=='nochange'){ reqWU++; if(st.writeUpStatus==='completed')doneWU++; } } });
+  const salesDenom=agents.length-nab;   // NAB agents excluded → they never make the TL look incomplete
+  const summ=document.getElementById('wsrSummary'); if(summ) summ.innerHTML = '<div style="display:flex;gap:14px;flex-wrap:wrap">'
+    + wsrScard('Total Agents', agents.length, 'in roster', '#111')
+    + wsrScard('Sales Decreased', '<span style="color:#c92a2a">▼</span> '+dec, 'agents', '#c92a2a')
+    + wsrScard('Sales Increased', '<span style="color:#2f9e44">▲</span> '+inc, 'agents', '#2f9e44')
+    + wsrScard('No Change', nc, 'agent'+(nc===1?'':'s'), '#868e96')
+    + wsrProgScard('Sales Entered', salesEntered, salesDenom, nab)
+    + wsrWriteScard('Write-Ups Completed', doneWU, reqWU)
+    + '</div>';
+  const pending=states.filter(({st})=>st.writeUpStatus==='pending').length;
+  const pills=[['all','All Agents',agents.length],['decreased','Decreased',dec],['increased','Increased',inc],['nochange','No Change',nc],['pending','Pending Write-Ups',pending],['nab','Not Active for Both Weeks',nab]];
+  const pc=document.getElementById('wsrFilterPills'); if(pc){ pc.style.display='flex'; pc.innerHTML=pills.map(p=>`<button class="wsr-pill${wsrState.filter===p[0]?' active':''}" onclick="wsrSetFilter('${p[0]}')">${escHtml(p[1])} <span class="wsr-pillc">(${p[2]})</span></button>`).join(''); }
+}
+// A progress stat card (numerator/denominator + %). Denominator 0 → shows 100% / dash.
+function wsrProgScard(l, num, den, nab){ const pct=den>0?Math.round(num/den*100):100; const sub=(nab>0?(nab+' N/A excluded'):'both weeks'); return '<div class="wsr-scard"><div class="l">'+escHtml(l)+'</div><div class="v">'+num+' / '+den+'</div><div class="wsr-prog"><span style="width:'+pct+'%;background:#1c7ed6"></span></div><div class="s" style="display:flex;justify-content:space-between"><span>'+escHtml(sub)+'</span><b style="color:#1c7ed6">'+pct+'%</b></div></div>'; }
+// Update ONE agent's row in place after its save — no full re-render, so other rows' unsaved typing survives.
+function wsrPatchRowInPlace(email){
+  const wk=wsrState.wk, id=wsrCssId(email);
+  const cacheRows=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows)||{};
+  const rid=wsrRecordId(wk,email); const saved=cacheRows[rid]||null;
+  const agent=wsrFindActiveAgent(email) || {email:email, name:(saved?saved.agentName:email)};
+  const sample=wsrState.preview?wsrState.previewSales[rid]:null;
+  const st=wsrRowState(agent, wk, saved, sample);
+  const editable=wsrCanEditRows();
+  const pEl=document.getElementById('wsrIn_prev_'+id), cEl=document.getElementById('wsrIn_curr_'+id);
+  if(pEl){ pEl.value=st.prev===null?'':st.prev; pEl.classList.remove('wsr-dirty'); }
+  if(cEl){ cEl.value=st.curr===null?'':st.curr; cEl.classList.remove('wsr-dirty'); }
+  const chg=document.getElementById('wsrChg_'+id); if(chg){ chg.textContent=st.mv.change===null?'—':(st.mv.change>0?'+':'')+st.mv.change; chg.style.cssText=st.mv.change===null?'':(st.mv.change<0?'color:#c92a2a;font-weight:700':(st.mv.change>0?'color:#2f9e44;font-weight:700':'')); }
+  const pctc=document.getElementById('wsrPct_'+id); if(pctc) pctc.textContent=st.mv.pct===null?'—':(st.mv.pct>0?'+':'')+st.mv.pct+'%';
+  const mvc=document.getElementById('wsrMv_'+id); if(mvc) mvc.innerHTML=wsrMovementPill(st.mv.movement, st.mv.complete);
+  const stc=document.getElementById('wsrStatus_'+id); if(stc) stc.innerHTML=wsrStatusChip(st.writeUpStatus);
+  const act=document.getElementById('wsrAction_'+id);
+  if(act){ const saveBtn= editable ? `<button id="wsrSaveSalesBtn_${id}" class="wsr-rowbtn" style="background:var(--yellow)" onclick="wsrSaveSales('${wsrJsStr(email)}')">Save</button>` : (wsrState.preview?'<span style="font-size:.72rem;color:#999">sample</span>':''); act.innerHTML=`${saveBtn} ${wsrWriteupCell(agent,st,editable)} <span id="wsrRowMsg_${id}" style="font-size:.72rem;margin-left:4px"></span>`; }
+}
+// After a save: refresh summary/pills (from cache) + the one row, leaving every other row's DOM intact.
+function wsrAfterRowSave(email, msg){
+  const {agents,states}=wsrComputeTeamStates();
+  wsrPaintTLSummary(agents, states);
+  wsrPatchRowInPlace(email);
+  if(msg){ const m=document.getElementById('wsrRowMsg_'+wsrCssId(email)); if(m){ m.style.color='#2f6f43'; m.textContent=msg; } }
+}
+function wsrRenderTL(){
+  const wk=wsrState.wk; const eff=wsrEffectiveTL();
+  const body=document.getElementById('wsrBody'), summ=document.getElementById('wsrSummary'), lockNote=document.getElementById('wsrLockNote');
+  if(!eff.display){ body.innerHTML='<div class="cp-empty">No team in scope.</div>'; summ.innerHTML=''; if(lockNote) lockNote.style.display='none'; return; }
+  const agents=wsrActiveTeam().slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  const cacheRows=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows)||{};
+  const editable = wsrCanEditRows();
+  const future=wsrWeekIsFuture(wk);
+  if(lockNote){
+    if(wsrState.preview){ lockNote.style.display='block'; lockNote.style.background='#fff3cd'; lockNote.style.color='#7a5b00'; lockNote.textContent="Read-only preview of "+eff.display+"'s Weekly TL Write-Up. Sample values are not saved."; }
+    else if(future){ lockNote.style.display='block'; lockNote.style.background='#ffebee'; lockNote.style.color='#b23b3b'; lockNote.textContent='Future weeks cannot be edited.'; }
+    else if(currentUser.role==='TL' && !editable){ lockNote.style.display='block'; lockNote.style.background='#f5f5f5'; lockNote.style.color='#555'; lockNote.textContent='This week is locked (read-only). Older weeks lock automatically — ask an SOM to reopen it for corrections.'; }
+    else lockNote.style.display='none';
+  }
+  const states=agents.map(a=>{ const rid=wsrRecordId(wk,a.email); const saved=cacheRows[rid]||null; const sample=wsrState.preview?wsrState.previewSales[rid]:null; return { a, st:wsrRowState(a,wk,saved,sample) }; });
+  wsrPaintTLSummary(agents, states);
+  const f=wsrState.filter, q=(document.getElementById('wsrSearch').value||'').trim().toLowerCase();
+  const shown=states.filter(({a,st})=>{ if(q && String(a.name).toLowerCase().indexOf(q)<0) return false;
+    if(f==='decreased') return !st.nab&&st.mv.complete&&st.mv.movement==='decreased';
+    if(f==='increased') return !st.nab&&st.mv.complete&&st.mv.movement==='increased';
+    if(f==='nochange') return !st.nab&&st.mv.complete&&st.mv.movement==='nochange';
+    if(f==='pending') return st.writeUpStatus==='pending';
+    if(f==='nab') return st.nab; return true; });
+  const pw=wsrPrevWeekNum(wk), cwn=wsrWkNumOf(wk);
+  const rowsHtml=shown.map(({a,st},i)=>{ const id=wsrCssId(a.email); const salesEditable=editable||wsrState.preview;
+    const pInput=`<input id="wsrIn_prev_${id}" class="wsr-salesinput" inputmode="numeric" value="${st.prev===null?'':st.prev}" ${salesEditable?'':'disabled'} oninput="wsrRecalcRow('${wsrJsStr(a.email)}')">`;
+    const cInput=`<input id="wsrIn_curr_${id}" class="wsr-salesinput" inputmode="numeric" value="${st.curr===null?'':st.curr}" ${salesEditable?'':'disabled'} oninput="wsrRecalcRow('${wsrJsStr(a.email)}')">`;
+    const saveBtn= editable ? `<button id="wsrSaveSalesBtn_${id}" class="wsr-rowbtn" style="background:var(--yellow)" onclick="wsrSaveSales('${wsrJsStr(a.email)}')">Save</button>` : (wsrState.preview?'<span style="font-size:.72rem;color:#999">sample</span>':'');
+    const nab=`<input type="checkbox" ${st.nab?'checked':''} ${(editable||wsrState.preview)?'':'disabled'} onchange="wsrToggleNAB('${wsrJsStr(a.email)}', this.checked)">`;
+    const chgColor = st.mv.change===null?'':(st.mv.change<0?'color:#c92a2a;font-weight:700':(st.mv.change>0?'color:#2f9e44;font-weight:700':''));
+    return `<tr>
+      <td style="color:#9aa0a6">${i+1}</td>
+      <td class="proj-label" style="text-align:left">${escHtml(a.name)}</td>
+      <td>${pInput}</td><td>${cInput}</td>
+      <td id="wsrChg_${id}" style="${chgColor}">${st.mv.change===null?'—':(st.mv.change>0?'+':'')+st.mv.change}</td>
+      <td id="wsrPct_${id}">${st.mv.pct===null?'—':(st.mv.pct>0?'+':'')+st.mv.pct+'%'}</td>
+      <td id="wsrMv_${id}">${wsrMovementPill(st.mv.movement, st.mv.complete)}</td>
+      <td id="wsrStatus_${id}">${wsrStatusChip(st.writeUpStatus)}</td>
+      <td>${nab}</td>
+      <td id="wsrAction_${id}" style="white-space:nowrap">${saveBtn} ${wsrWriteupCell(a,st,editable)} <span id="wsrRowMsg_${id}" style="font-size:.72rem;margin-left:4px"></span></td>
+    </tr>`; }).join('');
+  const dsub='font-weight:400;font-size:.66rem;color:#b9bdc2;display:block;text-transform:none;letter-spacing:0';
+  body.innerHTML = agents.length ? `<div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header">
+    <th>#</th><th style="text-align:left">Agent Name</th><th>WK${pw} Sales<span style="${dsub}">${escHtml(wsrShortRange('WK'+pw))}</span></th><th>WK${cwn} Sales<span style="${dsub}">${escHtml(wsrShortRange('WK'+cwn))}</span></th><th>Change</th><th>% Change</th><th>Movement</th><th>Write-Up Status</th><th>Not Active<br>Both Weeks?</th><th>Action</th>
+    </tr></thead><tbody>${rowsHtml||'<tr><td colspan="10" class="cp-empty">No agents match this filter.</td></tr>'}</tbody></table></div>`
+    : '<div class="cp-empty">No active agents on this team.</div>';
+  document.getElementById('wsrNote').textContent='Storage: SheetDB tab "'+WSR_COL+'", one row per agent per review week (Record ID = week + agent email). Sales and write-ups save independently. Blank ≠ 0. One GET per week (cached); writes only on save.';
+}
+async function wsrSaveSales(email){
+  if(!wsrCanEditRows()) return;
+  const wk=wsrState.wk;
+  const id=wsrCssId(email), rid=wsrRecordId(wk,email);
+  const pEl=document.getElementById('wsrIn_prev_'+id), cEl=document.getElementById('wsrIn_curr_'+id);
+  const newPrev=wsrParseSales(pEl?pEl.value:''), newCurr=wsrParseSales(cEl?cEl.value:'');
+  const agent=wsrFindActiveAgent(email);
+  const saved=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows[rid])||null;
+  let archive=false;
+  if(saved && saved.writeUpStatus==='completed'){ const oldMv=saved.writeUpForMovement; const newMv=wsrComputeMovement(newPrev,newCurr).movement;
+    if(newMv && oldMv && newMv!==oldMv){ const lab=m=>({decreased:'Decreased',increased:'Increased',nochange:'No Change'}[m]||m);
+      if(!confirm('Changing these sales numbers will change this agent from '+lab(oldMv)+' to '+lab(newMv)+', and the existing write-up will no longer match. Continue?\n\nThe existing write-up will be safely archived (not deleted).')){ wsrRender(); return; }
+      archive=true; } }
+  const btn=document.getElementById('wsrSaveSalesBtn_'+id); if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+  const res=await wsrWriteRow(wkKey(wk), rid, (row)=>{
+    if(!row.agentEmail) row.agentEmail=normEmail(email);
+    if(!row.agentName && agent) row.agentName=agent.name;
+    wsrStampTL(row, agent);
+    if(!row.previousWeek) row.previousWeek=wkKey(wsrPrevWeekNum(wk));
+    row.prev=newPrev; row.curr=newCurr;
+    if(archive){ const arr=wsrParseSuperseded(row.supersededRaw); arr.push({ movement:row.writeUpForMovement, primaryDriver:row.primaryDriver, whatHappened:row.whatHappened, investigation:row.investigation, plan:row.plan, supersededAt:wsrNowCentralISO(), by:(currentUser&&currentUser.email)||'' }); row.supersededRaw=JSON.stringify(arr); row.primaryDriver=''; row.whatHappened=''; row.investigation=''; row.plan=''; row.writeUpForMovement=''; } });
+  if(btn){ btn.disabled=false; btn.textContent='Save'; }
+  if(res.ok){ wsrAfterRowSave(email, 'Saved'); }   // in-place: never re-renders the whole table → other rows' unsaved typing is preserved
+  else { const msg=document.getElementById('wsrRowMsg_'+id); if(msg){ msg.style.color='#b23b3b'; msg.textContent=res.error||'Save failed'; } }
+}
+async function wsrToggleNAB(email, checked){
+  if(wsrCanEditRows()){ const wk=wsrState.wk;
+    const rid=wsrRecordId(wk,email); const agent=wsrFindActiveAgent(email);
+    const res=await wsrWriteRow(wkKey(wk), rid, (row)=>{ if(!row.agentEmail) row.agentEmail=normEmail(email); if(!row.agentName && agent) row.agentName=agent.name; wsrStampTL(row, agent); if(!row.previousWeek) row.previousWeek=wkKey(wsrPrevWeekNum(wk)); row.notActiveBothWeeks=!!checked; });
+    if(!res.ok){ alert(res.error||'Could not save.'); return; } wsrAfterRowSave(email);   // in-place, preserves other rows' unsaved entries
+  } else if(wsrState.preview){ const rid=wsrRecordId(wsrState.wk,email); wsrState.previewSales[rid]=Object.assign({}, wsrState.previewSales[rid], {nab:!!checked}); wsrRender(); }
+}
+// ── WRITE-UP MODAL ──
+let WSR_WU_EMAIL='';
+function wsrOpenWriteup(email){
+  const wk=wsrState.wk;
+  const agent=wsrFindActiveAgent(email);
+  const rid=wsrRecordId(wk,email); const saved=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows[rid])||null;
+  const st=wsrRowState(agent||{email:email,name:(saved?saved.agentName:email)}, wk, saved, wsrState.preview?wsrState.previewSales[rid]:null);
+  if(!st.mv.complete || st.mv.movement==='nochange' || st.nab) return;
+  WSR_WU_EMAIL=email; const inc=st.mv.movement==='increased';
+  const nm=escHtml(agent?agent.name:(saved?saved.agentName:email));
+  const badge=inc?'<span class="wsr-badge-inc">▲ Sales Increased</span>':'<span class="wsr-badge-dec">▼ Sales Decreased</span>';
+  const chgStr=(st.mv.change>0?'+':'')+st.mv.change+' ('+(st.mv.pct===null?'—':(st.mv.pct>0?'+':'')+st.mv.pct+'%')+')';
+  document.getElementById('wsrWuTitle').textContent='Agent Write-Up — Sales '+(inc?'Increased':'Decreased');
+  document.getElementById('wsrWuMeta').innerHTML=
+    `<div style="flex:1 1 100%;display:flex;align-items:center;gap:10px;margin-bottom:2px"><b style="font-size:1rem">${nm}</b> ${badge}</div>`+
+    `<div style="flex:1 1 100%;color:#495057">WK${wsrPrevWeekNum(wk)}: <b>${st.prev} sales</b> &nbsp;|&nbsp; WK${wsrWkNumOf(wk)}: <b>${st.curr} sales</b> &nbsp;|&nbsp; Change: <b class="${inc?'wsr-mv-inc':'wsr-mv-dec'}">${chgStr}</b></div>`;
+  const list=inc?WSR_IMPROVE_DRIVERS:WSR_DECLINE_DRIVERS;
+  document.getElementById('wsrWuDriver').innerHTML='<option value="">Select a driver…</option>'+list.map(d=>`<option value="${d[0]}">${escHtml(d[1])}</option>`).join('');
+  document.getElementById('wsrWuDriverLabel').innerHTML=(inc?'Primary Driver of Improvement':'Primary Driver of Decline')+' <span style="color:#d33">*</span>';
+  document.getElementById('wsrWuWhatLabel').innerHTML=(inc?'What improved?':'What caused the decrease?')+' <span style="color:#d33">*</span>';
+  const invWrap=document.getElementById('wsrWuInvWrap'); invWrap.style.display='block';
+  document.getElementById('wsrWuInvLabel').innerHTML=(inc?'What specifically drove the improvement?':'What did you find during your investigation?')+' <span style="color:#d33">*</span>';
+  document.getElementById('wsrWuPlanLabel').innerHTML=(inc?'What should we continue on next week?':('Action Plan for WK'+wsrNextWeekNum(wk)))+' <span style="color:#d33">*</span>';
+  const pre=(saved && saved.writeUpForMovement===st.mv.movement)?saved:null;
+  document.getElementById('wsrWuDriver').value=pre?pre.primaryDriver:'';
+  document.getElementById('wsrWuWhat').value=pre?pre.whatHappened:'';
+  document.getElementById('wsrWuInv').value=pre?pre.investigation:'';
+  document.getElementById('wsrWuPlan').value=pre?pre.plan:'';
+  const ro=!wsrModalEditable();
+  ['wsrWuDriver','wsrWuWhat','wsrWuInv','wsrWuPlan'].forEach(idv=>{ const el=document.getElementById(idv); if(el) el.disabled=ro; });
+  const note=document.getElementById('wsrWuReadonlyNote'), saveBtn=document.getElementById('wsrWuSaveBtn');
+  if(ro){ note.style.display='block'; note.textContent=wsrState.preview?'Preview mode — this write-up cannot be saved.':'This week is read-only.'; saveBtn.style.display='none'; }
+  else { note.style.display='none'; saveBtn.style.display='inline-block'; saveBtn.disabled=false; saveBtn.textContent='Save Write-Up'; }
+  document.getElementById('wsrWuMsg').textContent=''; openModal('wsrWriteupModal');
+}
+async function wsrSaveWriteup(){
+  if(!wsrModalEditable()) return;
+  const email=WSR_WU_EMAIL, wk=wsrState.wk, rid=wsrRecordId(wk,email);
+  const saved=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows[rid])||null;
+  const agent=wsrFindActiveAgent(email);
+  const st=wsrRowState(agent||{email:email}, wk, saved, null);
+  const msg=document.getElementById('wsrWuMsg');
+  if(!st.mv.complete || st.mv.movement==='nochange'){ msg.style.color='#b23b3b'; msg.textContent='Enter and save both sales values first.'; return; }
+  const driver=document.getElementById('wsrWuDriver').value, what=document.getElementById('wsrWuWhat').value.trim(), inv=document.getElementById('wsrWuInv').value.trim(), plan=document.getElementById('wsrWuPlan').value.trim();
+  if(!driver || !what || !inv || !plan){ msg.style.color='#b23b3b'; msg.textContent='Please complete all required fields.'; return; }
+  const btn=document.getElementById('wsrWuSaveBtn'); btn.disabled=true; btn.textContent='Saving…';
+  const res=await wsrWriteRow(wkKey(wk), rid, (row)=>{ if(!row.agentEmail) row.agentEmail=normEmail(email); if(!row.agentName && agent) row.agentName=agent.name; wsrStampTL(row, agent); if(!row.previousWeek) row.previousWeek=wkKey(wsrPrevWeekNum(wk)); row.prev=st.prev; row.curr=st.curr; row.primaryDriver=driver; row.whatHappened=what; row.investigation=inv; row.plan=plan; row.writeUpForMovement=st.mv.movement; });
+  btn.disabled=false; btn.textContent='Save Write-Up';
+  if(res.ok){ closeModal('wsrWriteupModal'); wsrAfterRowSave(email, 'Write-up saved'); } else { msg.style.color='#b23b3b'; msg.textContent=res.error||'Save failed.'; }
+}
+// ── LEADERSHIP CONSOLIDATED VIEW (OM / SOM / Director, read-only) ──
+function wsrScopedAgents(){
+  let list=ROSTER.slice(); const u=currentUser;
+  if(u.role==='OM' && u.omInfo) list=list.filter(a=>a.cluster===u.omInfo.cluster);
+  const cl=document.getElementById('wsrCluster')?document.getElementById('wsrCluster').value:''; const tl=document.getElementById('wsrTL')?document.getElementById('wsrTL').value:'';
+  if(cl) list=list.filter(a=>a.cluster===cl);
+  if(tl){ const t=Object.values(TL_EMAILS).find(x=>x.display===tl); list=t?list.filter(a=>a.manager===t.fullName):[]; }
+  return list;
+}
+function wsrRenderLeadership(){
+  const wk=wsrState.wk; const body=document.getElementById('wsrBody'), summ=document.getElementById('wsrSummary'), lockNote=document.getElementById('wsrLockNote');
+  if(lockNote) lockNote.style.display='none';
+  { const pc=document.getElementById('wsrFilterPills'); if(pc) pc.style.display='none'; }
+  const cacheRows=(WSR_CACHE[wkKey(wk)]&&WSR_CACHE[wkKey(wk)].rows)||{};
+  const agents=wsrScopedAgents();
+  const states=agents.map(a=>{ const rid=wsrRecordId(wk,a.email); const saved=cacheRows[rid]||null; const tlDisp=(saved&&saved.tlName)||MANAGER_TO_TL_DISPLAY[a.manager]||a.manager||''; return { a, tlDisp, st:wsrRowState(a,wk,saved,null), saved }; });
+  let totPrev=0,totCurr=0,dec=0,inc=0,nc=0,nab=0,entered=0,notEntered=0,reqWU=0,doneWU=0;
+  states.forEach(({st})=>{ if(st.nab){ nab++; return; } if(st.mv.complete){ entered++; totPrev+=st.prev; totCurr+=st.curr; if(st.mv.movement==='decreased')dec++; else if(st.mv.movement==='increased')inc++; else nc++; if(st.mv.movement!=='nochange'){ reqWU++; if(st.writeUpStatus==='completed')doneWU++; } } else notEntered++; });
+  const net=totCurr-totPrev; const netPct=totPrev>0?Math.round((net/totPrev)*1000)/10:null; const netColor=net<0?'#c92a2a':(net>0?'#2f9e44':'#868e96');
+  const pw=wsrPrevWeekNum(wk), cwn=wsrWkNumOf(wk);
+  const netSub=(netPct===null?'':((netPct>0?'+':'')+netPct+'%'));
+  summ.innerHTML = '<div style="display:flex;gap:12px;flex-wrap:wrap">'
+    + wsrScard('Total Agents', agents.length, 'active roster', '#111')
+    + wsrScard('Total WK'+pw+' Sales', totPrev, 'all agents', '#111')
+    + wsrScard('Total WK'+cwn+' Sales', totCurr, 'all agents', '#111')
+    + wsrScard('Net Change', (net>0?'+':'')+net, netSub, netColor)
+    + wsrScard('Agents Decreased', '<span style="color:#c92a2a">▼</span> '+dec, '', '#c92a2a')
+    + wsrScard('Agents Increased', '<span style="color:#2f9e44">▲</span> '+inc, '', '#2f9e44')
+    + wsrScard('No Change', nc, '', '#868e96')
+    + wsrWriteScard('Write-Ups Completed', doneWU, reqWU)
+    + '</div>'
+    + `<div style="font-size:.8rem;color:#5a6675;margin-top:8px">Totals use only agents with BOTH weeks entered (valid submissions). Sales entered: <b>${entered}</b> · Sales not entered (TL pending): <b>${notEntered}</b> · Not active both weeks: <b>${nab}</b>. Blank sales are never counted as 0.</div>`;
+  body.innerHTML = wsrLeaderReopenBar(wk)
+    + '<div style="display:flex;gap:18px;flex-wrap:wrap">'+wsrTopMovers(states,'decreased')+wsrTopMovers(states,'increased')+'</div>'
+    + wsrDriverSummary(states)
+    + wsrSubmissionStatus(states);
+  document.getElementById('wsrNote').textContent='Consolidated leadership view (read-only). One GET per week feeds every section. Incomplete entries are excluded from totals & movement counts; blank ≠ 0.';
+}
+function wsrTopMovers(states, dir){
+  const rows=states.filter(({st})=>!st.nab&&st.mv.complete&&st.mv.movement===dir).sort((a,b)=> dir==='decreased'?(a.st.mv.change-b.st.mv.change):(b.st.mv.change-a.st.mv.change));
+  const title=dir==='decreased'?'Top Sales Decreases':'Top Sales Increases';
+  const cls=dir==='decreased'?'wsr-mv-dec':'wsr-mv-inc';
+  const inner = rows.length ? `<div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header"><th>#</th><th style="text-align:left">Agent</th><th>TL</th><th>WK${wsrPrevWeekNum(wsrState.wk)}</th><th>WK${wsrWkNumOf(wsrState.wk)}</th><th>Δ</th><th>%Δ</th><th style="text-align:left">Primary Driver</th></tr></thead><tbody>`
+    + rows.map(({a,tlDisp,st},i)=>`<tr><td style="color:#9aa0a6">${i+1}</td><td class="proj-label" style="text-align:left">${escHtml(a.name)}</td><td>${escHtml(tlDisp)}</td><td>${st.prev}</td><td>${st.curr}</td><td class="${cls}">${st.mv.change>0?'+':''}${st.mv.change}</td><td>${st.mv.pct===null?'—':(st.mv.pct>0?'+':'')+st.mv.pct+'%'}</td><td style="text-align:left">${escHtml(st.saved&&st.saved.writeUpForMovement===st.mv.movement?wsrDriverLabel(st.saved.primaryDriver,st.mv.movement):'—')}</td></tr>`).join('')
+    + '</tbody></table></div>' : '<div class="cp-empty">None.</div>';
+  return `<div style="flex:1;min-width:420px;margin-top:18px"><h3 style="font-size:1rem;margin-bottom:6px">${title}</h3>${inner}</div>`;
+}
+function wsrDriverSummary(states){
+  const decC={}, incC={};
+  states.forEach(({st,saved})=>{ if(st.nab||!st.mv.complete||st.writeUpStatus!=='completed'||!saved||saved.writeUpForMovement!==st.mv.movement) return; if(st.mv.movement==='decreased') decC[saved.primaryDriver]=(decC[saved.primaryDriver]||0)+1; else if(st.mv.movement==='increased') incC[saved.primaryDriver]=(incC[saved.primaryDriver]||0)+1; });
+  const bars=(obj,mv,color)=>{ const arr=Object.keys(obj).map(k=>[wsrDriverLabel(k,mv),obj[k]]).sort((a,b)=>b[1]-a[1]); if(!arr.length) return '<div class="cp-empty">No submitted write-ups yet.</div>'; const max=Math.max.apply(null,arr.map(x=>x[1]))||1; return arr.map(x=>`<div class="wsr-dbar-row"><span class="wsr-dbar-label">${escHtml(x[0])}</span><span class="wsr-dbar-track"><span class="wsr-dbar-fill" style="width:${Math.round(x[1]/max*100)}%;background:${color}"></span></span><span class="wsr-dbar-n">${x[1]}</span></div>`).join(''); };
+  return `<div style="margin-top:22px;display:flex;gap:26px;flex-wrap:wrap"><div style="flex:1;min-width:320px"><h3 style="font-size:1rem;margin-bottom:8px">Top Drivers of Decline <span style="font-weight:400;color:#9aa0a6;font-size:.8rem">(based on TL write-ups)</span></h3>${bars(decC,'decreased','#e8836f')}</div><div style="flex:1;min-width:320px"><h3 style="font-size:1rem;margin-bottom:8px">Top Drivers of Improvement <span style="font-weight:400;color:#9aa0a6;font-size:.8rem">(based on TL write-ups)</span></h3>${bars(incC,'increased','#6bbf82')}</div></div>`;
+}
+function wsrSubmissionStatus(states){
+  const byTL={};
+  states.forEach(({tlDisp,st})=>{ if(!byTL[tlDisp]) byTL[tlDisp]={req:0,done:0,entered:0,total:0}; const b=byTL[tlDisp]; b.total++; if(st.mv.complete) b.entered++; if(!st.nab&&st.mv.complete&&st.mv.movement!=='nochange'){ b.req++; if(st.writeUpStatus==='completed')b.done++; } });
+  const names=Object.keys(byTL).sort();
+  const rows=names.map(n=>{ const b=byTL[n]; const pct=b.req>0?Math.round(b.done/b.req*100):100; const pctColor=pct>=100?'#2f9e44':(pct>=80?'#111':'#c92a2a'); return `<tr><td class="proj-label" style="text-align:left">${escHtml(n||'—')}</td><td>${b.entered} / ${b.total}</td><td>${b.req}</td><td>${b.done}</td><td>${b.req-b.done}</td><td style="color:${pctColor};font-weight:800">${pct}%</td></tr>`; }).join('');
+  return `<div style="margin-top:22px"><h3 style="font-size:1rem;margin-bottom:6px">TL Submission Status</h3><div class="table-wrap"><table class="proj-table"><thead><tr class="proj-row-header"><th style="text-align:left">TL</th><th>Sales Entered</th><th>Write-Ups Required</th><th>Completed</th><th>Pending</th><th>Completion %</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="cp-empty">No data.</td></tr>'}</tbody></table></div></div>`;
+}
+function wsrLeaderReopenBar(wk){
+  if(!wsrIsSOM(currentUser)) return '';
+  const n=wsrWkNumOf(wk), cur=wsrCurrentWkNum(); if(n>cur || n>=cur-1) return '';
+  const rp=WSR_REOPEN.byWeek[wkKey(wk)]; const reopened=rp && rp.action==='reopened';
+  if(reopened) return `<div style="background:#fff3cd;border:1.5px solid #ffe08a;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.86rem">This historical week is currently <b>REOPENED</b> for TL edits by ${escHtml(rp.by)} on ${escHtml(rp.atDisplay||'')} CT.${rp.note?(' Reason: '+escHtml(rp.note)):''} <button class="wsr-rowbtn" style="background:#8a8f98;color:#fff;margin-left:8px" onclick="wsrReopenWeek('${escHtml(wk)}','relocked')">Re-lock week</button></div>`;
+  return `<div style="background:#f2f7fb;border:1px solid #d7e3f4;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.86rem">This is a locked historical week. <button class="wsr-rowbtn" style="background:var(--yellow);margin-left:8px" onclick="wsrReopenWeek('${escHtml(wk)}','reopened')">Reopen for corrections (SOM)</button></div>`;
+}
+// SOM-only. Reopen REQUIRES a non-blank reason (stored in Note). Timestamps are America/Chicago ISO.
+// `reason` may be passed by callers/tests; when omitted for a reopen, the SOM is prompted (required).
+async function wsrReopenWeek(wk, action, reason){
+  if(!wsrIsSOM(currentUser)) return;
+  const verb=action==='reopened'?'reopen':'re-lock';
+  if(action==='reopened'){
+    if(reason===undefined){ reason = (typeof window!=='undefined' && window.prompt) ? window.prompt('Reason for reopening '+wk+' (required):','') : ''; if(reason===null) return; }
+    reason=String(reason==null?'':reason).trim();
+    if(!reason){ alert('A reason is required to reopen a week. Reopen cancelled.'); return { ok:false, error:'reason required' }; }
+  } else {
+    if(!confirm('Re-lock '+wk+'? This will be recorded with your name and the time.')) return;
+    reason=String(reason==null?'':reason).trim();
+  }
+  const key='reopen_'+wkKey(wk); if(WSR_INFLIGHT.has(key)) return { ok:false, error:'in progress' }; WSR_INFLIGHT.add(key);
+  const nowIso=wsrNowCentralISO(), me=currentUser.email, meName=currentUser.display||me;
+  const rec={ 'Record ID':wkKey(wk)+'__'+Date.now(), 'Review Week':wkKey(wk), 'Action':action, 'Actor Email':me, 'Actor Name':meName, 'Timestamp':nowIso, 'Note':reason };
+  try{ if(SHEETDB_API_URL){ const res=await fetch(SHEETDB_API_URL,{ method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify({ data:[rec], sheet:WSR_REOPEN_COL }) }); if(!res.ok){ alert('Could not '+verb+' the week: '+sheetErrorMessage(res.status)); return { ok:false, error:sheetErrorMessage(res.status) }; } }
+    WSR_REOPEN.byWeek[wkKey(wk)]={ action, by:meName, byEmail:me, at:wsrTsOrder(nowIso), atDisplay:nowIso, note:reason }; wsrRender(); return { ok:true };
+  }catch(e){ alert('Could not '+verb+' the week — network error.'); return { ok:false, error:'network' }; } finally{ WSR_INFLIGHT.delete(key); }
 }
 // ── Lightweight per-user fetch cache (in-memory + localStorage timestamp) ──────
 // Gates the four login GETs so a reload within TTL reuses already-loaded data
