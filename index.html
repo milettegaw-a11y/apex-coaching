@@ -510,6 +510,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <button id="navStorageUsage" onclick="showView('storageusage')" style="display:none">📦 Storage & Usage</button>
     <button id="navWeeklySales" onclick="showView('weeklysales')" style="display:none">📊 Weekly TL Write-Up</button>
     <button id="navWeeklyTLSummary" onclick="showView('weeklytlsummary')" style="display:none">📈 Weekly TL Write-Up Summary</button>
+    <button id="navSyncPerf" onclick="showView('syncperf')" style="display:none">🔄 Sync Performance</button>
     <!-- NTE top-level tab removed from the UI (data + functions retained/dormant; NTE Logs sheet untouched). -->
   </nav>
   <main>
@@ -771,6 +772,21 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
       <div id="wsumBody"></div>
       <div id="wsumNote" style="font-size:.72rem;color:#7a8aa0;margin-top:16px"></div>
     </div>
+    <div id="viewSyncPerf" style="display:none">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div>
+          <h1 class="cl-pagetitle">Sync Performance</h1>
+          <div class="cl-pagesub">SOM only. Pull the latest WK1 CVR + Attendance from the authoritative reports (updated daily 9:00 AM CT), review the preview, then confirm to update APEX. Nothing is written until you confirm.</div>
+        </div>
+        <button class="btn-add btn-add-green" id="mpSyncBtn" onclick="mpSyncNow()">🔄 Sync Now</button>
+      </div>
+      <div class="cl-card" style="margin-top:14px">
+        <div class="cl-head"><div class="cl-ic">🗓️</div><div><h3>Sync Status</h3><div class="cl-sub">Source reports update daily at 9:00 AM CT.</div></div></div>
+        <div id="mpSyncStatus" style="font-size:.85rem;color:#333">Loading…</div>
+      </div>
+      <div id="mpSyncMsg" style="margin-top:12px;font-size:.85rem"></div>
+      <div id="mpSyncPreview" style="margin-top:12px"></div>
+    </div>
     <div id="viewLog" style="display:none">
       <!-- ══ COACHING LOG (v60 mockup redesign) — two independent areas: Team Coaching Log + Individual
            Agent Progress. 100% in-memory from `entries` + `rmEntries` + ROSTER. Zero extra SheetDB. ══ -->
@@ -782,75 +798,29 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         <button class="btn-add btn-add-green" id="btnAddCoaching" onclick="openAddModal()" style="display:none">+ New Coaching Log</button>
       </div>
 
-      <!-- ─────────── SECTION 1: TEAM COACHING LOG ─────────── -->
-      <div class="cl-card">
+      <!-- ─────────── MY PERFORMANCE (v69: replaces Individual Agent Progress; Team Coaching Log removed from this UI) ─────────── -->
+      <div class="cl-card" id="mpCard">
         <div class="cl-head">
-          <div class="cl-ic">👥</div>
-          <div><h3>Team Coaching Log</h3><div class="cl-sub">View and manage coaching logs for your team.</div></div>
+          <div class="cl-ic">📊</div>
+          <div><h3>My Performance</h3><div class="cl-sub" id="mpSub">Your weekly performance, attendance, and coaching focus.</div></div>
         </div>
-        <div class="cl-filters" id="teamFilterBar">
-          <div class="cl-fg"><label>Week</label><select id="teamWK"><option value="">All Weeks</option></select></div>
-          <div class="cl-fg"><label>Cluster</label><select id="teamCluster" onchange="onTeamClusterChange()"><option value="">All Clusters</option></select></div>
-          <div class="cl-fg"><label>Team Lead</label><select id="teamTL"><option value="">All TLs</option></select></div>
-          <div class="cl-fg"><label>Coaching Type</label><select id="teamType"><option value="">All Coaching Types</option></select></div>
-          <div class="cl-fg"><label>Coaching Status</label><select id="teamStatus">
-              <option value="">All Statuses</option>
-              <option>On Track</option>
-              <option>Needs Monitoring</option>
-              <option>Escalated</option>
-              <option>Resolved</option>
-              <option>Pending</option>
-            </select></div>
-          <button class="cl-btn cl-btn-apply" onclick="renderLogTable()">Apply Filters</button>
-          <button class="cl-btn cl-btn-clear" onclick="clearTeamFilters()">Clear</button>
-        </div>
-        <div class="cl-tablewrap">
-          <table class="cl-table">
-            <thead>
-              <tr>
-                <th>#</th><th>Agent</th><th>WK</th><th>Date</th><th>Coaching Type</th>
-                <th>Primary Opportunity</th><th>Primary Limiter</th>
-                <th>Coaching Status</th><th>Agent Status</th><th>Next Follow-Up</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="logTableBody"><tr><td colspan="11" class="empty-state">No entries found.</td></tr></tbody>
-          </table>
-        </div>
-        <div class="cl-foot">
-          <div id="teamCountLine">Showing 0 agents</div>
-          <div class="cl-pager" id="teamPager"></div>
-        </div>
-      </div>
-
-      <!-- ─────────── SECTION 2: INDIVIDUAL AGENT PROGRESS ─────────── -->
-      <div class="cl-card" style="margin-top:38px">
-        <div class="cl-head">
-          <div class="cl-ic">👤</div>
-          <div><h3>Individual Agent Progress</h3><div class="cl-sub">Select an agent to view their performance, coaching history, and progress.</div></div>
-        </div>
-        <div class="cl-filters" id="agentFilterBar">
-          <div class="cl-fg"><label>Team Lead</label><select id="iaTL" onchange="onIaTLChange()"><option value="">All TLs</option></select></div>
-          <div class="cl-fg"><label>Agent</label><select id="iaAgent" onchange="renderAgentProgress()"><option value="">— Select an agent —</option></select></div>
-          <div class="cl-fg"><label>Week Range</label><select id="iaRange" onchange="renderAgentProgress()">
+        <div class="cl-filters" id="mpFilterBar">
+          <div class="cl-fg" id="mpTLWrap"><label>Team Lead</label><select id="iaTL" onchange="onIaTLChange()"><option value="">All TLs</option></select></div>
+          <div class="cl-fg" id="mpAgentWrap"><label>Agent</label><select id="iaAgent" onchange="renderMyPerformance()"><option value="">— Select an agent —</option></select></div>
+          <div class="cl-fg"><label>Trend Range</label><select id="iaRange" onchange="renderMyPerformance()">
               <option value="4">Last 4 Weeks</option>
               <option value="6" selected>Last 6 Weeks</option>
               <option value="8">Last 8 Weeks</option>
             </select></div>
-          <button class="cl-btn cl-btn-apply" onclick="renderAgentProgress()">Apply Filters</button>
+          <button class="cl-btn cl-btn-apply" onclick="renderMyPerformance()">Apply</button>
           <button class="cl-btn cl-btn-clear" onclick="clearAgentFilters()">Clear</button>
         </div>
-        <!-- v62: Primary Opportunity & Metric removed from the top filters (Primary Opportunity is still
-             auto-computed/shown in the agent summary; the Trend card's own metric buttons are the sole
-             trend-metric control). This hidden holder carries the current trend metric for the pills. -->
         <input type="hidden" id="iaMetric" value="TCR">
+        <div id="mpFreshness" style="font-size:.72rem;color:#7a8aa0;margin:2px 0 10px"></div>
+        <div id="mpTop"></div>
         <div id="iaBody">
-          <div class="empty-state" style="padding:34px;color:#8a93a6">Select an agent to view their performance, coaching history, and progress.</div>
+          <div class="empty-state" style="padding:34px;color:#8a93a6">Loading your performance…</div>
         </div>
-      </div>
-
-      <div class="cl-note">
-        <span style="font-size:1rem">ℹ️</span>
-        <span><b>Note:</b> Team Coaching Log and Individual Agent Progress have separate filters. Changing the filters in one section will not affect the other section.</span>
       </div>
     </div>
     <div id="viewNTE" style="display:none">
@@ -1749,7 +1719,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-27-weekly-tl-summary-PROD-v68";
+const APEX_BUILD = "2026-09-28-active-points-relocate-v75";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -3082,6 +3052,7 @@ function initApp() {
   // v67: Weekly Sales Review — TL/OM/SOM/Director (Agent/Admin hidden).
   { const ws=document.getElementById('navWeeklySales'); if(ws) ws.style.display = wsrCanAccess(currentUser) ? 'inline-block' : 'none'; }
   { const ws=document.getElementById('navWeeklyTLSummary'); if(ws) ws.style.display = wsrSumCanAccess(currentUser) ? 'inline-block' : 'none'; }
+  { const sp=document.getElementById('navSyncPerf'); if(sp) sp.style.display = (typeof mpSom==='function' && mpSom(currentUser)) ? 'inline-block' : 'none'; }  // v70 (S5, SOM only)
   // v39: legacy bulk "Migrate roster" button is removed and hard-disabled. Never show it, even if a
   // stale element is present in a cached DOM.
   const bm=document.getElementById('btnMigrate');
@@ -3181,6 +3152,7 @@ function sbBuildModel(){
   if(weeklyStatusCanAccess(u)) mgmt.push({ic:'👥',label:'Weekly Agent Status',view:'weeklystatus'});
   if(wsrCanAccess(u)) mgmt.push({ic:'📊',label:'Weekly TL Write-Up',view:'weeklysales'});
   if(wsrSumCanAccess(u)) mgmt.push({ic:'📈',label:'Weekly TL Write-Up Summary',view:'weeklytlsummary'});
+  if(typeof mpSom==='function' && mpSom(u)) mgmt.push({ic:'🔄',label:'Sync Performance',view:'syncperf'});   // v70 (S5, SOM only)
   if(somCanAccess(u))   mgmt.push({ic:'🩺',label:'SOM Health Check',view:'somhealth'});
   if(suCanAccess(u))    mgmt.push({ic:'📦',label:'Storage & Usage',view:'storageusage'});
   return {coaching,mgmt};
@@ -3270,6 +3242,8 @@ function showView(view) {
   setDisp('viewWeeklyStatus', view==='weeklystatus');         // v54
   setDisp('viewWeeklySalesReview', view==='weeklysales');     // v67
   setDisp('viewWeeklyTLSummary', view==='weeklytlsummary');   // v68
+  setDisp('viewSyncPerf', view==='syncperf');                 // v70 (S5 SOM Sync Performance)
+  setAct('navSyncPerf', view==='syncperf');
   setAct('navDashboard', view==='dashboard');
   setAct('navLog',       view==='log');
   setAct('navNTE',       view==='nte');              // guarded — button removed from UI
@@ -3279,7 +3253,8 @@ function showView(view) {
   setAct('navStorageUsage', view==='storageusage');           // v46
   if (view==='nte' && typeof renderNTETable==='function') renderNTETable();  // dormant path
   if (view==='rainmaker') openRainmakerTab();
-  if (view==='log'){ try{ populateProgFilters(); }catch(e){} renderLogTable(); if(typeof renderAgentProgress==='function') renderAgentProgress(); }  // v59: Team table + Individual Agent Progress (in-memory)
+  if (view==='log'){ try{ populateProgFilters(); }catch(e){} if(typeof renderMyPerformance==='function') renderMyPerformance(); }  // v69: My Performance (replaces Team table + Individual Agent Progress)
+  if (view==='syncperf' && typeof openSyncPerformance==='function') openSyncPerformance();  // v70 (S5, SOM only)
   // v44: Daily Coaching Completion is leadership-only (OM/SOM/Director/Admin). Guard render + default date.
   if (view==='dailycompletion' && typeof openDailyCompletionTab==='function') openDailyCompletionTab();
   // v45: SOM Health Check (SOM only). Guard + render from in-memory data.
@@ -3449,23 +3424,22 @@ function populateIaTL(){
 }
 function populateAgentFilters(){
   const sel=document.getElementById('iaAgent'); if(!sel) return; const prev=sel.value;
-  const opp=document.getElementById('iaOpp')?.value||'';
   const tl=document.getElementById('iaTL')?.value||'';
-  const vis=(typeof getVisibleEntries==='function')?getVisibleEntries():[];
-  const byAgent={};
-  vis.forEach(e=>{ if(tl && (e.teamLead||'')!==tl) return; const k=e.agentName||''; if(!k) return; const cur=byAgent[k];
-    if(!cur || (wkNum(e)>wkNum(cur)) || (wkNum(e)===wkNum(cur) && String(e.dateOfCoaching||'')>String(cur.dateOfCoaching||''))) byAgent[k]=e; });
-  let names=Object.keys(byAgent);
-  if(opp) names=names.filter(n=>opportunityForEntry(byAgent[n])===opp);
-  names.sort((a,b)=>a.localeCompare(b));
+  // v69 (My Performance): union of (a) role-scoped ROSTER via agentsForScope — so ALL in-scope agents
+  // appear (TL→own team, OM→own cluster, SOM→all, Agent→self), even without coaching logs — and
+  // (b) agents who have visible coaching entries (role-scoped via getVisibleEntries), honoring the TL sub-filter.
+  const rosterNames = (typeof agentsForScope==='function') ? agentsForScope('', tl, '').map(a=>a.name) : [];
+  const vis = (typeof getVisibleEntries==='function') ? getVisibleEntries() : [];
+  const entryNames = vis.filter(e=> !tl || (e.teamLead||'')===tl).map(e=>e.agentName);
+  let names=[...new Set([...rosterNames, ...entryNames].filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   sel.innerHTML='<option value="">— Select an agent —</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
-  if(prev && names.includes(prev)) sel.value=prev;   // preserve agent only if still under the selected TL
+  if(prev && names.includes(prev)) sel.value=prev;   // preserve selection if still in scope
 }
 // Changing Team Lead re-scopes the Agent list; if the previously-selected agent is not under the new
 // TL, populateAgentFilters drops it (value falls back to "— Select —") and the panel returns to prompt.
-function onIaTLChange(){ populateAgentFilters(); renderAgentProgress(); }
+function onIaTLChange(){ populateAgentFilters(); renderMyPerformance(); }
 function onIaOppChange(){ populateAgentFilters(); renderAgentProgress(); }
-function clearAgentFilters(){ const a=document.getElementById('iaAgent'); if(a) a.value=''; const r=document.getElementById('iaRange'); if(r) r.value='6'; const m=document.getElementById('iaMetric'); if(m) m.value='TCR'; populateIaTL(); populateAgentFilters(); renderAgentProgress(); }
+function clearAgentFilters(){ const a=document.getElementById('iaAgent'); if(a) a.value=''; const r=document.getElementById('iaRange'); if(r) r.value='6'; const m=document.getElementById('iaMetric'); if(m) m.value='TCR'; populateIaTL(); populateAgentFilters(); renderMyPerformance(); }
 function progPopulateAgents(){
   const tl=document.getElementById('progTL')?.value||''; const cl=document.getElementById('progCluster')?.value||'';
   const agEl=document.getElementById('progAgent'); if(!agEl) return; const prev=agEl.value;
@@ -3651,7 +3625,7 @@ function cpAgentList(names){ return names.length ? '<ul>'+names.slice().sort().m
 // The code below the `return` is the retired v27 dashboard body — unreachable (its #cpBody host no
 // longer exists) and kept only to avoid a large deletion; it never executes.
 function renderCoachingProgress(){
-  try { renderAgentProgress(); } catch(e){ /* individual section optional */ }
+  try { if(typeof renderMyPerformance==='function') renderMyPerformance(); } catch(e){ /* My Performance section optional */ }
   return;
   const host=document.getElementById('cpBody'); if(!host) return;
   const s=cpScope();
@@ -4068,7 +4042,7 @@ function renderAgentProgress(){
      </div>
      <div style="padding:0 18px 18px"><div class="cl-panel">${details}</div></div>`;
 }
-function iaSetMetric(m){ const el=document.getElementById('iaMetric'); if(el) el.value=m; renderAgentProgress(); }
+function iaSetMetric(m){ const el=document.getElementById('iaMetric'); if(el) el.value=m; renderMyPerformance(); }
 // v59 TEAM filters — Week, Cluster, Team Lead, Coaching Type, Coaching Status. No Agent filter (that
 // lives in Individual Agent Progress). Operates ONLY on team controls, so it can never affect the
 // Individual section. Role scope is already applied upstream via getVisibleEntries().
@@ -5387,6 +5361,9 @@ function renderOMBreakdown(filtered, weeks4, targetWeek){
     </div>`;
 }
 function renderLogTable() {
+  // v69: Team Coaching Log table removed from the Coaching Log UI. This function is retained because
+  // many flows (dashboard/save/fetch) still call it; it safely no-ops when its table DOM is absent.
+  if(!document.getElementById('logTableBody')) return;
   const filtered = applyLogFilters(getVisibleEntries());
   const sorted = [...filtered].sort((a,b) => (wkNum(b)-wkNum(a)) || String(b.dateOfCoaching||'').localeCompare(String(a.dateOfCoaching||'')));
   renderTeamTable(sorted);
@@ -10278,6 +10255,488 @@ function rmViewReadOnly(id){
   m.classList.add('open');
 }
 
+</script>
+<script>
+/* ===================================================================================
+ * MY PERFORMANCE (Phase 2, v69) — Coaching Log section (replaces Individual Agent Progress UI).
+ * mpTop = NEW cards (greeting, WK1 CVR, Attendance, Active 4-mo points, AFI) from Firestore
+ * agentPerformance/{email} + Coaching Log entries. iaBody = existing renderAgentProgress detailed
+ * view (perf summary, trend, vs-previous, Coaching Impact, history) — preserved intact.
+ * Reuses globals: currentUser, ROSTER, getVisibleEntries, esc, wkNum, wkDateRangeLabel,
+ * currentWkString, BENCH_TCR/CSR/WK1CVR, normEmail, FB_DB, renderAgentProgress. No SheetDB. No writes.
+ * =================================================================================== */
+(function(){
+  function mpEsc(s){ return (typeof esc==='function')?esc(s==null?'':s):String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  function mpNum(v){ if(v===null||v===undefined) return null; const s=String(v).trim(); if(s==='') return null; const n=Number(s.replace(/,/g,'')); return isFinite(n)?n:null; }
+  function mpPct(x){ return (x==null)?'—':(Math.round(x*10)/10)+'%'; }
+  function mpCvrPct(x){ return (x==null)?'—':(Math.round(x*1000)/10)+'%'; }
+  function mpCentralDateStr(ms){ const d=(ms==null)?new Date():new Date(ms);
+    const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).reduce((o,x)=>(o[x.type]=x.value,o),{});
+    return p.year+'-'+p.month+'-'+p.day; }
+  function mpNiceTs(iso){ try{ return new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(iso))+' CT'; }catch(e){ return iso||'—'; } }
+  function mpAddMonths(dateStr,n){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr||'')); if(!m) return null; let y=+m[1],mo=+m[2]-1,d=+m[3]; mo+=n; y+=Math.floor(mo/12); mo=((mo%12)+12)%12; const last=new Date(Date.UTC(y,mo+1,0)).getUTCDate(); return y+'-'+String(mo+1).padStart(2,'0')+'-'+String(Math.min(d,last)).padStart(2,'0'); }
+  function mpBand(p){ if(p==null||p<1) return null;
+    if(p<2) return {range:'1 to 1.75',infraction:'Verbal Warning',penalty:'Coaching'};
+    if(p<4) return {range:'2 to 3.75',infraction:'First Warning',penalty:'Suspension for 1 day + Notice to Explain (NTE)'};
+    if(p<6) return {range:'4 to 5.75',infraction:'Final Warning',penalty:'Suspension for 3 days + Notice to Explain (NTE)'};
+    return {range:'6 and above',infraction:'Termination',penalty:'Removal from the company'}; }
+  function mpActivePoints(incidents, asOf){
+    const seen=new Set(), act=[];
+    (incidents||[]).forEach(it=>{ const date=String(it&&it.date||'').trim(); const type=String(it&&it.type||'').trim(); const pts=mpNum(it&&it.points);
+      if(!date||pts==null) return; const key=date+'|'+type; if(seen.has(key)) return; seen.add(key);
+      const cd=mpAddMonths(date,4); if(cd && asOf<cd) act.push({date,type,points:pts,clearsOn:cd}); });
+    const total=Math.round(act.reduce((s,i)=>s+i.points,0)*100)/100;
+    let next=null; if(act.length){ const by={}; act.forEach(i=>by[i.clearsOn]=Math.round(((by[i.clearsOn]||0)+i.points)*100)/100); const ds=Object.keys(by).sort(); next={date:ds[0],points:by[ds[0]]}; }
+    return {activePoints:total,asOf,nextClearing:next,band:mpBand(total)}; }
+  function mpSelectedAgentName(){
+    const u=(typeof currentUser!=='undefined')?currentUser:null; if(!u) return '';
+    if(u.role==='Agent'){ const me=(typeof ROSTER!=='undefined'?ROSTER:[]).find(a=>normEmail(a.email)===normEmail(u.email)); return me?me.name:(u.display||''); }
+    const sel=document.getElementById('iaAgent'); return sel?sel.value:'';
+  }
+  function mpEmailForName(name){ const a=(typeof ROSTER!=='undefined'?ROSTER:[]).find(x=>x.name===name); return a?normEmail(a.email):''; }
+  function mpAgentEntries(name){ const vis=(typeof getVisibleEntries==='function')?getVisibleEntries():[]; return vis.filter(e=>e.agentName===name).sort((a,b)=>(wkNum(b)-wkNum(a))||String(b.dateOfCoaching||'').localeCompare(String(a.dateOfCoaching||''))); }
+
+  // WK1 CVR week-over-week trend data — Coaching Log ONLY (curedWk1CvrAvg), respects the Trend Range (N).
+  // One point per week that actually has WK1 CVR data (latest-wins within a week). 0% is a real value (kept);
+  // a week with no Coaching Log WK1 CVR is NOT fabricated/interpolated/carried forward — it is simply absent.
+  window.mpCvrTrendData=function(agent, N){
+    const all=(typeof iaAgentEntriesAsc==='function')?iaAgentEntriesAsc(agent):[];
+    if(!all.length) return { points:[], xMin:null, xMax:null, empty:true };
+    const range=(typeof iaRangeEntries==='function')?iaRangeEntries(all, N):all;
+    const latest=wkNum(all[all.length-1]);
+    const xMax=latest, xMin=latest-(N-1);
+    const byWk={};
+    range.forEach(e=>{ const w=wkNum(e); if(w<xMin||w>xMax) return; const c=curedWk1CvrAvg(e.wk1cvr5); if(c!=null) byWk[w]=c; }); // ascending → latest non-null wins; c===0 kept
+    const points=Object.keys(byWk).map(w=>({ wk:+w, label:'WK'+w, cvr:byWk[w] })).sort((a,b)=>a.wk-b.wk);
+    return { points, xMin, xMax, empty:points.length===0 };
+  };
+  // Clean inline-SVG line chart (no external library). X = week, Y = WK1 CVR %, dashed 10% target line, hover tooltip.
+  function mpBuildCvrChart(agent, N){
+    const hdr='<div class="cl-sub">📈 WK1 CVR — Weekly Trend</div>';
+    const T=(typeof window.mpCvrTrendData==='function')?window.mpCvrTrendData(agent, N):{points:[],empty:true};
+    const pts=T.points||[];
+    if(!pts.length){ return hdr+'<div style="color:#8a93a6;font-size:.85rem;margin-top:10px">No Coaching Log WK1 CVR data in the selected range (Last '+N+' Weeks).</div>'; }
+    const W=620,H=200,padL=40,padR=16,padT=16,padB=34; const plotW=W-padL-padR, plotH=H-padT-padB;
+    const target=(typeof BENCH_WK1CVR!=='undefined')?BENCH_WK1CVR:10;
+    const xMin=T.xMin, xMax=T.xMax, wkSpan=Math.max(1,(xMax-xMin));
+    const maxCvr=Math.max(target, ...pts.map(p=>p.cvr));
+    const yMax=Math.max(target+2, Math.ceil(maxCvr/2)*2+2), yMin=0;
+    const xOf=w=>padL+((w-xMin)/wkSpan)*plotW;
+    const yOf=v=>padT+(1-(v-yMin)/(yMax-yMin))*plotH;
+    const step=(yMax<=14)?2:5; let yt='';
+    for(let t=0;t<=yMax;t+=step){ const y=yOf(t); yt+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y.toFixed(1)+'" stroke="#eef0f4"/><text x="'+(padL-6)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#9aa3b4">'+t+'%</text>'; }
+    let xt=''; for(let w=xMin; w<=xMax; w++){ const x=xOf(w); xt+='<text x="'+x.toFixed(1)+'" y="'+(H-padB+16)+'" text-anchor="middle" font-size="9" fill="#7a8aa0">WK'+w+'</text>'; }
+    const ty=yOf(target);
+    const tgt='<line x1="'+padL+'" y1="'+ty.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+ty.toFixed(1)+'" stroke="#c98a00" stroke-width="1.5" stroke-dasharray="5 4"/><text x="'+(W-padR)+'" y="'+(ty-4).toFixed(1)+'" text-anchor="end" font-size="9" fill="#c98a00" font-weight="700">'+target+'% Target</text>';
+    let d=''; pts.forEach((p,i)=>{ d+=(i?' L':'M')+xOf(p.wk).toFixed(1)+' '+yOf(p.cvr).toFixed(1); });
+    const path=(pts.length>1)?'<path d="'+d+'" fill="none" stroke="#1565c0" stroke-width="2"/>':'';
+    let circ='', lbl=''; pts.forEach(p=>{ const val=Math.round(p.cvr*10)/10; const cx=xOf(p.wk), cy=yOf(p.cvr);
+      circ+='<circle class="mpCvrPt" data-wk="'+p.wk+'" data-cvr="'+val+'" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="4" fill="#1565c0"><title>WK'+p.wk+': '+val+'%</title></circle>';
+      // Actual WK1 CVR % printed at each point (above; flipped below if too near the top edge).
+      const above=(cy-12)>=padT; const ly=(above?cy-9:cy+15);
+      lbl+='<text class="mpCvrLbl" x="'+cx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="800" fill="#1a3353">'+val+'%</text>'; });
+    const svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" data-cvr-count="'+pts.length+'" data-cvr-weeks="'+pts.map(p=>p.wk).join(',')+'" style="max-width:100%;height:auto;margin-top:8px" role="img" aria-label="WK1 CVR weekly trend, Last '+N+' Weeks">'
+      +'<line x1="'+padL+'" y1="'+padT+'" x2="'+padL+'" y2="'+(H-padB)+'" stroke="#d7dbe3"/>'
+      +'<line x1="'+padL+'" y1="'+(H-padB)+'" x2="'+(W-padR)+'" y2="'+(H-padB)+'" stroke="#d7dbe3"/>'
+      +yt+xt+tgt+path+circ+lbl+'</svg>';
+    return hdr+svg+'<div style="font-size:.64rem;color:#9aa3b4;margin-top:2px">One point per week with Coaching Log WK1 CVR · Last '+N+' Weeks · missing weeks are not plotted · dashed line = '+target+'% target</div>';
+  }
+
+  window.renderMyPerformance=function(){
+    const top=document.getElementById('mpTop'); const iaBody=document.getElementById('iaBody'); if(!top) return;
+    const u=(typeof currentUser!=='undefined')?currentUser:null;
+    const isAgent = u && u.role==='Agent';
+    const tlWrap=document.getElementById('mpTLWrap'), agWrap=document.getElementById('mpAgentWrap');
+    if(tlWrap) tlWrap.style.display = isAgent ? 'none':'';
+    if(agWrap) agWrap.style.display = isAgent ? 'none':'';
+    const sub=document.getElementById('mpSub'); if(sub) sub.textContent = isAgent ? 'Your weekly performance, attendance, and coaching focus.' : 'Select an agent to view their performance, attendance, and coaching focus.';
+
+    const name = mpSelectedAgentName();
+    // For Agent role, drive the detailed view (renderAgentProgress) off the (hidden) iaAgent = self.
+    if(isAgent){ const sel=document.getElementById('iaAgent'); if(sel){ if(![...sel.options].some(o=>o.value===name)){ const o=document.createElement('option'); o.value=name; o.textContent=name; sel.appendChild(o);} sel.value=name; } }
+    const fr=document.getElementById('mpFreshness');
+    if(!name){ top.innerHTML='<div class="empty-state" style="padding:28px;color:#8a93a6">Select an agent to view their My Performance.</div>'; if(iaBody) iaBody.innerHTML=''; if(fr) fr.textContent=''; return; }
+    const email = mpEmailForName(name);
+    const first = String(name).split(' ')[0]||name;
+    const wkStr = (typeof currentWkString==='function')?currentWkString():''; const wkRange = wkStr?(wkDateRangeLabel(wkStr)||''):'';
+    const ents = mpAgentEntries(name); const latest = ents[0]||null;
+    const wkStr2 = wkStr;  // selected week = current week
+    const afi = latest ? `
+      <div><div style="font-size:.66rem;font-weight:700;text-transform:uppercase;color:#7a8aa0">Primary Limiter</div><div style="font-weight:800;color:#1565c0">${mpEsc(latest.limiter||'—')}</div></div>
+      <div style="margin-top:8px"><div style="font-size:.66rem;font-weight:700;text-transform:uppercase;color:#7a8aa0">Area for Improvement</div><div style="font-size:.86rem">${mpEsc(latest.areas||'—')}</div></div>
+      <div style="margin-top:8px"><div style="font-size:.66rem;font-weight:700;text-transform:uppercase;color:#7a8aa0">Action Plan</div><div style="font-size:.86rem">${mpEsc(latest.actionPlan||'—')}</div></div>
+      <div style="margin-top:8px"><div style="font-size:.66rem;font-weight:700;text-transform:uppercase;color:#7a8aa0">Follow-Up</div><div style="font-size:.86rem">📅 ${mpEsc(latest.followUpDate||'—')}</div></div>
+      <div style="font-size:.7rem;color:#9aa3b4;margin-top:8px">Latest coaching: ${mpEsc(latest.wkNumber||'—')} — ${mpEsc(latest.dateOfCoaching||'—')}</div>`
+      : '<div class="empty-state" style="color:#8a93a6">No coaching on record yet.</div>';
+
+    // ── WK1 CVR + weekly metrics — 100% from the Coaching Log (wk1cvr5 + perfData). No Firestore, no badge. ──
+    const mpMetricCell=(v,l)=>'<div style="text-align:center;background:#f7f8fa;border:1px solid #eef0f4;border-radius:8px;padding:5px"><div style="font-size:.98rem;font-weight:800">'+(v==null||v===''?'—':v)+'</div><div style="font-size:.58rem;color:#7a8aa0;text-transform:uppercase">'+l+'</div></div>';
+    const weekEntry = ents.find(e=>String(e.wkNumber)===String(wkStr2)) || null;   // latest-wins already (ents sorted desc)
+    let cvrCardHtml;
+    if(!weekEntry){
+      cvrCardHtml = '<div class="cl-sub">🎯 WK1 CVR</div><div style="color:#8a93a6;font-size:.85rem;margin-top:10px">No Coaching Log performance data for '+mpEsc(wkStr2||'this week')+'.</div>';
+    } else {
+      const cvr = curedWk1CvrAvg(weekEntry.wk1cvr5);                                 // already a percentage (e.g. 8.4)
+      const prevEntry = ents.find(e=> wkNum(e) < wkNum(weekEntry) && curedWk1CvrAvg(e.wk1cvr5)!=null) || null;
+      const prevCvr = prevEntry ? curedWk1CvrAvg(prevEntry.wk1cvr5) : null;
+      const variance = (cvr!=null) ? Math.round((cvr - BENCH_WK1CVR)*10)/10 : null;
+      const delta = (cvr!=null && prevCvr!=null) ? Math.round((cvr - prevCvr)*10)/10 : null;
+      const A = _perfAvgFromEntry(weekEntry);
+      let lr=null; { let s=0,seen=false; const a=weekEntry.wk1cvr5||[]; for(let i=1;i<=4;i++){ const v=mpNum((a[i]||{}).lr); if(v!=null){s+=v;seen=true;} } lr=seen?s:null; }
+      cvrCardHtml = '<div class="cl-sub">🎯 WK1 CVR</div>'
+        +'<div style="font-size:1.7rem;font-weight:800;margin:4px 0">'+(cvr==null?'—':(Math.round(cvr*10)/10)+'%')+'</div>'
+        +'<div style="font-size:.76rem;color:#7a8aa0">'+mpEsc(wkStr2)+' · 4-week · target '+BENCH_WK1CVR+'%'+(variance!=null?(' · '+(variance>=0?'+':'')+variance+' pts vs target'):'')+'</div>'
+        +(delta!=null?'<div style="font-size:.76rem;margin-top:2px">'+(delta>=0?'▲ +':'▼ ')+delta+' pts vs '+mpEsc(prevEntry.wkNumber||'prev')+'</div>':'')
+        +'<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'
+          +mpMetricCell(A.avgS,'Sales')+mpMetricCell(lr,'Leads Rcvd')+mpMetricCell(A.avgLT,'Leads Touched')
+          +mpMetricCell(A.avgCC,'Conn. Calls')+mpMetricCell(A.avgTCR==null?null:(Math.round(A.avgTCR*10)/10+'%'),'TCR')+mpMetricCell(A.avgCSR==null?null:(Math.round(A.avgCSR*10)/10+'%'),'CSR')
+        +'</div><div style="font-size:.64rem;color:#9aa3b4;margin-top:4px">4-week trailing, from Coaching Log</div>';
+    }
+
+    top.innerHTML = `
+      <div style="background:#fff;border:2px solid var(--yellow);border-radius:12px;padding:14px 18px;margin-bottom:14px">
+        <div style="font-size:1.15rem;font-weight:800">Hi, ${mpEsc(first)}! 👋</div>
+        <div style="font-size:.88rem;color:#333">Here's ${isAgent?'your':(mpEsc(name)+"'s")} performance for <b style="color:#1a3353">${mpEsc(wkStr2)}${wkRange?' · '+mpEsc(wkRange):''}</b></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+        <div class="stat-card" id="mpCvrCard">${cvrCardHtml}</div>
+        <div class="stat-card" id="mpActiveCard"><div class="cl-sub">⚠️ Active Attendance Points</div><div style="color:#8a93a6;font-size:.85rem;margin-top:8px">Loading…</div></div>
+        <div class="stat-card"><div class="cl-sub">🎯 My Current AFI</div><div style="margin-top:6px">${afi}</div></div>
+      </div>
+      <div class="stat-card" id="mpCvrTrendCard" style="margin-top:14px;border-color:#e6e8ee">${mpBuildCvrChart(name, (parseInt((document.getElementById('iaRange')||{}).value||'6')||6))}</div>
+      <h3 style="margin:22px 0 6px;color:#1a3353;font-size:1rem">Performance & Coaching Detail</h3>`;
+
+    // detailed section (trend, vs-previous, Coaching Impact, coaching history) — preserved renderAgentProgress
+    try{ if(typeof renderAgentProgress==='function') renderAgentProgress(); }catch(e){ if(iaBody) iaBody.innerHTML=''; }
+    mpLoadAttendance(email, wkStr2);
+  };
+
+  // Active Attendance Points ONLY — from agentAttendance/{email} via the existing 4-month clearing engine
+  // (mpActivePoints). The weekly attendance breakdown card has been removed from My Performance; this now
+  // renders inside the middle summary card (#mpActiveCard). WK1 CVR/metrics come from the Coaching Log (above).
+  function mpLoadAttendance(email, wkStr){
+    const actCard=document.getElementById('mpActiveCard'), fresh=document.getElementById('mpFreshness');
+    const unavailable=(msg)=>{ if(actCard) actCard.innerHTML='<div class="cl-sub">⚠️ Active Attendance Points</div><div style="color:#8a93a6;font-size:.82rem;margin-top:8px">'+msg+'</div>'; };
+    if(typeof FB_DB==='undefined' || !FB_DB || !email){ unavailable('Attendance unavailable — identity not matched.'); if(fresh) fresh.textContent=''; return; }
+    let p; try{ p=FB_DB.collection('agentAttendance').doc(email).get(); }catch(e){ unavailable('Attendance unavailable.'); return; }
+    Promise.resolve(p).then(snap=>{
+      const doc=(snap&&snap.exists)?snap.data():null;
+      if(!doc){ unavailable('Awaiting first Attendance Sync.'); if(fresh) fresh.textContent=''; return; }
+      if(fresh){ const last=doc.lastSyncedAt||''; const lastDate=last?mpCentralDateStr(Date.parse(last)):''; const today=mpCentralDateStr();
+        const stale=!lastDate||lastDate<today;
+        fresh.innerHTML = last ? (stale ? '<span style="color:#b23b3b">⚠ Attendance has not been synced since '+mpEsc(mpNiceTs(last))+'</span>' : 'Attendance last synced: '+mpEsc(mpNiceTs(last))) : ''; }
+      if(actCard){ const incs=doc.incidents||doc.attendanceIncidents||[]; const r=mpActivePoints(incs, mpCentralDateStr()); const band=r.band;   // existing 4-month clearing engine, unchanged
+        actCard.innerHTML='<div class="cl-sub">⚠️ Active Attendance Points</div>'
+          +'<div style="display:flex;align-items:baseline;gap:14px;margin-top:6px"><div style="font-size:1.7rem;font-weight:800">'+r.activePoints+' pts</div><div style="font-size:.76rem;color:#7a8aa0">as of '+mpEsc(r.asOf)+'</div></div>'
+          +(r.nextClearing?'<div style="font-size:.76rem;color:#444;margin-top:2px">Next points clearing: '+r.nextClearing.points+' on '+mpEsc(r.nextClearing.date)+'</div>':'')
+          +(band?'<div style="margin-top:6px;font-size:.8rem"><b>Policy band:</b> '+mpEsc(band.infraction)+' <span style="color:#7a8aa0">('+mpEsc(band.range)+')</span><div style="font-size:.72rem;color:#7a8aa0">Policy result: '+mpEsc(band.penalty)+'</div></div>':'<div style="margin-top:6px;font-size:.76rem;color:#2f7a44">Below the first policy band.</div>'); }
+    }).catch(()=>unavailable('Attendance unavailable.'));
+  }
+})();
+</script>
+
+<script>
+/* ===================================================================================
+ * S5 — SOM SYNC PERFORMANCE (v70, Option B: private Apps Script HtmlService popup + postMessage).
+ * SOM-only. Popup authenticated by the SOM's Google session (no secret, no anonymous endpoint).
+ * Strict handshake: APEX validates sender origin + source===popup + per-sync nonce + schema + replay.
+ * Apps Script posts ONLY to an approved APEX origin (never "*"). Firestore writes happen ONLY on
+ * explicit Confirm, in the SOM's authenticated Firebase session, under the deployed rules. Idempotent
+ * via sourceHash; CURED WK1 CVR changes go to pendingCorrections (never silently overwritten).
+ * No perf data in URL/localStorage/console. Failed/partial sync never blanks last-good data.
+ * =================================================================================== */
+(function(){
+  const MP_SYNC = window.MP_SYNC = {
+    WEBAPP_URL: 'https://script.google.com/a/macros/homeaglowsales.com/s/AKfycbxjikdPzo9spZuIbcEs__9f92zr30pSgLeBwAu8bUnf7nNb9MUj7qRltaGLmxGyejbM2A/exec', // private Apps Script /exec (config, not a secret)
+    ALLOWED_APEX_ORIGINS: ['https://apex-coaching-log-3.vercel.app'], // PROD. Add ONE explicit staging origin below when testing.
+    STAGING_APEX_ORIGIN: 'https://apex-coaching-test.vercel.app',     // Phase A staging origin (exact; remove after testing)
+    // Sender (Apps Script content) origin check: Apps Script HtmlService posts from a *.googleusercontent.com origin.
+    SCRIPT_ORIGIN_SUFFIX: '.googleusercontent.com',
+    SCRIPT_ORIGIN_EXACT: '',                          // optional: pin the exact sender origin once observed
+    TIMEOUT_MS: 60000
+  };
+  function apexOriginAllowed(o){ return o===MP_SYNC.ALLOWED_APEX_ORIGINS[0] || (MP_SYNC.STAGING_APEX_ORIGIN && o===MP_SYNC.STAGING_APEX_ORIGIN); }
+  function senderOriginOk(o){ if(MP_SYNC.SCRIPT_ORIGIN_EXACT) return o===MP_SYNC.SCRIPT_ORIGIN_EXACT; return typeof o==='string' && (o.endsWith(MP_SYNC.SCRIPT_ORIGIN_SUFFIX) || o==='https://script.google.com'); }
+
+  window.mpSom = function(u){ u=u||(typeof currentUser!=='undefined'?currentUser:null); return !!u && u.role==='SOM'; };
+
+  // ---- small helpers (parity with mp_core) ----
+  function nn(v){ if(v===null||v===undefined) return null; const s=String(v).trim(); if(s==='') return null; const n=Number(s.replace(/,/g,'')); return isFinite(n)?n:null; }
+  // nz: numeric coercion that DEFAULTS TO 0 (not null) when the source is missing/blank/non-numeric.
+  // Preserves a legitimate 0 (nn(0)===0). Never returns undefined. Used for counter fields that must be 0 when absent.
+  function nz(v){ const n=nn(v); return n==null?0:n; }
+  function sstr(v){ return v==null?'':String(v).trim(); }
+  function wkk(v){ const m=String(v==null?'':v).match(/\d+/); return m?('WK'+parseInt(m[0],10)):''; }
+  function fnv1a(str){ let h=0x811c9dc5; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=(h+((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24)))>>>0; } return ('00000000'+h.toString(16)).slice(-8); }
+  function stable(o){ if(o===null||o===undefined) return 'null'; if(Array.isArray(o)) return '['+o.map(stable).join(',')+']'; if(typeof o==='object') return '{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+stable(o[k])).join(',')+'}'; return JSON.stringify(o); }
+  function sourceHash(v){ return fnv1a(stable(v)); }
+  function normInc(arr){ if(!Array.isArray(arr)) return []; const seen=new Set(),out=[]; arr.forEach(it=>{ const d=sstr(it&&it.date),t=sstr(it&&it.type),p=nn(it&&it.points); if(!d||p==null) return; const k=d+'|'+t; if(seen.has(k)) return; seen.add(k); out.push({date:d,type:t,points:p}); }); out.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0); return out; }
+  // per-week value subset (drives sourceHash) — mirrors mp_core.weekValueSubset
+  function weekVals(w){ return {
+    week: wkk(w.week),
+    wk1CvrLeadsReceived: nn(w.leadsReceived), wk1CvrSales: nn(w.sale), wk1Cvr: nn(w.wk1Cvr), wk1CvrDeficit: nn(w.deficit),
+    wk1CvrStatus: (w.status==null||w.status==='')?null:String(w.status).toUpperCase(),
+    att: w.att ? { requiredHours:nn(w.att.requiredHours), actualHours:nn(w.att.actualHours), lateMinutes:nn(w.att.lateMinutes),
+      undertimeMinutes:nn(w.att.undertimeMinutes), incurredPoints:nn(w.att.incurredPoints), absentCount:nn(w.att.absentCount),
+      abandonedCount:nn(w.att.abandonedCount), lateCount:nn(w.att.lateCount) } : null
+  }; }
+  // exact-only crosswalk resolver (bootstrap fuzzy is admin-time only; runtime is deterministic)
+  function buildResolver(cwDocs){ const map=new Map(); (cwDocs||[]).forEach(cw=>{ if(cw.status!=='approved') return; const email=sstr(cw.email).toLowerCase(); if(!email) return; [cw.cvrName,cw.hubspotName,cw.hubstaffName,cw.crmHandle,...((cw.aliases)||[])].map(x=>sstr(x).toLowerCase()).filter(Boolean).forEach(k=>{ if(!map.has(k)) map.set(k,new Set()); map.get(k).add(email); }); }); return map; }
+  function resolve(map, strings){ const em=new Set(); (strings||[]).forEach(x=>{ const k=sstr(x).toLowerCase(); if(!k) return; const hit=map.get(k); if(hit) hit.forEach(e=>em.add(e)); }); if(em.size===1) return {email:[...em][0],status:'resolved'}; if(em.size===0) return {email:null,status:'unmapped'}; return {email:null,status:'ambiguous'}; }
+  function ctISO(){ try{ return new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date()); }catch(e){ return new Date().toISOString(); } }
+  function esc2(s){ const t=(s==null?'':String(s)); return (typeof esc==='function')?esc(t):t; }
+
+  // ---- state ----
+  let mpsPopup=null, mpsNonce=null, mpsTimer=null, mpsPoll=null, mpsListening=false;
+  const mpsHandledNonces=new Set();     // replay guard
+  let mpsPreview=null;                   // validated+classified payload awaiting Confirm (in memory only)
+
+  window.openSyncPerformance=function(){
+    const u=(typeof currentUser!=='undefined')?currentUser:null;
+    const host=document.getElementById('viewSyncPerf'); if(!host) return;
+    if(!window.mpSom(u)){ const st=document.getElementById('mpSyncStatus'); if(st) st.innerHTML='<span style="color:#b23b3b">Sync Performance is available to the SOM only.</span>'; const btn=document.getElementById('mpSyncBtn'); if(btn) btn.style.display='none'; return; }
+    const btn=document.getElementById('mpSyncBtn'); if(btn) btn.style.display='inline-block';
+    // status console from perfSyncMeta/last + last run
+    const st=document.getElementById('mpSyncStatus'); if(st) st.innerHTML='Source report update schedule: <b>Daily at 9:00 AM CT</b><br>Loading last sync…';
+    if(typeof FB_DB!=='undefined' && FB_DB){
+      Promise.resolve(FB_DB.collection('perfSyncMeta').doc('last').get()).then(async snap=>{
+        const meta=(snap&&snap.exists)?snap.data():null; let runHtml='';
+        if(meta&&meta.lastSuccessfulRunId){ try{ const r=await FB_DB.collection('perfSyncRuns').doc(meta.lastSuccessfulRunId).get(); const run=(r&&r.exists)?r.data():null;
+          if(run) runHtml='<br>Last successful sync: <b>'+esc2(meta.at||run.finishedAt||'')+' CT</b> · status '+esc2(run.status||'')+' · weeks '+esc2((run.weeksTouched||[]).join(', '))+' · agents updated '+esc2(run.agentsUpdated||0)+' · skipped '+esc2(run.rowsSkipped||0)+' · pending CURED corrections '+esc2(run.correctionsPending||0); }catch(e){} }
+        if(st) st.innerHTML='Source report update schedule: <b>Daily at 9:00 AM CT</b>'+(runHtml||'<br>No successful sync recorded yet.');
+      }).catch(()=>{ if(st) st.innerHTML='Source report update schedule: <b>Daily at 9:00 AM CT</b><br>No sync history available.'; });
+    }
+    document.getElementById('mpSyncMsg').innerHTML=''; document.getElementById('mpSyncPreview').innerHTML='';
+  };
+
+  function mpsMsg(html,color){ const m=document.getElementById('mpSyncMsg'); if(m) m.innerHTML='<span style="color:'+(color||'#333')+'">'+html+'</span>'; }
+  function mpsCleanup(){ if(mpsTimer){clearTimeout(mpsTimer);mpsTimer=null;} if(mpsPoll){clearInterval(mpsPoll);mpsPoll=null;} if(mpsListening){window.removeEventListener('message',mpsOnMessage);mpsListening=false;} try{ if(mpsPopup&&!mpsPopup.closed) mpsPopup.close(); }catch(e){} }
+  function mpsFail(reason){ mpsCleanup(); mpsMsg('⚠ Sync did not complete: '+esc2(reason)+'. Your existing performance data is unchanged.', '#b23b3b'); }
+
+  // --- staging-only diagnostics: active ONLY on the configured staging origin; a no-op in production ---
+  const MP_DIAG = (function(){ try{ return !!MP_SYNC.STAGING_APEX_ORIGIN && window.location.origin===MP_SYNC.STAGING_APEX_ORIGIN; }catch(e){ return false; } })();
+  function mpsDiag(stage, extra){ if(!MP_DIAG) return; var txt=(extra===undefined?'':(typeof extra==='object'?JSON.stringify(extra):String(extra)));
+    try{ console.log('[APEX-SYNC] '+stage+(txt?(' :: '+txt):'')); }catch(e){}
+    var m=document.getElementById('mpSyncMsg'); if(m){ m.innerHTML += '<div style="font:11px monospace;color:#667">'+esc2(stage)+(txt?(' — '+esc2(txt)):'')+'</div>'; } }
+  if(MP_DIAG){ window.addEventListener('message', function(e){ try{
+    var isScript = typeof e.origin==='string' && (e.origin.endsWith(MP_SYNC.SCRIPT_ORIGIN_SUFFIX)||e.origin==='https://script.google.com');
+    if(!isScript) return; var d=e.data||{};
+    mpsDiag('message_seen', {origin:e.origin, sourceIsPopup:(e.source===mpsPopup), type:(d&&d.type)||null, nonceMatch:(d&&d.nonce===mpsNonce), hasPayload:!!(d&&d.payload)});
+  }catch(err){} }); }
+
+  window.mpSyncNow=function(){
+    if(!window.mpSom()){ mpsFail('SOM access required'); return; }
+    if(!apexOriginAllowed(window.location.origin)){ mpsFail('This APEX origin ('+esc2(window.location.origin)+') is not on the approved sync allowlist'); return; }
+    if(!MP_SYNC.WEBAPP_URL){ mpsFail('Sync endpoint not configured (MP_SYNC.WEBAPP_URL)'); return; }
+    mpsPreview=null; document.getElementById('mpSyncPreview').innerHTML='';
+    mpsNonce = (self.crypto&&crypto.randomUUID)?crypto.randomUUID():(''+Date.now()+Math.random().toString(16).slice(2));
+    const url = MP_SYNC.WEBAPP_URL + (MP_SYNC.WEBAPP_URL.indexOf('?')<0?'?':'&') + 'origin=' + encodeURIComponent(window.location.origin) + '&nonce=' + encodeURIComponent(mpsNonce);
+    mpsMsg('Opening secure Google sync window… authenticate with your authorized account if prompted.');
+    mpsPopup = window.open(url, 'apexPerfSync', 'width=520,height=640');
+    if(!mpsPopup){ mpsFail('popup was blocked — allow popups for APEX and click Sync Now again'); return; }
+    if(!mpsListening){ window.addEventListener('message', mpsOnMessage); mpsListening=true; }
+    mpsDiag('popup_opened', {apexOrigin:window.location.origin, popupHandleStored:!!mpsPopup, popupClosed:(mpsPopup?mpsPopup.closed:null)});
+    mpsTimer = setTimeout(()=>mpsFail('timed out waiting for the sync window'), MP_SYNC.TIMEOUT_MS);
+    mpsPoll = setInterval(()=>{ if(mpsPopup && mpsPopup.closed && !mpsPreview){ mpsFail('the sync window was closed before returning data'); } }, 800);
+  };
+
+  function mpsOnMessage(e){
+    // (1) Trusted-sender origin — ALWAYS required (production + staging). Never accept a non-Apps-Script origin, never "*".
+    if(!senderOriginOk(e.origin)){ mpsDiag('reject', 'sender origin not script: '+e.origin); return; }
+    // (2) Window identity. HtmlService serves the relay inside a sandbox iframe, so a VALID relay posts from a
+    //     NESTED window and e.source !== mpsPopup. PRODUCTION keeps the strict handle check unchanged for now;
+    //     STAGING (MP_DIAG) uses accept-by-nonce (Option B). The popup handle is still used for lifecycle (close/timeout).
+    if(!MP_DIAG){ if(e.source!==mpsPopup) return; }                                                    // PRODUCTION: unchanged strict check
+    else if(e.source!==mpsPopup){ mpsDiag('note', 'source!==mpsPopup (expected for HtmlService relay) — validating by nonce'); }
+    // (3) Exact message type/schema.
+    const d=e.data; if(!d || d.type!=='apexPerfSync' || typeof d.payload!=='object' || !d.payload){ mpsDiag('reject', 'type/schema'); return; }
+    // (4) Per-sync cryptographic nonce — the correlation secret (generated by APEX, only ever placed in the popup URL).
+    if(!mpsNonce || d.nonce!==mpsNonce){ mpsDiag('reject', 'nonce mismatch'); return; }
+    // (5) One-time / replay guard.
+    if(mpsHandledNonces.has(d.nonce)){ mpsDiag('reject', 'replay (duplicate nonce)'); return; }
+    // Staging synthetic probe: validate only — never build a preview, never touch Firestore.
+    if(d.diagProbe){ mpsDiag('diag_probe_accepted', 'origin+type+nonce OK — channel works (no preview, no Firestore)'); mpsCleanup(); return; }
+    // Accept — INVALIDATE the nonce immediately so this sync cannot be replayed.
+    mpsHandledNonces.add(d.nonce); mpsNonce=null;
+    mpsDiag('message_received', 'accepted (origin+type+nonce) — building preview');
+    mpsCleanup();
+    try{ mpsBuildPreview(d.payload); }
+    catch(err){ mpsFail('malformed sync payload'); }
+  }
+
+  // Human-approved attendance name aliases (reviewed CSV, HIGH CONFIDENCE only — 53 rows). Explicit exceptions ONLY.
+  // Applied ONLY after exact-unique roster match fails; the alias target is re-validated against the CURRENT roster (fail-closed).
+  const ATTENDANCE_NAME_ALIASES = [
+    { attendanceName:'Aaron Tuico', canonicalName:'Aaron Louise Tuico', email:'aarontuico@homeaglowsales.com' },
+    { attendanceName:'Ace Amantiad', canonicalName:'Ace York Amantiad', email:'aceamantiad@homeaglowsalesone.com' },
+    { attendanceName:'Anne Ignacio', canonicalName:'Anne Lorraine Ignacio', email:'anneignacio@homeaglowsalestwo.com' },
+    { attendanceName:'Arah Sacro', canonicalName:'Arah Mae Sacro', email:'arahsacro@homeaglowsales.com' },
+    { attendanceName:'Billy Gali', canonicalName:'Billy Ray Ocay Gali', email:'billygali@homeaglowsales.com' },
+    { attendanceName:'Bryan Jhon Bolonia', canonicalName:'Bryan Bolonia', email:'bryanbolonia@homeaglowsalestwo.com' },
+    { attendanceName:'Carla Mae Remada', canonicalName:'Carla Remada', email:'carlaremada@homeaglowsalesone.com' },
+    { attendanceName:'Christopher Campion', canonicalName:'Christopher A. Campion', email:'christophercampion@homeaglowsalestwo.com' },
+    { attendanceName:'Criezl Pagunsan', canonicalName:'Criezl Mae Pagunsan', email:'criezlpagunsan@homeaglowsales.com' },
+    { attendanceName:'Cyrus John Carlo Aquino', canonicalName:'Cyrus Aquino', email:'cyrusaquino@homeaglowsalestwo.com' },
+    { attendanceName:'Dean Castro', canonicalName:'Dean Rowell Castro', email:'deancastro@homeaglowsalesone.com' },
+    { attendanceName:'Erwin Garcia', canonicalName:'Erwin Jay Garcia', email:'erwingarcia@homeaglowsalestwo.com' },
+    { attendanceName:'Hanna Ibanez', canonicalName:'Hanna Alexie Ibanez', email:'hannaibanez@homeaglowsalesone.com' },
+    { attendanceName:'Hanna Tiongco', canonicalName:'Hanna Marie Tiongco', email:'hannationgco@homeaglowsalestwo.com' },
+    { attendanceName:'Irene Virgo', canonicalName:'Irene Joy Virgo', email:'irenevirgo@homeaglowsales.com' },
+    { attendanceName:'Iris Neri', canonicalName:'Iris Mariel Neri', email:'irisneri@homeaglowsalestwo.com' },
+    { attendanceName:'Janelle Casabuena', canonicalName:'Janelle Adriana Casabuena', email:'janellecasabuena@homeaglowsales.com' },
+    { attendanceName:'Jennifer Trinidad', canonicalName:'Jennifer M. Trinidad', email:'jennifertrinidad@homeaglowsalestwo.com' },
+    { attendanceName:'Jiselle Santos', canonicalName:'Jiselle Cayabyab-Santos', email:'jisellesantos@homeaglowsales.com' },
+    { attendanceName:'Joan Estarez', canonicalName:'Joan Elizabeth Zendivina Estarez', email:'joanestarez@homeaglowsalestwo.com' },
+    { attendanceName:'Joanna Luganao', canonicalName:'Joanna Ynez Luganao', email:'joannaluganao@homeaglowsalestwo.com' },
+    { attendanceName:'Jocelyn Alcoran', canonicalName:'Jocelyn S. Alcoran', email:'jocelynalcoran@homeaglowsalesone.com' },
+    { attendanceName:'John Babila', canonicalName:'John Anthony Babila', email:'johnbabila@homeaglowsalestwo.com' },
+    { attendanceName:'Jovan Jalandoni', canonicalName:'Jovan Philip Jalandoni', email:'jovanjalandoni@homeaglowsales.com' },
+    { attendanceName:'Kim Allen Caceres', canonicalName:'Kim Caceres', email:'kimcaceres@homeaglowsalestwo.com' },
+    { attendanceName:'Kim Vitorillo', canonicalName:'Kim Joy Vitorillo', email:'kimvitorillo@homeaglowsalesone.com' },
+    { attendanceName:'Loie Cometa', canonicalName:'Loie John Cometa', email:'loiecometa@homeaglowsalesone.com' },
+    { attendanceName:'Lord Michael Canlas', canonicalName:'Lord Michael Anthony Canlas', email:'lordcanlas@homeaglowsalesone.com' },
+    { attendanceName:'MarieJo Eupalan', canonicalName:'Marie Jo Eupalan', email:'mariejoeupalan@homeaglowsalestwo.com' },
+    { attendanceName:'Mark Bontia', canonicalName:'Mark Angelo Bontia', email:'markbontia@homeaglowsalesone.com' },
+    { attendanceName:'Mark Bryan Hipolito', canonicalName:'Mark Hipolito', email:'markhipolito@homeaglowsalestwo.com' },
+    { attendanceName:'Mark Gantong', canonicalName:'Mark Ivan Gantong', email:'markgantong@homeaglowsalesone.com' },
+    { attendanceName:'Mary Lim', canonicalName:'Mary Joy Lim', email:'marylim@homeaglowsalestwo.com' },
+    { attendanceName:'Mary Opena', canonicalName:'Mary Angelique Emeline Opeña', email:'maryopena@homeaglowsalestwo.com' },
+    { attendanceName:'Mary Sotto', canonicalName:'Mary Jaye Sotto', email:'marysotto@homeaglowsalesone.com' },
+    { attendanceName:'Mic Menente', canonicalName:'Mic Kevin Menente', email:'micmenente@homeaglowsalesone.com' },
+    { attendanceName:'Michael Lebaste', canonicalName:'Michael Rovillos Lebaste', email:'michaellebaste@homeaglowsalesone.com' },
+    { attendanceName:'Nicole Canlas', canonicalName:'Nicole Archael B. Canlas', email:'nicolecanlas@homeaglowsalesone.com' },
+    { attendanceName:'Odirose Amuyot', canonicalName:'Odirose Q. Amuyot', email:'odiroseamuyot@homeaglowsalestwo.com' },
+    { attendanceName:'Pena Ramos', canonicalName:'Peña Rafaela Ramos', email:'penaramos@homeaglowsalestwo.com' },
+    { attendanceName:'Princess Mamandis', canonicalName:'Princess Lorraine Mamandis', email:'princessmamandis@homeaglowsalestwo.com' },
+    { attendanceName:'Princess Punzalan', canonicalName:'Princess May Punzalan', email:'princesspunzalan@homeaglowsales.com' },
+    { attendanceName:'Rainier Patrick Peralta', canonicalName:'Rainier Peralta', email:'rainierperalta@homeaglowsales.com' },
+    { attendanceName:'Ramon Hila', canonicalName:'Ramon Bong Hila', email:'ramonhila@homeaglowsalestwo.com' },
+    { attendanceName:'Ricky Ibe Tulod Jr', canonicalName:'Ricky Tulod Jr', email:'rickytulod@homeaglowsalestwo.com' },
+    { attendanceName:'Romeo Sandoval Jr.', canonicalName:'Romeo Jr Sandoval', email:'romeosandovaljr@homeaglowsalestwo.com' },
+    { attendanceName:'Rose Tejedor', canonicalName:'Rose Ann Tejedor', email:'rosetejedor@homeaglowsales.com' },
+    { attendanceName:'Sharlyn Joy Tapao', canonicalName:'Sharlyn Tapao', email:'sharlyntapao@homeaglowsales.com' },
+    { attendanceName:'Suneil Gilay', canonicalName:'Suneil Anthony Tarpin Gilay', email:'suneilgilay@homeaglowsalestwo.com' },
+    { attendanceName:'Supremo Cabalo', canonicalName:'Supremo A. Cabalo', email:'supremocabalo@homeaglowsalestwo.com' },
+    { attendanceName:'Trixia Robles', canonicalName:'Trixia Marie Robles', email:'trixiarobles@homeaglowsales.com' },
+    { attendanceName:'Vanessa Inocencio', canonicalName:'Vanessa Sarah Inocencio', email:'vanessainocencio@homeaglowsalesone.com' },
+    { attendanceName:'Von Rimes', canonicalName:'Von Rio RImes', email:'vonrimes@homeaglowsalestwo.com' }
+  ];
+
+  // Build the read-only ATTENDANCE preview: join Hubspot Name → current roster → email (exact-unique),
+  // fail closed on unmatched/ambiguous, classify vs stored agentAttendance. NO writes. CVR is ignored (Coaching Log owns it).
+  async function mpsBuildPreview(payload){
+    mpsMsg('Validating and building attendance preview…');
+    const att=Array.isArray(payload.attendance)?payload.attendance:[];
+    if(att.length===0){ mpsFail('sync payload contained no attendance rows'); return; }
+    function normNm(s){ return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
+    // roster index: normalized fullName/name -> Set(email); rosterEmails = every current canonical email. Exact-unique only; no runtime fuzzy.
+    const idx={}; const rosterEmails=new Set();
+    (typeof ROSTER!=='undefined'?ROSTER:[]).forEach(a=>{ const email=normEmail(a.email); if(!email) return; rosterEmails.add(email); [a.fullName,a.name].forEach(nm=>{ const k=normNm(nm); if(!k) return; (idx[k]=idx[k]||new Set()).add(email); }); });
+    // Human-approved alias map (code constant, HIGH CONFIDENCE only). Keys normalized with the SAME normNm.
+    // Applied ONLY after exact-unique roster match returns nothing; the alias target is then RE-VALIDATED
+    // against the CURRENT roster (email present AND canonical name resolves uniquely to it) — else fail closed.
+    const aliasByNorm={}; ATTENDANCE_NAME_ALIASES.forEach(a=>{ const k=normNm(a.attendanceName); const em=normEmail(a.email); if(k&&em) aliasByNorm[k]={canonicalName:a.canonicalName, email:em}; });
+    const byEmail={}; const uniqueNames=new Set(), exactMatched=new Set(), aliasMatched=new Set(), unmatched=new Set(), ambiguous=new Set(); const weeksSet={}; let attProcessed=0;
+    att.forEach(r=>{ const hn=sstr(r.hubspotName); const wk=wkk(r.week); if(wk) weeksSet[wk]=1;
+      if(!hn){ unmatched.add('(blank Hubspot Name)'); return; }
+      uniqueNames.add(hn); const k=normNm(hn);
+      let email=null, via=null;
+      const set=idx[k];
+      if(set && set.size===1){ email=[...set][0]; via='exact'; }        // 1) exact-unique roster match (authoritative, unchanged)
+      else if(set && set.size>1){ ambiguous.add(hn); return; }          //    exact match is ambiguous → fail closed
+      else {
+        const al=aliasByNorm[k];                                        // 2) approved alias — ONLY because exact returned no match
+        if(!al){ unmatched.add(hn); return; }                          //    no exact, no approved alias → unmatched
+        // re-validate the alias target against the CURRENT roster (never blindly trust the stored email)
+        const cset=idx[normNm(al.canonicalName)];
+        const emailInRoster=rosterEmails.has(al.email);
+        const canonUnique=!!cset && cset.size===1 && [...cset][0]===al.email;
+        if(emailInRoster && canonUnique){ email=al.email; via='alias'; }
+        else { unmatched.add(hn); return; }                            //    alias target missing/ambiguous in current roster → fail closed
+      }
+      if(via==='exact') exactMatched.add(hn); else aliasMatched.add(hn);
+      attProcessed++;
+      const o=byEmail[email]||(byEmail[email]={agentEmail:email, weeks:{}, incidents:[]});
+      // Firestore data contract: NONE of these eight fields may ever be undefined (real Firestore rejects the whole doc).
+      // requiredHours/actualHours: preserve numeric incl 0, else null when unavailable (hours legitimately unknown). Others: preserve numeric incl 0, else safe default 0. Never undefined.
+      if(wk) o.weeks[wk]={
+        requiredHours: nn(r.requiredHours),        // numeric incl 0 → kept; missing/blank → null; never undefined
+        actualHours: nn(r.actualHours),            // numeric incl 0 → kept; missing/blank → null; never undefined
+        lateMinutes: nz(r.lateMinutes),            // numeric incl 0 → kept; missing → 0; never undefined
+        undertimeMinutes: nz(r.undertimeMinutes),  // numeric incl 0 → kept; missing → 0; never undefined
+        incurredPoints: nz(r.incurredPoints),      // authoritative value incl 0 → kept; missing → 0; never undefined
+        absentCount: nz(r.absentCount),            // numeric incl 0 → kept; missing → 0; never undefined
+        abandonedCount: nz(r.abandonedCount),      // numeric incl 0 → kept; missing → 0; never undefined
+        lateCount: nz(r.lateCount)                 // numeric incl 0 → kept; missing → 0; never undefined
+      };
+      (normInc(r.pointIncidents)||[]).forEach(i=>o.incidents.push(i));
+    });
+    // dedupe incidents per email (date|type)
+    Object.values(byEmail).forEach(o=>{ const seen=new Set(), out=[]; o.incidents.forEach(i=>{ const key=i.date+'|'+i.type; if(!seen.has(key)){ seen.add(key); out.push(i); } }); o.incidents=out; });
+    // classify vs stored agentAttendance (new / unchanged / updated) by hash
+    const emails=Object.keys(byEmail); const stored={};
+    for(const email of emails){ try{ const snap=await FB_DB.collection('agentAttendance').doc(email).get(); stored[email]=(snap&&snap.exists)?(snap.data()||{}):{}; }catch(e){ stored[email]={}; } }
+    const cls={new:0,unchanged:0,updated:0}; const rows=[];
+    emails.forEach(email=>{ const o=byEmail[email]; const hash=sourceHash({weeks:o.weeks,incidents:o.incidents}); const prevHash=(stored[email]||{})._hash||null;
+      const action = !prevHash ? 'new' : (prevHash===hash?'unchanged':'updated'); cls[action]++;
+      rows.push({email,doc:o,hash,action}); });
+    mpsPreview={ payload, rows, cls, exactMatched:[...exactMatched], aliasMatched:[...aliasMatched], unmatched:[...unmatched], ambiguous:[...ambiguous],
+      uniqueCount:uniqueNames.size, weeks:Object.keys(weeksSet).sort((a,b)=>wkNum({wkNumber:a})-wkNum({wkNumber:b})), attProcessed, asOf:payload.generatedAt||'' };
+    mpsRenderPreview();
+    mpsMsg('Attendance preview ready. Review the identity match below, then Confirm to write only exact-matched and approved alias-matched agents.','#2f6f43');
+  }
+
+  function mpsRenderPreview(){
+    const P=mpsPreview; const host=document.getElementById('mpSyncPreview'); if(!P||!host) return;
+    const line=(l,v)=>'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f1f3f8"><span>'+l+'</span><b>'+v+'</b></div>';
+    const hd=(t)=>'<div style="font-weight:700;font-size:.82rem;color:#334;margin:10px 0 2px">'+t+'</div>';
+    const flag=(P.unmatched.length||P.ambiguous.length);
+    host.innerHTML='<div class="cl-card"><div class="cl-head"><div class="cl-ic">👁️</div><div><h3>Attendance Sync Preview</h3><div class="cl-sub">Read-only. Only exact-matched and approved alias-matched agents are written on Confirm.</div></div></div>'
+      +line('Source / as-of', esc2(P.asOf||'—'))
+      +line('Weeks present', esc2(P.weeks.join(', ')||'—'))
+      +hd('Identity match (Hubspot Name → current roster → email)')
+      +line('Unique Hubspot Names', esc2(P.uniqueCount))
+      +line('Exact matched', esc2(P.exactMatched.length))
+      +line('Alias matched (approved)', esc2(P.aliasMatched.length)+(P.aliasMatched.length?' — '+esc2(P.aliasMatched.slice(0,10).join(', '))+(P.aliasMatched.length>10?' …':''):''))
+      +line('Unmatched (skipped, fail-closed)', esc2(P.unmatched.length)+(P.unmatched.length?' — '+esc2(P.unmatched.slice(0,10).join(', '))+(P.unmatched.length>10?' …':''):''))
+      +line('Ambiguous (skipped, fail-closed)', esc2(P.ambiguous.length)+(P.ambiguous.length?' — '+esc2(P.ambiguous.slice(0,10).join(', '))+(P.ambiguous.length>10?' …':''):''))
+      +hd('Writes (matched agents only → agentAttendance/{email})')
+      +line('Agents to write (new)', esc2(P.cls.new))
+      +line('Agents to write (changed)', esc2(P.cls.updated))
+      +line('Unchanged (skipped)', esc2(P.cls.unchanged))
+      +line('Attendance rows processed', esc2(P.attProcessed))
+      +(flag?'<div style="font-size:.72rem;color:#8a6d00;margin-top:8px">Unmatched / ambiguous names are NOT written (attendance shows as unavailable for them). Send me the list and I\'ll propose a reviewed attendance alias map for your approval.</div>':'')
+      +'<div style="margin-top:12px"><button class="btn-add btn-add-green" id="mpConfirmBtn" onclick="mpConfirmSync()">✔ Confirm — write matched attendance</button> <button class="cl-btn cl-btn-clear" onclick="mpCancelSync()">Cancel</button></div>'
+      +'<div style="font-size:.72rem;color:#9aa3b4;margin-top:8px">No agentPerformance / CVR writes. Only agentAttendance/{email} for exact-matched and approved alias-matched agents. Unchanged agents are skipped.</div></div>';
+  }
+  window.mpCancelSync=function(){ mpsPreview=null; document.getElementById('mpSyncPreview').innerHTML=''; mpsMsg('Sync cancelled. Nothing was written.'); };
+
+  window.mpConfirmSync=async function(){
+    const P=mpsPreview; if(!P){ mpsFail('nothing to confirm'); return; }
+    if(!window.mpSom()){ mpsFail('SOM access required'); return; }
+    const btn=document.getElementById('mpConfirmBtn'); if(btn){ btn.disabled=true; btn.textContent='Writing…'; }
+    const nowIso=ctISO(); let written=0, skipped=P.cls.unchanged, errors=0; const weeksTouched=new Set();
+    for(const x of P.rows){
+      if(x.action==='unchanged') continue;
+      try{
+        // merge:true preserves prior weeks (last-good); _hash covers the incoming payload for idempotency
+        const doc=Object.assign({}, x.doc, { agentEmail:x.email, lastSyncedAt:nowIso, _hash:x.hash });
+        await FB_DB.collection('agentAttendance').doc(x.email).set(doc, {merge:true});
+        written++; Object.keys(x.doc.weeks||{}).forEach(w=>weeksTouched.add(w));
+      }catch(e){ errors++; }
+    }
+    const counts=written+' written, '+skipped+' unchanged, '+P.unmatched.length+' unmatched, '+P.ambiguous.length+' ambiguous (not written)';
+    if(errors>0){
+      // A failed / partial sync MUST remain visibly failed. No green check, no "complete". Keep the preview so the SOM can retry.
+      mpsMsg((written>0?'⚠ Attendance sync PARTIAL — ':'⚠ Attendance sync FAILED — 0 written — ')+errors+' error(s); previous attendance preserved. '+counts+'.', '#b23b3b');
+      if(btn){ btn.disabled=false; btn.textContent='✔ Retry — write matched attendance'; }
+    }else{
+      // Full success — clear the preview and show the counts. openSyncPerformance() intentionally NOT called so the counts stay visible.
+      mpsPreview=null; document.getElementById('mpSyncPreview').innerHTML='';
+      mpsMsg('✔ Attendance sync complete — '+counts+'.', '#2f6f43');
+    }
+  };
+})();
 </script>
 </body>
 </html>
