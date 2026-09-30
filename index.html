@@ -248,6 +248,43 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
 .proj-tcr-header{background:#1565c0;color:#fff}
 .proj-csr-header{background:#2e7d32;color:#fff}
 .proj-table td{padding:8px 12px;border:1px solid #e0e0e0;text-align:center;vertical-align:middle}
+/* v76 management tables — three PURPOSEFUL densities, sized per use-case (not one blanket style).
+   Each is its own class so the compliance table can read comfortably while summary/agent tables stay tight. */
+
+/* compact — used by secondary/collapsed tables (Agent/TL Coaching Effectiveness, accountability history).
+   Raised from 9px to 11px body / 10px header to meet the ≥10px legibility floor and match the summary/agent
+   tables above it (no essential content below 10px). */
+.proj-table.v76-compact{font-size:11px;margin-top:2px;margin-bottom:2px;border-collapse:collapse;line-height:1.25}
+.proj-table.v76-compact th{padding:2px 6px;font-size:10px;letter-spacing:.02em;line-height:1.2;white-space:nowrap;height:auto}
+.proj-table.v76-compact td{padding:1px 6px;line-height:1.2;height:auto;min-width:0}
+.proj-table.v76-compact td .cl-btn{padding:1px 6px!important;font-size:10px!important;line-height:1.25!important}
+.proj-table.v76-compact td b,.proj-table.v76-compact td span,.proj-table.v76-compact td div{line-height:1.2}
+
+/* MANAGEMENT COMPLIANCE TABLE — comfortably readable executive density (12px body / 11px header) */
+.proj-table.v76-tbl-compliance{width:100%;font-size:12px;margin-top:4px;margin-bottom:2px;border-collapse:collapse;line-height:1.35;table-layout:auto}
+.proj-table.v76-tbl-compliance th{padding:3px 8px;font-size:11px;letter-spacing:.02em;line-height:1.3;white-space:nowrap;vertical-align:middle}
+.proj-table.v76-tbl-compliance td{padding:2px 8px;line-height:1.3;vertical-align:middle}
+.proj-table.v76-tbl-compliance td:first-child,.proj-table.v76-tbl-compliance th:first-child{padding-left:10px}
+.proj-table.v76-tbl-compliance td .cl-btn{padding:2px 10px!important;font-size:11px!important;line-height:1.3!important}
+
+/* TL METRIC SUMMARY TABLE — tighter than compliance, one line per metric (11px body / 10px header) */
+.proj-table.v76-tbl-summary{width:100%;font-size:11px;margin-top:3px;margin-bottom:2px;border-collapse:collapse;line-height:1.25}
+.proj-table.v76-tbl-summary th{padding:2px 7px;font-size:10px;letter-spacing:.02em;line-height:1.2;white-space:nowrap}
+.proj-table.v76-tbl-summary td{padding:1px 7px;line-height:1.2}
+
+/* AGENT DETAIL TABLE — readable inside the collapsed drill-down (11px body / 10px header) */
+.proj-table.v76-tbl-agents{width:100%;font-size:11px;margin-top:2px;margin-bottom:2px;border-collapse:collapse;line-height:1.25}
+.proj-table.v76-tbl-agents th{padding:2px 7px;font-size:10px;letter-spacing:.02em;line-height:1.2;white-space:nowrap}
+.proj-table.v76-tbl-agents td{padding:1px 7px;line-height:1.2}
+
+/* Performance Report Controls toolbar — a clean, intentional band that visually OWNS the perf-report filters */
+.v76-perfctl{margin:12px 0 6px;padding:10px 12px;background:#f7f9fc;border:1px solid #e3e8ef;border-radius:10px}
+.v76-perfctl-label{font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7a8aa0;margin-bottom:7px}
+.v76-perfctl-row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end}
+.v76-perfctl-metric{display:flex;flex-direction:column;gap:4px}
+.v76-ctl-cap{font-size:.7rem;font-weight:700;color:#5a6b82}
+.v76-perfctl-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.v76-perfctl .cl-fg label{font-size:.7rem;font-weight:700;color:#5a6b82;display:block;margin-bottom:3px}
 .proj-label{text-align:left!important;font-weight:700;background:#f8f8f8;font-size:.82rem;white-space:nowrap}
 .proj-curr{background:#eef0fb;font-weight:700;color:#283593}
 .proj-tcr{background:#e3f2fd}
@@ -420,8 +457,8 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     .tlr-bar>span{display:block;height:100%;border-radius:7px}
     .tlr-btns{display:flex;gap:10px;justify-content:flex-end;padding:0 20px 18px}
     /* ══ v60 Coaching Log redesign (mockup) — scoped cl-* classes ══ */
-    #viewLog .cl-pagetitle{font-size:1.6rem;font-weight:800;color:#1a2a44;margin:0}
-    #viewLog .cl-pagesub{color:#7a8496;font-size:.9rem;margin:2px 0 18px}
+    #viewLog .cl-pagetitle,#viewCoachingPerf .cl-pagetitle{font-size:1.6rem;font-weight:800;color:#1a2a44;margin:0}
+    #viewLog .cl-pagesub,#viewCoachingPerf .cl-pagesub{color:#7a8496;font-size:.9rem;margin:2px 0 18px}
     .cl-card{background:#fff;border:1px solid #e6e9f0;border-radius:14px;box-shadow:0 1px 3px rgba(20,30,60,.05);overflow:hidden;margin-bottom:22px}
     .cl-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(90deg,#f5f8ff,#fbfcff);border-bottom:1px solid #eef1f7}
     .cl-head .cl-ic{width:38px;height:38px;border-radius:10px;background:#eaf1ff;color:#2f6fd6;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:none}
@@ -504,6 +541,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
   <nav>
     <button id="navDashboard" class="active" onclick="showView('dashboard')">📊 Dashboard</button>
     <button id="navLog" onclick="showView('log')">📋 Coaching Log</button>
+    <button id="navCoachingPerf" onclick="showView('coachingperf')" style="display:none">📊 Coaching Performance</button>
     <button id="navRainmaker" onclick="showView('rainmaker')">🎯 Rainmaker Script &amp; Results</button>
     <button id="navDailyCompletion" onclick="showView('dailycompletion')" style="display:none">🗓️ Daily Coaching Completion</button>
     <button id="navSomHealth" onclick="showView('somhealth')" style="display:none">🩺 SOM Health Check</button>
@@ -514,6 +552,7 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
     <!-- NTE top-level tab removed from the UI (data + functions retained/dormant; NTE Logs sheet untouched). -->
   </nav>
   <main>
+    <div id="v76SimBanner" style="display:none"></div>
     <div id="viewDashboard">
       <div class="dashboard-title">Weekly Coaching Dashboard</div>
       <div class="filter-bar">
@@ -906,6 +945,19 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
           <th style="text-align:left">Date</th><th>WK#</th><th>Agent</th><th>Team Lead</th><th>Rainmaker Focus</th><th>Adherence</th><th>Areas to Reinforce</th><th>Aircall</th><th>Action</th>
         </tr></thead><tbody id="rmHistoryBody"><tr><td colspan="9" class="empty-state">No Rainmaker Practice reviews in view.</td></tr></tbody></table></div>
       </div>
+    </div>
+
+    <!-- ══ v76 COACHING PERFORMANCE (additive; role-based). Agents are routed to My Performance. ══ -->
+    <div id="viewCoachingPerf" style="display:none">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <h1 class="cl-pagetitle" id="cpv76Title">Coaching Performance</h1>
+          <div class="cl-pagesub" id="cpv76Sub"></div>
+        </div>
+        <div id="cpv76Filters" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+      </div>
+      <div id="cpv76TestView"></div>
+      <div id="cpv76Root"></div>
     </div>
   </main>
 </div>
@@ -1719,7 +1771,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-28-active-points-relocate-v75";
+const APEX_BUILD = "2026-09-30-coaching-perf-final-audit-weekrange-dedupe-v76";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -2139,7 +2191,7 @@ function applyUsersDocs(docs){
     const role = normRole(d.role);
     const display = d.display || d.name || email;
     if(role==='SOM' || role==='Director'){
-      DEPT_WIDE_ACCOUNTS[email] = { role, display };
+      DEPT_WIDE_ACCOUNTS[email] = { role, display, cluster: d.cluster||'' };   // optional own-cluster for the SOM "My Cluster" default; does NOT restrict org-wide access
     } else if(role==='Admin'){
       ADMIN_EMAILS.push(email);
     } else if(role==='TL'){
@@ -2217,7 +2269,7 @@ async function readUserDoc(email){
 function currentUserFromDoc(email, d){
   const role = normRole(d.role);
   const display = d.display || d.name || email;
-  if(role==='SOM' || role==='Director' || role==='Admin') return { email, role, display, tlInfo:null, omInfo:null };
+  if(role==='SOM' || role==='Director' || role==='Admin') return { email, role, display, cluster:(d&&d.cluster)||'', tlInfo:null, omInfo:null };   // optional own-cluster (My Cluster default only; org-wide access unaffected)
   if(role==='TL') return { email, role, display, tlInfo:{ display, fullName: d.fullName || d.name || display, cluster: d.cluster||'' }, omInfo:null };
   if(role==='OM') return { email, role, display, tlInfo:null, omInfo:{ display, cluster: d.cluster||'' } };
   return { email, role:'Agent', display: d.name || display, tlInfo:null, omInfo:null };
@@ -2988,11 +3040,12 @@ async function legacyDoLogin_DISABLED() {
   loadRoster();
   // Authentication uses the STATIC roster only — no Agents SheetDB tab, no Agents GET on login.
   if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Sign In'; }
-  let role, display, tlInfo = null, omInfo = null;
+  let role, display, tlInfo = null, omInfo = null, cluster = '';
   if (DEPT_WIDE_ACCOUNTS[email]) {
     // Department-wide reporting account (checked FIRST so a promoted OM email, e.g. Jubee,
     // resolves to SOM/Director rather than its legacy OM entry).
     role = DEPT_WIDE_ACCOUNTS[email].role; display = DEPT_WIDE_ACCOUNTS[email].display;
+    cluster = DEPT_WIDE_ACCOUNTS[email].cluster || '';   // optional own-cluster from the user doc (My Cluster default only)
   } else if (ADMIN_EMAILS.includes(email)) {
     role = 'Admin'; display = 'Admin (' + email + ')';
   } else if (TL_EMAILS[email]) {
@@ -3010,7 +3063,7 @@ async function legacyDoLogin_DISABLED() {
       return;
     }
   }
-  currentUser = { email, role, display, tlInfo, omInfo };
+  currentUser = { email, role, display, tlInfo, omInfo, cluster };
   loadEntries();
   initApp();
   document.getElementById('loginPage').style.display = 'none';
@@ -3043,6 +3096,8 @@ function initApp() {
   { const br=document.getElementById('btnRecovery'); if(br) br.style.display = 'none'; }  // v42: standalone Recovery diagnostic HIDDEN for ALL roles in production; automatic backupLocalOnlyRecoveries() unchanged.
   { const rc=document.getElementById('btnRecoveryCenter'); if(rc) rc.style.display = (isDeptWide(currentUser) || (currentUser && currentUser.role==='OM')) ? 'inline-block' : 'none'; }  // v38: SOM/Director restore + OM view-only
   document.getElementById('btnTLMenu').style.display      = canManageTLs()    ? 'inline-block' : 'none';
+  // v76: Coaching Performance tab — TL/OM/SOM/Director see the management view; Agents reach My Performance via the sidebar item.
+  { const cp=document.getElementById('navCoachingPerf'); if(cp) cp.style.display = (currentUser && (currentUser.role==='TL'||currentUser.role==='OM'||currentUser.role==='SOM'||currentUser.role==='Director')) ? 'inline-block' : 'none'; }
   // v44: Daily Coaching Completion tab — OM (own cluster), SOM/Director/Admin (all clusters). Agents + TLs NO ACCESS.
   { const nb=document.getElementById('navDailyCompletion'); if(nb) nb.style.display = dcCanAccess(currentUser) ? 'inline-block' : 'none'; }
   // v45: SOM Health Check tab — SOM ONLY (Agent/TL/OM/Director/Admin hidden).
@@ -3146,6 +3201,8 @@ function sbBuildModel(){
     {ic:'📋',label:'Coaching Log',view:'log'},
     {ic:'🎯',label:'Rainmaker Script & Results',view:'rainmaker'},
   ];
+  // v76: Coaching Performance is management-only (TL/OM/SOM/Director). Agents use Coaching Log → My Performance.
+  if(u.role==='TL'||u.role==='OM'||u.role==='SOM'||u.role==='Director') coaching.splice(2,0,{ic:'📊',label:'Coaching Performance',view:'coachingperf'});
   if(dcCanAccess(u)) coaching.push({ic:'📅',label:'Daily Coaching Completion',view:'dailycompletion'});
   const mgmt=[];
   if(canManageRoster()) mgmt.push({ic:'👥',label:'Roster',action:'openRosterManager'});
@@ -3243,6 +3300,8 @@ function showView(view) {
   setDisp('viewWeeklySalesReview', view==='weeklysales');     // v67
   setDisp('viewWeeklyTLSummary', view==='weeklytlsummary');   // v68
   setDisp('viewSyncPerf', view==='syncperf');                 // v70 (S5 SOM Sync Performance)
+  setDisp('viewCoachingPerf', view==='coachingperf');         // v76 Coaching Performance
+  setAct('navCoachingPerf', view==='coachingperf');
   setAct('navSyncPerf', view==='syncperf');
   setAct('navDashboard', view==='dashboard');
   setAct('navLog',       view==='log');
@@ -3255,6 +3314,7 @@ function showView(view) {
   if (view==='rainmaker') openRainmakerTab();
   if (view==='log'){ try{ populateProgFilters(); }catch(e){} if(typeof renderMyPerformance==='function') renderMyPerformance(); }  // v69: My Performance (replaces Team table + Individual Agent Progress)
   if (view==='syncperf' && typeof openSyncPerformance==='function') openSyncPerformance();  // v70 (S5, SOM only)
+  if (view==='coachingperf' && typeof openCoachingPerf==='function') openCoachingPerf();     // v76
   // v44: Daily Coaching Completion is leadership-only (OM/SOM/Director/Admin). Guard render + default date.
   if (view==='dailycompletion' && typeof openDailyCompletionTab==='function') openDailyCompletionTab();
   // v45: SOM Health Check (SOM only). Guard + render from in-memory data.
@@ -10398,8 +10458,7 @@ function rmViewReadOnly(id){
         <div style="font-size:1.15rem;font-weight:800">Hi, ${mpEsc(first)}! 👋</div>
         <div style="font-size:.88rem;color:#333">Here's ${isAgent?'your':(mpEsc(name)+"'s")} performance for <b style="color:#1a3353">${mpEsc(wkStr2)}${wkRange?' · '+mpEsc(wkRange):''}</b></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-        <div class="stat-card" id="mpCvrCard">${cvrCardHtml}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div class="stat-card" id="mpActiveCard"><div class="cl-sub">⚠️ Active Attendance Points</div><div style="color:#8a93a6;font-size:.85rem;margin-top:8px">Loading…</div></div>
         <div class="stat-card"><div class="cl-sub">🎯 My Current AFI</div><div style="margin-top:6px">${afi}</div></div>
       </div>
@@ -10736,6 +10795,831 @@ function rmViewReadOnly(id){
       mpsMsg('✔ Attendance sync complete — '+counts+'.', '#2f6f43');
     }
   };
+})();
+</script>
+
+<script>
+/* ===================================================================================
+ * v76 — COACHING PERFORMANCE (additive, role-based). Reuses the existing coaching-outcome
+ * engine (cpMetricValue / CP_METRIC_FOR_LIMITER / CP_LT_TOL / CP_RATE_TOL) and the existing
+ * compliance engine (dcWeeklyForTL). Adds a TL-accountability tracker backed by a NEW Firestore
+ * collection tlCoachingAccountability. Nothing in v75 is modified. Agents are routed to My Performance.
+ * Accountability WRITES are SOM-only (v76CanWriteAccountability) — Director is read-only.
+ * =================================================================================== */
+(function(){
+  var V76_ACC_COL='tlCoachingAccountability';
+  var v76AccCache=null, v76AccLoaded=false;
+  var v76F={cluster:'',tl:'',wk:''};              // SOM/Director filters
+  var v76_lastRows=[];                             // cache for the TL outcomes table filter
+  // ---- STAGING-ONLY Test View (read-scope simulation). In-memory only; never persisted; never mutates currentUser. ----
+  var V76_SIM={role:null, agentName:null, tlDisplay:null, omDisplay:null, omCluster:null};
+  function v76IsStaging(){ if(window.__V76_FORCE_STAGING===true) return true; if(window.__V76_FORCE_STAGING===false) return false;
+    try{ return (location.hostname||'')==='apex-coaching-test.vercel.app'; }catch(e){ return false; } }
+  // Test View is offered ONLY on staging AND only to the REAL authenticated SOM.
+  function v76TestViewAllowed(){ return v76IsStaging() && !!(typeof currentUser!=='undefined' && currentUser && currentUser.role==='SOM'); }
+  function v76FindTL(disp){ var k=Object.keys(TL_EMAILS||{}).find(function(e){ return (TL_EMAILS[e]||{}).display===disp; }); return k?Object.assign({email:k},TL_EMAILS[k]):null; }
+  function v76FindOM(disp){ var k=Object.keys(OM_EMAILS||{}).find(function(e){ return (OM_EMAILS[e]||{}).display===disp; }); return k?Object.assign({email:k},OM_EMAILS[k]):null; }
+  // Effective VIEWER for READ/scope only. Returns a simulated pseudo-user when Test View is active, else the real currentUser.
+  // WRITE authorization NEVER uses this — it uses the real currentUser (see v76CanWriteAccountability).
+  function v76View(){
+    var s=V76_SIM;
+    if(s && s.role){
+      if(s.role==='Agent'){ var a=ROSTER.find(function(x){return x.name===s.agentName;}); return {role:'Agent', display:s.agentName||'', email:a?a.email:'', tlInfo:null, omInfo:null, __sim:true}; }
+      if(s.role==='TL'){ var t=v76FindTL(s.tlDisplay)||{}; return {role:'TL', display:t.display||'', email:t.email||'', tlInfo:{display:t.display||'', fullName:t.fullName||'', cluster:t.cluster||''}, omInfo:null, __sim:true}; }
+      if(s.role==='OM'){ var o=v76FindOM(s.omDisplay)||{}; return {role:'OM', display:o.display||s.omDisplay||'', email:o.email||'', tlInfo:null, omInfo:{display:o.display||'', cluster:o.cluster||s.omCluster||''}, __sim:true}; }
+      if(s.role==='SOM') return {role:'SOM', display:'SOM', tlInfo:null, omInfo:null, __sim:true};
+      if(s.role==='Director') return {role:'Director', display:'Director', tlInfo:null, omInfo:null, __sim:true};
+    }
+    return (typeof currentUser!=='undefined')?currentUser:null;
+  }
+  window.v76View=v76View;   // exposed for tests
+
+  // ---- date helpers: parity with S6 mpCentralDateStr / mpAddMonths (America/Chicago, true calendar month) ----
+  window.v76CentralDateStr=function(ms){ var d=(ms==null)?new Date():new Date(ms);
+    try{ return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(d); }
+    catch(e){ return d.toISOString().slice(0,10); } };
+  window.v76AddMonths=function(dateStr,n){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr||'')); if(!m) return null;
+    var y=+m[1],mo=+m[2]-1,d=+m[3]; mo+=n; y+=Math.floor(mo/12); mo=((mo%12)+12)%12;
+    var last=new Date(Date.UTC(y,mo+1,0)).getUTCDate();
+    return y+'-'+String(mo+1).padStart(2,'0')+'-'+String(Math.min(d,last)).padStart(2,'0'); };
+  window.v76ClearsOn=function(dateStr){ return window.v76AddMonths(dateStr,3); };   // 3 calendar months
+
+  // ---- coaching outcome (Before Coaching → After Coaching), reusing the approved engine ----
+  function v76FocusMetric(focus){ return (typeof CP_METRIC_FOR_LIMITER!=='undefined')?CP_METRIC_FOR_LIMITER[focus]:undefined; }
+  function v76AgentAsc(agentName){ return entries.filter(e=>e.agentName===agentName)
+      .sort((a,b)=>(wkNum(a)-wkNum(b)) || String(a.dateOfCoaching||'').localeCompare(String(b.dateOfCoaching||''))); }
+  // outcome for a coaching entry vs the NEXT coaching entry for the same agent
+  window.v76Outcome=function(e, nextEntry){
+    var focus=(e&&e.limiter||'').trim();
+    var metric=v76FocusMetric(focus);           // 'LT' | 'CSR' | undefined
+    if(!metric) return {focus:focus||'—', metric:null, metricLabel:(focus||'—'), before:null, after:null, delta:null, outcome:'Needs Review'};
+    var before=cpMetricValue(e, metric);
+    if(!nextEntry) return {focus:focus, metric:metric, metricLabel:metric, before:before, after:null, delta:null, outcome:'Pending'};
+    var after=cpMetricValue(nextEntry, metric);
+    if(before==null || after==null) return {focus:focus, metric:metric, metricLabel:metric, before:before, after:after, delta:null, outcome:'Needs Review'};
+    if(metric==='LT'){
+      var rel, outcome;
+      if(before===0){ rel=(after>0?null:0); outcome=(after>0?'Improved':'Stayed the Same'); }
+      else { rel=(after-before)/Math.abs(before); outcome=(rel>CP_LT_TOL?'Improved':(rel<-CP_LT_TOL?'Declined':'Stayed the Same')); }
+      return {focus:focus, metric:'LT', metricLabel:'LT', before:before, after:after, delta:{type:'rel',value:rel}, outcome:outcome};
+    } else {
+      var d=after-before;                          // percentage points
+      var oc=(d>CP_RATE_TOL?'Improved':(d<-CP_RATE_TOL?'Declined':'Stayed the Same'));
+      return {focus:focus, metric:'CSR', metricLabel:'CSR', before:before, after:after, delta:{type:'pp',value:d}, outcome:oc};
+    }
+  };
+  // one row per coaching entry in a set (evaluated against that agent's next entry)
+  window.v76Rows=function(scopeEntries){
+    var byAgent={}; (scopeEntries||[]).forEach(function(e){ (byAgent[e.agentName]=byAgent[e.agentName]||[]).push(e); });
+    var rows=[];
+    Object.keys(byAgent).forEach(function(ag){
+      var asc=byAgent[ag].slice().sort(function(a,b){ return (wkNum(a)-wkNum(b)) || String(a.dateOfCoaching||'').localeCompare(String(b.dateOfCoaching||'')); });
+      asc.forEach(function(e,i){ var nx=(i<asc.length-1)?asc[i+1]:null; var o=window.v76Outcome(e,nx);
+        rows.push(Object.assign({agent:ag, wk:e.wkNumber, tl:e.teamLead||'', entry:e, nextEntry:nx}, o)); });
+    });
+    return rows;
+  };
+  // effectiveness = Improved / (Improved + Declined); Stayed/Pending/Needs Review excluded; 0 denom → null (N/A)
+  window.v76Effectiveness=function(rows){ var imp=0,dec=0; (rows||[]).forEach(function(r){ if(r.outcome==='Improved')imp++; else if(r.outcome==='Declined')dec++; });
+    var den=imp+dec; return {improved:imp, declined:dec, denom:den, pct:(den>0?Math.round(imp/den*100):null)}; };
+  function v76CountByOutcome(rows){ var c={Improved:0,Declined:0,'Stayed the Same':0,Pending:0,'Needs Review':0}; (rows||[]).forEach(function(r){ if(c[r.outcome]!=null)c[r.outcome]++; }); return c; }
+  function v76DistinctAgents(rows,outcome){ var s=new Set(); (rows||[]).forEach(function(r){ if(r.outcome===outcome) s.add(r.agent); }); return s.size; }
+
+  // ---- accountability (read/write) ----
+  window.v76CanWriteAccountability=function(u){ u=u||(typeof currentUser!=='undefined'?currentUser:null); return !!u && u.role==='SOM'; };   // SOM only (NOT Director)
+  window.v76Consequence=function(n){ if(n<=1) return 'NTE → Warning'; if(n===2) return 'NTE → Final Warning'; if(n===3) return 'NTE → $50 Bonus/Salary Deduction Penalty'; return 'NTE → $100 Bonus/Salary Deduction Penalty'; };
+  window.v76EffStatus=function(inst){ if(!inst||inst.type!=='instance') return inst&&inst.type||''; if(inst.status==='cleared') return 'cleared'; return (window.v76CentralDateStr() < String(inst.clearsOn||''))?'active':'cleared'; };
+  // TL identity for accountability matching. A TL is identified by BOTH the canonical email (TL_EMAILS key)
+  // AND the display name — every accountability record stores both (tlEmail + tlDisplay). Matching on either
+  // recovers valid confirmed history when a record was written under an older email (display preserved) or
+  // under the display name instead of the email, so prior instances are NOT silently dropped and the applicable
+  // instance does NOT reset to 1st. Both email and display are unique per TL (v76ScopeTLsAll dedups by display),
+  // so this cannot cross-count between TLs. This changes IDENTITY MATCHING ONLY — not the threshold, ladder,
+  // 3-month clearing, or workflow.
+  function v76TLIds(tl){ var ids=[]; function add(v){ v=String(v==null?'':v).trim().toLowerCase(); if(v && ids.indexOf(v)<0) ids.push(v); }
+    if(tl && typeof tl==='object'){ add(tl.email); add(tl.display); } else { add(tl); } return ids; }
+  function v76RecBelongsToTL(x, ids){ var e=String(x.tlEmail==null?'':x.tlEmail).trim().toLowerCase(); var d=String(x.tlDisplay==null?'':x.tlDisplay).trim().toLowerCase();
+    return (!!e && ids.indexOf(e)>=0) || (!!d && ids.indexOf(d)>=0); }
+  function v76ActiveInstances(all, tl){ var ids=v76TLIds(tl); return (all||[]).filter(function(x){ return x.type==='instance' && v76RecBelongsToTL(x,ids) && window.v76EffStatus(x)==='active'; }); }
+  function v76HasExemption(all, tl, wk){ var ids=v76TLIds(tl); return (all||[]).some(function(x){ return x.type==='exemption' && v76RecBelongsToTL(x,ids) && String(x.wk)===String(wk); }); }
+
+  // ── MODEL A: applicable instance derived from QUALIFYING WEEKLY NON-COMPLIANCE OCCURRENCES ──
+  // The accountability ladder progresses with each week a TL was detected <80% (authoritative weekly
+  // compliance from dcWeeklyForTL), within the existing 3-calendar-month clearing window, minus exempt
+  // weeks. This is the intended business behavior (repeated weekly failures escalate) and does NOT depend
+  // on a SOM having written a Confirm record — it only DISPLAYS the applicable consequence; the SOM
+  // Confirm/Exempt workflow and the stored official records are unchanged. A confirmed-instance record for
+  // a week also counts (so a week whose data later flipped compliant is still honored). Weeks with no
+  // authoritative data are never invented.
+  // AUTHORITATIVE ACCOUNTABILITY START WEEK — no week before this contributes to the ladder, however low its completion.
+  var V76_ACCT_START_WK = 557;
+  function v76WeekMondayISO(wkInt){ var a=_ctYMD(WK_ANCHOR.monday); if(!a) return null; var mon=_mondayEpochDay(a.y,a.m,a.d)+((wkInt|0)-WK_ANCHOR.wk)*7; var dt=new Date(mon*86400000); return dt.getUTCFullYear()+'-'+String(dt.getUTCMonth()+1).padStart(2,'0')+'-'+String(dt.getUTCDate()).padStart(2,'0'); }
+  // A week W (strictly before curWk) is a qualifying prior occurrence for TL t when ALL hold:
+  //   (1) W is within the 3-month clearing window relative to curWk,
+  //   (2) there is AUTHORITATIVE per-TL evidence the TL was engaged that week — either the TL has ≥1 of their
+  //       own coaching-log entries that week (so dcWeeklyForTL evaluates a real, required team) OR an official
+  //       confirmed-instance record exists for that TL/week — this is what stops one TL's active weeks from
+  //       being attributed to another TL and prevents inventing weeks the app has no per-TL data for,
+  //   (3) W is not exempted, and
+  //   (4) W was detected <80% by the authoritative weekly compliance calc (or is an honored confirmed record).
+  function v76PriorOccurrenceCount(all, t, curWkInt){
+    var ids=v76TLIds(t); var curMon=v76WeekMondayISO(curWkInt); if(!curMon) return 0;
+    var disp=t&&t.display; var floor=V76_ACCT_START_WK; var candidate={};   // wkInt -> true (deduped by week)
+    function inWindow(w){ var wm=v76WeekMondayISO(w); return wm && (curMon < window.v76AddMonths(wm,3)); }
+    // (a) EVERY week from the WK557 floor up to (but excluding) the current compliance week, within the 3-month
+    //     clearing window, scored per-TL by the AUTHORITATIVE report (same dcWeeklyForTL that powers Daily
+    //     Coaching Completion). hasRoster (Required>0) AND !met (EXACT boundary full/denom>=0.8) qualifies —
+    //     so a zero-completion week with Required>0 counts. Iterating all weeks (not just weeks the TL has
+    //     entries for) is what makes zero-completion count; each TL is scored independently so one TL's weeks
+    //     never inflate another's.
+    for(var w=Math.max(floor, curWkInt-60); w<curWkInt; w++){
+      if(w<floor || !inWindow(w)) continue;
+      var c=null; try{ c=dcWeeklyForTL('', disp, w); }catch(e){ c=null; }
+      if(c && c.hasRoster && !c.met) candidate[w]=true;
+    }
+    // (b) plus any week carrying an official confirmed-instance record for this TL (honored even if the data
+    //     later changed), still subject to the WK557 floor and the clearing window.
+    (all||[]).forEach(function(x){ if(x.type==='instance' && v76RecBelongsToTL(x,ids)){ var w=parseInt(String(x.wk||'').replace(/\D/g,''),10); if(w>=floor && w<curWkInt && inWindow(w)) candidate[w]=true; } });
+    // Counting is BY WEEK (deduped above), so a week that both fails compliance AND was later SOM-confirmed is
+    // ONE occurrence, never two. Exempt weeks are removed.
+    var count=0;
+    Object.keys(candidate).forEach(function(ws){ var w=parseInt(ws,10); if(v76HasExemption(all,t,'WK'+w)) return; count++; });
+    return count;
+  }
+  async function v76LoadAcc(force){
+    if(typeof currentUser!=='undefined' && currentUser && currentUser.role==='Agent') return [];   // agents: no access
+    if(v76AccLoaded && !force) return v76AccCache||[];
+    if(typeof FB_DB==='undefined' || !FB_DB){ v76AccCache=[]; v76AccLoaded=true; return []; }
+    try{ var snap=await FB_DB.collection(V76_ACC_COL).get(); var arr=[]; snap.forEach(function(d){ arr.push(Object.assign({id:d.id}, d.data()||{})); }); v76AccCache=arr; v76AccLoaded=true; return arr; }
+    catch(e){ v76AccCache=[]; v76AccLoaded=true; return []; }
+  }
+  function v76AccVisible(all){
+    var u=v76View()||{};
+    if(u.role==='SOM'||u.role==='Director'||u.role==='Admin') return all||[];
+    if(u.role==='OM' && u.omInfo) return (all||[]).filter(function(x){ return x.clusterAtTime===u.omInfo.cluster; });
+    if(u.role==='TL'){ var em=String(u.email||'').toLowerCase(); return (all||[]).filter(function(x){ return String(x.tlEmail||'').toLowerCase()===em; }); }
+    return [];
+  }
+  window.v76WriteInstance=async function(payload){
+    if(V76_SIM.role){ try{alert('Exit Test View to perform real accountability actions.');}catch(e){} return {ok:false,error:'simulation-active'}; }   // no writes during a read-only simulation
+    if(!window.v76CanWriteAccountability()){ try{alert('Only SOM can confirm accountability instances.');}catch(e){} return {ok:false,error:'forbidden'}; }
+    if(typeof FB_DB==='undefined' || !FB_DB) return {ok:false,error:'no db'};
+    var date=window.v76CentralDateStr();
+    var doc={ type:'instance', tlEmail:payload.tlEmail, tlDisplay:payload.tlDisplay, clusterAtTime:payload.cluster||'', wk:payload.wk, date:date,
+      requiredCoaching:payload.required, completedCoaching:payload.completed, completionPct:payload.pct, instanceNumber:payload.instanceNumber,
+      consequence:window.v76Consequence(payload.instanceNumber), confirmedBy:(currentUser&&currentUser.email)||'', confirmedAt:Date.now(),
+      clearsOn:window.v76ClearsOn(date), status:'active' };
+    try{ await FB_DB.collection(V76_ACC_COL).add(doc); v76AccLoaded=false; return {ok:true}; }catch(e){ return {ok:false,error:String(e&&e.message||e)}; }
+  };
+  window.v76WriteExemption=async function(payload){
+    if(V76_SIM.role){ try{alert('Exit Test View to perform real accountability actions.');}catch(e){} return {ok:false,error:'simulation-active'}; }   // no writes during a read-only simulation
+    if(!window.v76CanWriteAccountability()){ try{alert('Only SOM can exempt.');}catch(e){} return {ok:false,error:'forbidden'}; }
+    if(typeof FB_DB==='undefined' || !FB_DB) return {ok:false,error:'no db'};
+    var doc={ type:'exemption', tlEmail:payload.tlEmail, wk:payload.wk, complianceResult:payload.pct, exemptedBy:(currentUser&&currentUser.email)||'', exemptedAt:Date.now(), reason:payload.reason||'' };
+    try{ await FB_DB.collection(V76_ACC_COL).add(doc); v76AccLoaded=false; return {ok:true}; }catch(e){ return {ok:false,error:String(e&&e.message||e)}; }
+  };
+
+  // ---- formatting + chips (text-first; color reinforces only) ----
+  function e2(s){ return (typeof escHtml==='function')?escHtml(s==null?'':String(s)):String(s==null?'':s); }
+  function v76FmtVal(metric,v){ if(v==null) return '—'; if(metric==='CSR') return (Math.round(v*10)/10)+'%'; if(metric==='LT') return String(Math.round(v)); return String(v); }
+  function v76FmtDelta(delta){ if(!delta) return '—';
+    if(delta.type==='pp'){ if(delta.value==null) return '—'; var d=Math.round(delta.value*10)/10; return (d>0?'▲ +':(d<0?'▼ ':'± '))+Math.abs(d)+'pp'; }
+    if(delta.value==null) return '—'; var r=Math.round(delta.value*1000)/10; return (r>0?'▲ +':(r<0?'▼ ':'± '))+Math.abs(r)+'%'; }
+  var V76_CHIP={ 'Improved':['#2f6f43','#e7f3ec'], 'Declined':['#b23b3b','#f7e6e6'], 'Stayed the Same':['#5a6b82','#eef2f7'],
+    'Pending':['#8a6d00','#fbf3df'], 'Needs Review':['#44556a','#eef1f5'], 'Compliant':['#2f6f43','#e7f3ec'], 'Review':['#b23b3b','#f7e6e6'],
+    'Confirmed':['#b23b3b','#f7e6e6'], 'Exempt':['#5a6b82','#eef2f7'], 'Cleared':['#5a6b82','#eef2f7'], 'Active':['#b23b3b','#f7e6e6'] };
+  function v76Chip(label){ var c=V76_CHIP[label]||['#44556a','#eef1f5']; return '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700;color:'+c[0]+';background:'+c[1]+'">'+e2(label)+'</span>'; }
+  function v76Card(label,value,sub,accent){ return '<div style="background:#fff;border:1px solid #e3e8ef;border-radius:10px;padding:12px 14px">'+
+    '<div style="font-size:.72rem;color:#7a8aa0;font-weight:700;text-transform:uppercase;letter-spacing:.03em">'+e2(label)+'</div>'+
+    '<div style="font-size:1.7rem;font-weight:800;color:'+(accent||'#1a3353')+';line-height:1.1;margin-top:2px">'+e2(String(value))+'</div>'+
+    (sub?'<div style="font-size:.72rem;color:#7a8aa0;margin-top:2px">'+e2(sub)+'</div>':'')+'</div>'; }
+  function v76CardsRow(cards){ return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:10px 0 4px">'+cards.join('')+'</div>'; }
+
+  // ==================== v76 TIME-SERIES COACHING PERFORMANCE ENGINE (approved final plan) ====================
+  // Answers: did the TL's coaching improve the specific metric they coached (TCR/CSR/Rainmaker/Attendance)?
+  // Additive: CP_METRIC_FOR_LIMITER / CP_LT_TOL / CP_RATE_TOL and the old v76Outcome/v76Rows are untouched.
+  var V76_ATTR = {   // limiter → coached metric (explicit; NOT CP_METRIC_FOR_LIMITER)
+    'Call/Objection Handling':'CSR',
+    'Call Cadence':'TCR', 'Speed-to-Lead':'TCR', 'Dial and Drop':'TCR', 'Aircall Phone # Localization':'TCR',
+    'Attendance':'ATT'
+    // Leads Touched / Idle Time / SMS Blast / Call Tagging / others → not scored (context-only)
+  };
+  var V76_ATT_TOL = 0.25;                 // D-1: ±0.25 incurred point
+  var V76_MIN_OBS = 2, V76_MAX_OBS = 4;   // D-5: need ≥2 valid each side, use up to 4
+  var V76_METRICS = ['TCR','CSR','RM','ATT'];
+  var V76_METRIC_LABEL = { TCR:'TCR', CSR:'CSR', RM:'Rainmaker', ATT:'Attendance' };
+  var V76_LOWER_BETTER = { ATT:true };    // Attendance incurred points: lower is better
+  var v76AttCache = {};                   // email → weeks map (agentAttendance), lazily loaded
+
+  function v76ActiveName(name){ return (typeof ROSTER!=='undefined') && ROSTER.some(function(a){ return a.name===name; }); }
+  function v76EmailForName(name){ var a=(typeof ROSTER!=='undefined'?ROSTER:[]).find(function(x){ return x.name===name; }); return a?a.email:''; }
+  function v76RmDone(entry){   // D-4: completed linked Rainmaker Call Review ONLY
+    if(typeof rmEntries==='undefined' || !Array.isArray(rmEntries)) return false;
+    var r=rmEntries.find(function(x){ return String(x.coachingEntryId)===String(entry&&entry.id); });
+    return !!r && (typeof rmReviewComplete==='function' ? rmReviewComplete(r) : false);
+  }
+  // metrics an entry is a SCORED intervention for (D-2: may be >1: e.g. CSR from limiter + RM from completed review)
+  window.v76CoachedMetrics = function(entry){
+    var out=[]; var lim=(entry&&entry.limiter||'').trim();
+    if(V76_ATTR[lim]) out.push(V76_ATTR[lim]);
+    if(v76RmDone(entry) && out.indexOf('RM')<0) out.push('RM');
+    return out;   // [] = Not Scored / context-only
+  };
+  // reconstructed weekly series for TCR/CSR/RM from ONE agent's entries. latest-entry-wins; missing stays missing.
+  window.v76SeriesFromEntries = function(agentEntries, metric){
+    var byWk={};
+    (agentEntries||[]).slice().sort(function(a,b){ return (wkNum(a)-wkNum(b)) || String(a.dateOfCoaching||'').localeCompare(String(b.dateOfCoaching||'')); })
+      .forEach(function(e){ var W=wkNum(e); if(!W) return;
+        if(metric==='TCR' || metric==='CSR'){
+          (e.perfData||[]).forEach(function(r,i){ var wk=W-(i+1); if(wk<=0) return;   // perfData[i] → week W-(i+1)
+            var lt=parseFloat(r.lt), cc=parseFloat(r.cc), s=parseFloat(r.s), v=null;
+            if(metric==='TCR'){ if(lt>0 && isFinite(cc)) v=cc/lt*100; }              // TCR = Connected Calls / Leads Touched × 100
+            else { if(cc>0 && isFinite(s)) v=s/cc*100; }                             // CSR = Sales / Connected Calls × 100
+            if(v!=null && isFinite(v)) byWk[wk]=v;                                   // ascending → latest entry overwrites (latest-wins)
+          });
+        } else if(metric==='RM'){
+          var a=e.wk1cvr5||[];
+          for(var j=1;j<=4;j++){ var rr=a[j]||{}; var lr=parseFloat(rr.lr), s2=parseFloat(rr.s); var wk2=W-(j+1);   // cured weeks W-2..W-5 (mirrors curedWk1CvrAvg, excludes curing week W-1)
+            if(wk2<=0) continue; if(lr>0 && isFinite(s2)) byWk[wk2]=s2/lr*100; }
+        }
+      });
+    return byWk;
+  };
+  // attendance weekly incurredPoints series for ONE agent (native absolute weeks). {WK#: points}
+  window.v76AttSeries = function(agentName){
+    var email=v76EmailForName(agentName); var weeks=(email && v76AttCache[email]) ? v76AttCache[email] : null; if(!weeks) return {};
+    var out={}; Object.keys(weeks).forEach(function(wkStr){ var n=parseInt(String(wkStr).replace(/\D/g,''),10); var p=weeks[wkStr]; var v=(p&&p.incurredPoints!=null)?Number(p.incurredPoints):null; if(n>0 && v!=null && isFinite(v)) out[n]=v; });
+    return out;
+  };
+  function v76AgentSeries(agentName, metric){ return (metric==='ATT') ? v76AttSeries(agentName) : window.v76SeriesFromEntries(entries.filter(function(e){ return e.agentName===agentName; }), metric); }
+  // lazily load attendance docs for a set of active agents (only when the ATT metric is in view)
+  async function v76LoadAtt(agentNames){
+    if(typeof FB_DB==='undefined' || !FB_DB) return;
+    var need=[]; agentNames.forEach(function(nm){ var em=v76EmailForName(nm); if(em && !(em in v76AttCache)) need.push(em); });
+    for(var i=0;i<need.length;i++){ try{ var snap=await FB_DB.collection('agentAttendance').doc(need[i]).get(); var d=(snap&&snap.exists)?(snap.data()||{}):{}; v76AttCache[need[i]]=(d.weeks&&typeof d.weeks==='object')?d.weeks:{}; }catch(e){ v76AttCache[need[i]]={}; } }
+  }
+  // D-5 Before/After: mean of up to 4 valid weekly obs each side, ≥2 required each side.
+  window.v76BeforeAfter = function(series, coachWk, metric){
+    var lower = !!V76_LOWER_BETTER[metric];
+    function collect(dir){ var vals=[]; for(var w=coachWk+dir; ; w+=dir){ if(vals.length>=V76_MAX_OBS) break; if(w<=0) break; if(w in series){ vals.push(series[w]); } if(dir<0 && (coachWk-w)>52) break; if(dir>0 && (w-coachWk)>52) break; } return vals; }
+    var beforeVals=collect(-1), afterVals=collect(1);
+    var mean=function(a){ return a.length? a.reduce(function(x,y){return x+y;},0)/a.length : null; };
+    var before=mean(beforeVals), after=mean(afterVals);
+    if(beforeVals.length < V76_MIN_OBS) return { before:before, after:after, nBefore:beforeVals.length, nAfter:afterVals.length, change:null, outcome:'Needs Review' };
+    if(afterVals.length < V76_MIN_OBS) return { before:before, after:after, nBefore:beforeVals.length, nAfter:afterVals.length, change:null, outcome:'Pending' };
+    var change=after-before, outcome;
+    if(metric==='ATT'){ if(after < before - V76_ATT_TOL) outcome='Improved'; else if(after > before + V76_ATT_TOL) outcome='Declined'; else outcome='Stayed the Same'; }
+    else { if(change > CP_RATE_TOL) outcome='Improved'; else if(change < -CP_RATE_TOL) outcome='Declined'; else outcome='Stayed the Same'; }
+    return { before:before, after:after, nBefore:beforeVals.length, nAfter:afterVals.length, change:change, outcome:outcome };
+  };
+  // Every scored intervention for a metric within a set of entries (active agents only), newest first.
+  window.v76Interventions = function(scopeEntries, metric){
+    var out=[];
+    (scopeEntries||[]).forEach(function(e){ if(!v76ActiveName(e.agentName)) return; if(window.v76CoachedMetrics(e).indexOf(metric)<0) return;
+      var ba=window.v76BeforeAfter(v76AgentSeries(e.agentName, metric), wkNum(e), metric);
+      out.push(Object.assign({ agent:e.agentName, tl:e.teamLead||'', wk:e.wkNumber, wkInt:wkNum(e), entry:e, metric:metric }, ba)); });
+    return out.sort(function(a,b){ return (b.wkInt-a.wkInt) || String(a.agent).localeCompare(String(b.agent)); });
+  };
+  // current per-agent outcome for a metric = that agent's LATEST scored intervention (1.6)
+  function v76LatestPerAgent(interventions){ var seen={}, out=[]; interventions.forEach(function(iv){ if(seen[iv.agent]) return; seen[iv.agent]=1; out.push(iv); }); return out; }
+
+  // ==================== colors (green=improve/effective, red=decline, amber=pending/review, gray=neutral/not scored/mixed) ====================
+  var V76_GREEN='#2f6f43', V76_RED='#b23b3b', V76_AMBER='#b8860b', V76_NEUTRAL='#5a6b82', V76_GRAY='#8a93a6';
+  function v76ColSpan(txt,col){ return '<span style="color:'+col+';font-weight:800">'+txt+'</span>'; }
+  function v76OutcomeColor(o){ return o==='Improved'?V76_GREEN : o==='Declined'?V76_RED : (o==='Pending'||o==='Needs Review'||o==='Review')?V76_AMBER : V76_NEUTRAL; }
+  function v76CountCell(n,kind){ if(!n) return String(n); var col = kind==='improved'?V76_GREEN : kind==='declined'?V76_RED : (kind==='pending'||kind==='needs')?V76_AMBER : V76_NEUTRAL; return v76ColSpan(String(n),col); }
+  function v76PctColored(comp){ if(!comp.hasRoster) return '—'; return v76ColSpan(comp.pctNum+'%', comp.met?V76_GREEN:V76_RED); }
+  function v76ComplianceCell(comp){ if(!comp.hasRoster) return '—'; return v76PctColored(comp)+' '+(comp.met?v76Chip('Compliant'):v76Chip('Review')); }
+  function v76Chip2(label,col){ var bg={'#2f6f43':'#e7f3ec','#b23b3b':'#f7e6e6','#b8860b':'#fbf3df','#5a6b82':'#eef2f7','#8a93a6':'#eef1f5'}[col]||'#eef1f5'; return '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700;color:'+col+';background:'+bg+'">'+e2(label)+'</span>'; }
+
+  // ==================== state / filters ====================
+  function v76CurWkInt(){ try{ return parseInt(String(currentWkString()).replace(/\D/g,''),10)||0; }catch(e){ return 0; } }
+  if(v76F.range==null) v76F.range=8; if(!v76F.metric) v76F.metric='TCR'; if(v76F.agent==null) v76F.agent='';
+  var v76SomTab='all';   // SOM sub-tab: 'mine' | 'all' (declared here; assigned by openCoachingPerf / v76SomSetTab)
+  var v76CompWk='';   // compliance-only week selector (separate from the trend range) — '' = current week
+  function v76CompWkInt(){ if(v76CompWk){ var n=parseInt(String(v76CompWk).replace(/\D/g,''),10); if(n) return n; } return v76CurWkInt(); }
+  function v76CompWkStr(){ return v76CompWk || currentWkString(); }
+  function v76ComplianceForTL(tlDisplay){ try{ return dcWeeklyForTL('', tlDisplay, v76CompWkInt()); }catch(e){ return {denom:0,full:0,required:0,pctNum:0,met:false,hasRoster:false}; } }
+
+  // ---- SOM own-cluster resolver: authoritative currentUser.cluster only ----
+  function v76SomOwnCluster(){ var u=(typeof currentUser!=='undefined'&&currentUser)?currentUser:{}; return u.cluster||''; }
+
+  function v76ScopeTLsAll(){ return Object.keys(TL_EMAILS||{}).filter(function(k){ return k.indexOf('PENDING')!==0 && k.indexOf('sheet-tl:')!==0; }).map(function(em){ var t=TL_EMAILS[em]||{}; return {email:em, display:t.display||'', fullName:t.fullName||t.display||'', cluster:t.cluster||''}; }).filter(function(t,i,arr){ return t.display && arr.findIndex(function(x){return x.display===t.display;})===i; }); }
+  function v76ScopeTLs(){
+    var u=v76View()||{}; var list=v76ScopeTLsAll();
+    if(u.role==='TL') list=list.filter(function(t){ return t.display===((u.tlInfo&&u.tlInfo.display)||u.display); });
+    else if(u.role==='OM' && u.omInfo){ list=list.filter(function(t){ return t.cluster===u.omInfo.cluster; }); if(v76F.tl) list=list.filter(function(t){ return t.display===v76F.tl; }); }
+    else if(u.role==='SOM'||u.role==='Director'||u.role==='Admin'){
+      if(u.role==='SOM' && v76SomTab==='mine'){ var oc=v76SomOwnCluster(); list=list.filter(function(t){ return t.cluster===oc; }); }
+      else if(v76F.cluster) list=list.filter(function(t){ return t.cluster===v76F.cluster; });
+      if(v76F.tl) list=list.filter(function(t){ return t.display===v76F.tl; });
+    }
+    return list.sort(function(a,b){ return (a.cluster||'').localeCompare(b.cluster||'')||a.display.localeCompare(b.display); });
+  }
+  // active agents (names) under a set of TLs
+  function v76ActiveAgentsForTLs(tls){ var names=[]; var set={}; tls.forEach(function(t){ (typeof getAgentsForTL==='function'?getAgentsForTL(t.display):[]).forEach(function(a){ if(a&&a.name&&!set[a.name]){ set[a.name]=1; names.push(a.name); } }); }); return names; }
+  // scoped coaching entries (active agents in the current TL scope; optional single-agent filter)
+  function v76ScopeEntries(tls){ var tlSet={}; tls.forEach(function(t){ tlSet[t.display]=1; });
+    return entries.filter(function(e){ return tlSet[e.teamLead||''] && v76ActiveName(e.agentName) && (!v76F.agent || e.agentName===v76F.agent); }); }
+
+  window.v76SetMetric=function(m){ v76F.metric=m; if(typeof v76ActiveRender==='function') v76ActiveRender(); };
+  window.v76SetCompWk=function(v){ v76CompWk=v||''; if(typeof v76ActiveRender==='function') v76ActiveRender(); };
+  var v76ActiveRender=null, v76FilterKinds=[];
+  // Which container owns the filter bar for the current role. TL renders its filters in the page-header
+  // slot (#cpv76Filters); management roles (OM/SOM/Director) render them in the Performance Report Controls
+  // toolbar and keep the header EMPTY. v76SetFilter must only ever repopulate the header for the header-owner
+  // (TL) — otherwise it injects a phantom duplicate filter bar (duplicate #v76FRange/#v76FTL ids) into the
+  // management header, which then shadows the toolbar controls and silently drops subsequent filter changes.
+  var v76HeaderOwnsFilters=false;
+  function v76FilterBar(kinds){
+    var st='font-size:.8rem;padding:4px 8px;border:1px solid #d7dbe3;border-radius:6px';
+    function sel(id,label,opts,val,withAll){ return '<div class="cl-fg"><label>'+label+'</label><select id="'+id+'" onchange="v76SetFilter()" style="'+st+'">'+(withAll?'<option value="">All</option>':'')+
+      opts.map(function(o){ var v=(typeof o==='object')?o.v:o, tx=(typeof o==='object')?o.t:o; return '<option value="'+e2(v)+'"'+(String(val)===String(v)?' selected':'')+'>'+e2(tx)+'</option>'; }).join('')+'</select></div>'; }
+    var out=[];
+    if(kinds.indexOf('range')>=0) out.push(sel('v76FRange','Week Range',[{v:'4',t:'Last 4 Weeks'},{v:'8',t:'Last 8 Weeks'},{v:'12',t:'Last 12 Weeks'}],String(v76F.range),false));
+    if(kinds.indexOf('cluster')>=0){ var cls=Array.from(new Set(v76ScopeTLsAll().map(function(t){return t.cluster;}).filter(Boolean))).sort(); out.push(sel('v76FCluster','Cluster',cls,v76F.cluster,true)); }
+    if(kinds.indexOf('tl')>=0){ var tld=v76ScopeTLs().map(function(t){return t.display;}); out.push(sel('v76FTL','TL',tld,v76F.tl,true)); }
+    if(kinds.indexOf('agent')>=0){ var ags=v76ActiveAgentsForTLs(v76ScopeTLs()).sort(); out.push(sel('v76FAgent','Agent',ags,v76F.agent,true)); }
+    if(kinds.indexOf('outcome')>=0) out.push(sel('v76FOutcome','Outcome',[{v:'all',t:'All Outcomes'},{v:'Improved',t:'Improved'},{v:'Declined',t:'Declined'},{v:'Stayed the Same',t:'Stayed the Same'},{v:'Pending',t:'Pending'},{v:'Needs Review',t:'Needs Review'}],v76F.outcome||'all',false));
+    return out.join('');
+  }
+  window.v76SetFilter=function(){
+    var c=document.getElementById('v76FCluster'), t=document.getElementById('v76FTL'), r=document.getElementById('v76FRange'), a=document.getElementById('v76FAgent'), o=document.getElementById('v76FOutcome');
+    if(c) v76F.cluster=c.value; if(t) v76F.tl=t.value; if(r) v76F.range=parseInt(r.value,10)||8; if(a) v76F.agent=a.value; if(o) v76F.outcome=o.value;
+    if(v76F.cluster && v76F.tl){ var still=v76ScopeTLsAll().some(function(x){ return x.display===v76F.tl && x.cluster===v76F.cluster; }); if(!still) v76F.tl=''; }
+    if(v76F.tl && v76F.agent){ var okA=v76ActiveAgentsForTLs(v76ScopeTLs()).indexOf(v76F.agent)>=0; if(!okA) v76F.agent=''; }
+    var fb=document.getElementById('cpv76Filters'); if(fb && v76HeaderOwnsFilters && v76FilterKinds.length) fb.innerHTML=v76FilterBar(v76FilterKinds);
+    if(typeof v76ActiveRender==='function') v76ActiveRender();
+  };
+
+  // ==================== time-series chart (inline SVG; markers from real interventions) ====================
+  // ==================== formatters (UNCHANGED calc) ====================
+  // ==================== formatters (UNCHANGED calc) ====================
+  function v76FmtMetric(metric,v){ if(v==null) return '—'; return (metric==='ATT')?(Math.round(v*100)/100+' pts'):(Math.round(v*10)/10+'%'); }
+  function v76FmtChange(metric,c){ if(c==null) return '—'; var r=Math.round(c*(metric==='ATT'?100:10))/(metric==='ATT'?100:10); var unit=(metric==='ATT')?' pts':'pp'; return (r>0?'+':'')+r+unit; }
+  function v76NiceUp(v, att){ if(v<=0) return 1; if(att){ return Math.ceil(v*2)/2; } var mag=Math.pow(10,Math.floor(Math.log10(v))); var n=v/mag; var s=n<=1?1:n<=1.5?1.5:n<=2?2:n<=3?3:n<=5?5:10; return s*mag; }
+  // robust visible max so one historical outlier can't flatten the recent trend (value NEVER altered; true value stays in tooltip)
+  function v76VisibleMax(vals, metric){
+    var att=(metric==='ATT'); var maxV=Math.max.apply(null,vals);
+    if(vals.length<4) return { max:v76NiceUp(maxV+(att?0.5:2), att), clipped:false };
+    var s=vals.slice().sort(function(a,b){return a-b;});
+    var q=function(p){ var idx=(s.length-1)*p, lo=Math.floor(idx), hi=Math.ceil(idx); return s[lo]+(s[hi]-s[lo])*(idx-lo); };
+    var q1=q(0.25), q3=q(0.75), iqr=q3-q1, fence=q3+1.5*iqr;
+    if(maxV>fence && fence>0) return { max:v76NiceUp(fence, att), clipped:true };
+    return { max:v76NiceUp(maxV+(att?0.5:2), att), clipped:false };
+  }
+
+  // ==================== clean multi-line SaaS chart ====================
+  var V76_LINE=['#2a6fb0','#2f8f6f','#b8860b','#8a5fb0','#c2603f','#4a8a9c','#9c7a2a','#b0517a'];
+  function v76InterpY(points, wk){ if(!points.length) return null; var a=points; if(wk<=a[0].wk) return a[0].val; if(wk>=a[a.length-1].wk) return a[a.length-1].val;
+    for(var i=0;i<a.length-1;i++){ if(wk>=a[i].wk && wk<=a[i+1].wk){ var t=(wk-a[i].wk)/((a[i+1].wk-a[i].wk)||1); return a[i].val+(a[i+1].val-a[i].val)*t; } } return a[a.length-1].val; }
+  // series:[{label,color,points:[{wk,val}],markers:[{wk,count,tip}],emphasis}] · opts:{metric,height,focusWk,lo,hi}
+  function v76LineChart(series, opts){
+    opts=opts||{}; var metric=opts.metric||v76F.metric; var att=(metric==='ATT');
+    var withPts=series.filter(function(s){ return s.points && s.points.length; });
+    if(!withPts.length) return '<div class="empty-state" style="color:#9aa3b4;padding:26px;text-align:center;font-size:.85rem">No '+e2(V76_METRIC_LABEL[metric])+' data in the selected range.</div>';
+    var W=720,H=opts.height||300,padL=42,padR=14,padT=12,padB=26, plotW=W-padL-padR, plotH=H-padT-padB;
+    var allWk={}; withPts.forEach(function(s){ s.points.forEach(function(p){ allWk[p.wk]=1; }); });
+    var wks=Object.keys(allWk).map(Number).sort(function(a,b){return a-b;});
+    var xMin=wks[0], xMax=wks[wks.length-1], span=Math.max(1,xMax-xMin);
+    var vals=[]; withPts.forEach(function(s){ s.points.forEach(function(p){ vals.push(p.val); }); });
+    var vm=(opts.yMax!=null)?{max:opts.yMax, clipped:vals.some(function(v){return v>opts.yMax;})}:v76VisibleMax(vals, metric);   // opts.yMax = shared scale across compared cards
+    var yMax=vm.max, yMin=0; if(yMax<=yMin) yMax=yMin+1;
+    var xOf=function(w){ return padL+((w-xMin)/span)*plotW; };
+    var yOf=function(v){ var vv=Math.min(Math.max(v,yMin),yMax); return padT+(1-(vv-yMin)/(yMax-yMin))*plotH; };
+    // horizontal gridlines only
+    var grid=''; var stepN=4; for(var gi=0;gi<=stepN;gi++){ var gv=yMin+(yMax-yMin)*gi/stepN; var yy=padT+plotH-(plotH*gi/stepN); grid+='<line x1="'+padL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+yy.toFixed(1)+'" stroke="#eef1f5"/><text x="'+(padL-6)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#aab2c0">'+(Math.round(gv*10)/10)+(att?'':'%')+'</text>'; }
+    // sparse x labels (<=8)
+    var xt=''; var lblWks = wks.length<=8?wks:wks.filter(function(_,i){ return i%Math.ceil(wks.length/8)===0; });
+    lblWks.forEach(function(w){ xt+='<text x="'+xOf(w).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="8" fill="#9aa3b4">WK'+w+'</text>'; });
+    // focus guide (thin, subtle) — only the selected intervention
+    var guide=''; if(opts.focusWk!=null && opts.focusWk>=xMin && opts.focusWk<=xMax){ var gx=xOf(opts.focusWk); guide='<line x1="'+gx.toFixed(1)+'" y1="'+padT+'" x2="'+gx.toFixed(1)+'" y2="'+(padT+plotH)+'" stroke="#e2c063" stroke-width="1" stroke-dasharray="4 3"/>'; }
+    var body=''; var markerLayer='';
+    withPts.forEach(function(s,si){ var col=s.color||V76_LINE[si%V76_LINE.length]; var pts=s.points.slice().sort(function(a,b){return a.wk-b.wk;});
+      var d=''; pts.forEach(function(p,i){ d+=(i?' L':'M')+xOf(p.wk).toFixed(1)+' '+yOf(p.val).toFixed(1); });
+      body+=(pts.length>1?'<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="2"/>':'');
+      pts.forEach(function(p){ var clip=p.val>yMax; var v=Math.round(p.val*10)/10;
+        if(clip){ body+='<path d="M'+xOf(p.wk).toFixed(1)+' '+(yOf(yMax)-4).toFixed(1)+' l4 4 l-4 4 l-4 -4 z" fill="#fff" stroke="'+col+'" stroke-width="1.5"><title>WK'+p.wk+' · '+e2(s.label)+': '+v+(att?' pts':'%')+' (off scale)</title></path>'; }
+        else { body+='<circle cx="'+xOf(p.wk).toFixed(1)+'" cy="'+yOf(p.val).toFixed(1)+'" r="2.6" fill="'+col+'"><title>WK'+p.wk+' · '+e2(s.label)+': '+v+(att?' pts':'%')+'</title></circle>'; } });
+      // coaching markers on this series (small yellow dot, grouped count, rich tooltip)
+      (s.markers||[]).forEach(function(mk){ if(mk.wk<xMin||mk.wk>xMax) return; var my=v76InterpY(pts, mk.wk); if(my==null) return; var mx=xOf(mk.wk), myy=yOf(my);
+        markerLayer+='<g><circle cx="'+mx.toFixed(1)+'" cy="'+myy.toFixed(1)+'" r="'+(opts.markerR||4.2)+'" fill="#f2c033" stroke="#fff" stroke-width="1"/>'+((mk.count>1 && !opts.hideMarkerCount)?('<text x="'+mx.toFixed(1)+'" y="'+(myy-7).toFixed(1)+'" text-anchor="middle" font-size="8" fill="#8a6d00" font-weight="800">●'+mk.count+'</text>'):'')+'<title>'+e2(mk.tip)+'</title></g>'; });
+    });
+    return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:100%;height:auto;display:block" role="img" aria-label="'+e2(V76_METRIC_LABEL[metric])+' performance trend">'+
+      guide+grid+'<line x1="'+padL+'" y1="'+(padT+plotH).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+(padT+plotH).toFixed(1)+'" stroke="#dfe4ec"/>'+xt+body+markerLayer+'</svg>'+
+      (vm.clipped?'<div style="font-size:.66rem;color:#aab2c0;margin-top:3px">An off-scale point (◇) is shown at the top edge; its true value is on hover.</div>':'');
+  }
+  function v76Legend(series){ var s=series.filter(function(x){return x.points&&x.points.length;}); if(s.length<2) return '';
+    return '<div style="display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 2px">'+s.map(function(x,i){ var col=x.color||V76_LINE[i%V76_LINE.length]; return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:.74rem;color:#5a6b82"><span style="width:12px;height:3px;border-radius:2px;background:'+col+';display:inline-block"></span>'+e2(x.label)+'</span>'; }).join('')+'</div>'; }
+
+  // ==================== metric tabs + compact selected-intervention result ====================
+  function v76MetricTabs(){ return '<div style="display:flex;gap:6px;flex-wrap:wrap">'+V76_METRICS.map(function(m){ var on=v76F.metric===m; return '<button class="cl-btn'+(on?' cl-btn-apply':'')+'" style="font-size:.76rem;padding:4px 12px" onclick="v76SetMetric(\''+m+'\')">'+V76_METRIC_LABEL[m]+'</button>'; }).join('')+'</div>'; }
+  // Performance Report Controls toolbar — owns the PERFORMANCE-report filters (Week Range, Metric, Cluster, TL),
+  // rendered BELOW Coaching Compliance & Accountability and ABOVE the first TL report. The Compliance Week
+  // selector lives in the compliance card (separate ownership). Metric + Week Range affect performance reports
+  // only; Cluster/TL scope both areas (they choose which TLs management is viewing).
+  function v76PerfControls(){
+    var fb = (v76FilterKinds && v76FilterKinds.length) ? v76FilterBar(v76FilterKinds) : '';
+    return '<div class="v76-perfctl">'+
+      '<div class="v76-perfctl-label">Performance Report Controls</div>'+
+      '<div class="v76-perfctl-row">'+
+        '<div class="v76-perfctl-metric"><span class="v76-ctl-cap">Metric</span>'+v76MetricTabs()+'</div>'+
+        (fb?('<div class="v76-perfctl-filters">'+fb+'</div>'):'')+
+      '</div></div>';
+  }
+  function v76CompactResult(focus, metric){ if(!focus) return ''; var oc=focus.outcome, col=v76OutcomeColor(oc);
+    return '<div style="font-size:.82rem;color:#5a6b82;margin:2px 0 4px">'+e2(focus.agent)+' · '+e2(focus.wk)+' &nbsp; Before <b style="color:#1a3353">'+v76FmtMetric(metric,focus.before)+'</b> → After <b style="color:#1a3353">'+v76FmtMetric(metric,focus.after)+'</b> &nbsp; '+v76ColSpan(v76FmtChange(metric,focus.change),col)+' &nbsp; '+v76Chip2(oc,col)+'</div>'; }
+
+  // ==================== outcome counts / effectiveness rollups (from approved outcomes; compliance NOT used) ====================
+  function v76OutcomeCounts(ivs){ var cur=v76LatestPerAgent(ivs); var c={Improved:0,Declined:0,'Stayed the Same':0,Pending:0,'Needs Review':0}; cur.forEach(function(iv){ if(c[iv.outcome]!=null)c[iv.outcome]++; }); c.agents=cur.length; return c; }
+  function v76EffPct(ivs){ var c=v76OutcomeCounts(ivs); var den=c.Improved+c.Declined; return den>0?Math.round(c.Improved/den*100):null; }   // Improved / (Improved+Declined) — approved definition
+
+  // ==================== outcome tables ====================
+  function v76AgentOutcomesInner(agentNames, metric){   // table only (no card wrapper) — reused by TL view + report drill-down
+    var rows=agentNames.map(function(nm){
+      var ivs=window.v76Interventions(entries.filter(function(e){ return e.agentName===nm; }), metric); var iv=ivs[0];
+      if(!iv) return '<tr><td style="text-align:left">'+e2(nm)+'</td><td>'+e2(V76_METRIC_LABEL[metric])+'</td><td>—</td><td>—</td><td>—</td><td>'+v76Chip2('Not Scored',V76_GRAY)+'</td></tr>';
+      var col=v76OutcomeColor(iv.outcome);
+      return '<tr><td style="text-align:left">'+e2(nm)+'</td><td>'+e2(V76_METRIC_LABEL[metric])+'</td><td>'+v76FmtMetric(metric,iv.before)+'</td><td>'+v76FmtMetric(metric,iv.after)+'</td><td>'+v76ColSpan(v76FmtChange(metric,iv.change),col)+'</td><td>'+v76Chip2(iv.outcome,col)+'</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="empty-state">No active agents in view.</td></tr>';
+    return '<div class="table-wrap"><table class="proj-table v76-tbl-agents"><thead><tr class="proj-row-header"><th style="text-align:left">Agent</th><th>Coached Metric</th><th>Before</th><th>After</th><th>Change</th><th>Outcome</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  function v76AgentOutcomesTable(agentNames, metric){
+    return '<div class="cl-card" style="margin-top:14px"><h3 style="margin:0 0 8px;font-size:.98rem">Agent Coaching Outcomes</h3>'+v76AgentOutcomesInner(agentNames, metric)+'</div>';
+  }
+  function v76EntityCountsRow(label, ivs, comp){   // shared TL/cluster row (counts + effectiveness + compliance, kept separate)
+    var c=v76OutcomeCounts(ivs); var eff=v76EffPct(ivs);
+    var effHtml=(eff==null)?'<span style="color:#9aa3b4">—</span>':v76ColSpan(eff+'%',(eff>=50?V76_GREEN:V76_RED));
+    var compHtml=comp?( !comp.hasRoster?'<span style="color:#9aa3b4">—</span>':v76ColSpan(comp.pctNum+'%',comp.met?V76_GREEN:V76_RED) ):'';
+    return '<td style="text-align:left">'+e2(label)+'</td><td>'+c.agents+'</td><td>'+v76CountCell(c.Improved,'improved')+'</td><td>'+v76CountCell(c.Declined,'declined')+'</td><td>'+c['Stayed the Same']+'</td><td>'+v76CountCell(c.Pending,'pending')+'</td><td>'+v76CountCell(c['Needs Review'],'needs')+'</td><td>'+effHtml+'</td>'+(comp?('<td>'+compHtml+'</td>'):'');
+  }
+  function v76TLOutcomesTable(tls, metric){
+    var rows=tls.map(function(t){ var ivs=window.v76Interventions(entries.filter(function(e){ return (e.teamLead||'')===t.display; }), metric); var comp=v76ComplianceForTL(t.display);
+      return '<tr>'+v76EntityCountsRow(t.display, ivs, comp)+'</tr>'; }).join('') || '<tr><td colspan="9" class="empty-state">No TLs in view.</td></tr>';
+    return '<div class="cl-card" style="margin-top:14px"><h3 style="margin:0 0 8px;font-size:.98rem">TL Coaching Outcomes</h3>'+
+      '<div class="table-wrap"><table class="proj-table v76-compact"><thead><tr class="proj-row-header"><th style="text-align:left">TL</th><th>Agents Coached</th><th>Improved</th><th>Declined</th><th>Stayed the Same</th><th>Pending</th><th>Needs Review</th><th>Effectiveness</th><th>Compliance</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div style="font-size:.68rem;color:#9aa3b4;margin-top:6px">Effectiveness = Improved ÷ (Improved + Declined). Compliance is separate and never affects Effectiveness.</div></div>';
+  }
+  function v76ClusterSummaryTable(clusters, metric){
+    var rows=clusters.map(function(cl){ var ctls=v76ScopeTLsAll().filter(function(t){ return t.cluster===cl; }); var names={}; ctls.forEach(function(t){ (getAgentsForTL(t.display)||[]).forEach(function(a){ if(a&&a.name) names[a.name]=1; }); });
+      var ivs=window.v76Interventions(entries.filter(function(e){ return names[e.agentName] && v76ActiveName(e.agentName); }), metric);
+      // cluster compliance = TLs meeting threshold / TLs with roster (display rollup; per-TL engine unchanged)
+      var withR=ctls.filter(function(t){ return v76ComplianceForTL(t.display).hasRoster; }); var metC=withR.filter(function(t){ return v76ComplianceForTL(t.display).met; }).length;
+      var compHtml=withR.length?v76ColSpan(metC+'/'+withR.length,(metC===withR.length?V76_GREEN:V76_RED)):'<span style="color:#9aa3b4">—</span>';
+      var c=v76OutcomeCounts(ivs); var eff=v76EffPct(ivs); var effHtml=(eff==null)?'<span style="color:#9aa3b4">—</span>':v76ColSpan(eff+'%',(eff>=50?V76_GREEN:V76_RED));
+      return '<tr><td style="text-align:left">'+e2(cl)+'</td><td>'+c.agents+'</td><td>'+v76CountCell(c.Improved,'improved')+'</td><td>'+v76CountCell(c.Declined,'declined')+'</td><td>'+c['Stayed the Same']+'</td><td>'+v76CountCell(c.Pending,'pending')+'</td><td>'+v76CountCell(c['Needs Review'],'needs')+'</td><td>'+effHtml+'</td><td>'+compHtml+'</td></tr>';
+    }).join('') || '<tr><td colspan="9" class="empty-state">No clusters in view.</td></tr>';
+    return '<div class="cl-card" style="margin-top:14px"><h3 style="margin:0 0 8px;font-size:.98rem">Cluster Summary</h3>'+
+      '<div class="table-wrap"><table class="proj-table v76-compact"><thead><tr class="proj-row-header"><th style="text-align:left">Cluster</th><th>Agents Coached</th><th>Improved</th><th>Declined</th><th>Stayed the Same</th><th>Pending</th><th>Needs Review</th><th>Effectiveness</th><th>Compliance</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }
+
+  // ==================== effectiveness (bottom) — per-metric semantic labels ====================
+  function v76TLMetricClass(tl, metric){
+    var ivs=v76LatestPerAgent(window.v76Interventions(entries.filter(function(e){ return (e.teamLead||'')===tl.display; }), metric));
+    var imp=0,dec=0; ivs.forEach(function(iv){ if(iv.outcome==='Improved')imp++; else if(iv.outcome==='Declined')dec++; });
+    if(imp===0&&dec===0) return {cls:'Pending', col:V76_AMBER, glyph:'•'};
+    if(imp>dec) return {cls:'Effective', col:V76_GREEN, glyph:'↑'};
+    if(dec>imp) return {cls:'Needs Improvement', col:V76_RED, glyph:'↓'};
+    return {cls:'Mixed', col:V76_GRAY, glyph:'—'};
+  }
+  function v76AgentMetricClass(agentName, metric){
+    var iv=window.v76Interventions(entries.filter(function(e){ return e.agentName===agentName; }), metric)[0];
+    if(!iv) return {cls:'Pending', col:V76_AMBER, glyph:'•'};
+    if(iv.outcome==='Improved') return {cls:'Effective', col:V76_GREEN, glyph:'↑'};
+    if(iv.outcome==='Declined') return {cls:'Needs Improvement', col:V76_RED, glyph:'↓'};
+    if(iv.outcome==='Stayed the Same') return {cls:'Steady', col:V76_GRAY, glyph:'—'};
+    return {cls:'Pending', col:V76_AMBER, glyph:'•'};
+  }
+  function v76EffLegend(){ return '<div style="font-size:.7rem;color:#9aa3b4;margin-bottom:8px"><span style="color:'+V76_GREEN+';font-weight:700">Effective ↑</span> · <span style="color:'+V76_RED+';font-weight:700">Needs Improvement ↓</span> · <span style="color:'+V76_GRAY+';font-weight:700">Mixed —</span> · <span style="color:'+V76_AMBER+';font-weight:700">Pending •</span>. Based only on the coached metric\'s movement; compliance does not affect this.</div>'; }
+  function v76TLEffectivenessSection(tls){
+    var body=tls.map(function(t){ var cells=V76_METRICS.map(function(m){ var k=v76TLMetricClass(t,m); return '<td>'+v76ColSpan(k.cls+' '+k.glyph, k.col)+'</td>'; }).join('');
+      return '<tr><td style="text-align:left">'+e2(t.display)+'</td>'+cells+'</tr>'; }).join('') || '<tr><td colspan="5" class="empty-state">No TLs in view.</td></tr>';
+    return '<div class="cl-card" style="margin-top:14px"><h3 style="margin:0 0 4px;font-size:.98rem">TL Coaching Effectiveness</h3>'+v76EffLegend()+
+      '<div class="table-wrap"><table class="proj-table v76-compact"><thead><tr class="proj-row-header"><th style="text-align:left">TL</th><th>TCR</th><th>CSR</th><th>Rainmaker</th><th>Attendance</th></tr></thead><tbody>'+body+'</tbody></table></div></div>';
+  }
+  function v76AgentEffectivenessSection(agentNames){
+    var body=agentNames.map(function(nm){ var cells=V76_METRICS.map(function(m){ var k=v76AgentMetricClass(nm,m); return '<td>'+v76ColSpan(k.cls+' '+k.glyph, k.col)+'</td>'; }).join('');
+      return '<tr><td style="text-align:left">'+e2(nm)+'</td>'+cells+'</tr>'; }).join('') || '<tr><td colspan="5" class="empty-state">No active agents in view.</td></tr>';
+    return '<div class="cl-card" style="margin-top:14px"><h3 style="margin:0 0 4px;font-size:.98rem">Agent Coaching Effectiveness</h3>'+v76EffLegend()+
+      '<div class="table-wrap"><table class="proj-table v76-compact"><thead><tr class="proj-row-header"><th style="text-align:left">Agent</th><th>TCR</th><th>CSR</th><th>Rainmaker</th><th>Attendance</th></tr></thead><tbody>'+body+'</tbody></table></div></div>';
+  }
+
+  // ==================== Coaching Compliance & Accountability (visually separated; engine UNCHANGED) ====================
+  function v76StatChip(n,label,kind){ var col = kind==='improved'?V76_GREEN : kind==='declined'?V76_RED : (kind==='pending'||kind==='needs')?V76_AMBER : V76_GRAY;
+    var bg={'#2f6f43':'#e7f3ec','#b23b3b':'#f7e6e6','#b8860b':'#fbf3df','#8a93a6':'#eef1f5'}[col]||'#eef1f5';
+    return '<span style="display:inline-flex;align-items:baseline;gap:5px;padding:4px 10px;border-radius:14px;background:'+bg+';font-size:.8rem"><b style="color:'+col+';font-size:.92rem">'+n+'</b><span style="color:#5a6b82">'+e2(label)+'</span></span>'; }
+  var V76_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function v76DateShort(s){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s||'')); if(!m) return e2(s||'—'); return V76_MONTHS[(+m[2])-1]+' '+(+m[3])+', '+m[1]; }
+  function v76Ordinal(n){ var s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+  function v76PenaltyState(n){ if(n<=1) return 'Warning'; if(n===2) return 'Final Warning'; if(n===3) return '$50 Penalty'; return '$100 Penalty'; }
+  // penalty severity color: Warning amber · Final Warning red-amber · $50/$100 red
+  function v76PenaltyColor(n){ if(n<=1) return V76_AMBER; if(n===2) return '#c0562a'; return V76_RED; }
+  // APPLICABLE INSTANCE — the ladder position for THIS occurrence (Model A): prior qualifying weekly
+  // non-compliance occurrences within the clearing window + 1 (the current occurrence). DISPLAY only —
+  // it does NOT create or confirm an official instance. SOM Confirm/Exempt is unchanged.
+  // pending = the selected compliance week is the CURRENT, still-in-progress week and the TL is below 80% —
+  // the week is not over so NO penalty is applied yet (a TL can still reach 80% before the week closes).
+  function v76ApplicableInstanceCell(comp, instNum, exempt, detected, pending){
+    if(!comp.hasRoster) return '<span style="color:#9aa3b4">—</span>';
+    if(exempt) return v76Chip2('Exempt', V76_GRAY);
+    if(pending) return '<span style="color:#8a93a6">In Progress</span>';
+    if(detected){ var n=instNum; return '<b style="color:'+v76PenaltyColor(n)+'">'+e2(v76Ordinal(n)+' Instance')+'</b>'; }
+    return '<span style="color:#8a93a6">—</span>';
+  }
+  // EXACT PENALTY — the actual consequence for the applicable instance via the existing v76Consequence ladder.
+  // Detected (a COMPLETED non-compliant week) shows the real applicable penalty (NEVER "Pending SOM Review");
+  // exempt = No Penalty / Exempt; compliant = No Penalty; the current in-progress week = No penalty yet.
+  function v76ExactPenaltyCell(comp, instNum, exempt, detected, pending){
+    if(!comp.hasRoster) return '<span style="color:#9aa3b4">—</span>';
+    if(exempt) return v76ColSpan('No Penalty / Exempt', V76_GRAY);
+    if(pending) return '<span style="color:#8a93a6">No penalty yet</span>';
+    if(detected){ var n=instNum; return '<b style="color:'+v76PenaltyColor(n)+'">'+e2(window.v76Consequence(n))+'</b>'; }
+    return '<span style="color:'+V76_GREEN+';font-weight:700">No Penalty</span>';
+  }
+  // STATUS / ACTION — compliance status + the SOM review control (authorization unchanged: only SOM can act).
+  function v76StatusActionCell(comp, detected, exempt, canWrite, email, pending){
+    if(!comp.hasRoster) return '<span style="color:#9aa3b4">—</span>';
+    if(exempt) return v76Chip2('Exempt', V76_GRAY);
+    if(pending) return v76ColSpan('In Progress', V76_AMBER);
+    if(detected) return canWrite ? '<button class="cl-btn" onclick="v76ReviewNonCompliance(\''+e2(email)+'\')">Review</button>' : v76ColSpan('Review', V76_AMBER);
+    return '<span style="color:'+V76_GREEN+';font-weight:700">Compliant</span>';
+  }
+  // Compliance % — reconciles EXACTLY with Daily Coaching Completion: round(full/denom*100) = comp.pctNum,
+  // colored by comp.met (the exact >=80% boundary). Never full/required.
+  function v76ComplCellPct(comp){ if(!comp.hasRoster) return '<span style="color:#9aa3b4">—</span>'; return v76ColSpan(comp.pctNum+'%', comp.met?V76_GREEN:V76_RED); }
+  function v76PenaltyPolicy(){
+    return '<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700;color:#0A6FB0;font-size:.8rem">Accountability &amp; Penalty Policy</summary>'+
+      '<div style="font-size:.8rem;color:#44556a;margin-top:8px;line-height:1.55">'+
+      '<div><b>1st Instance</b> — NTE → Warning</div><div><b>2nd Instance</b> — NTE → Final Warning</div>'+
+      '<div><b>3rd Instance</b> — NTE → $50 Bonus/Salary Deduction Penalty</div><div><b>4th Instance and above</b> — NTE → $100 Bonus/Salary Deduction Penalty</div>'+
+      '<div style="margin-top:6px"><b>Clearing Period</b> — 3 calendar months</div>'+
+      '<div style="margin-top:6px"><b>Effective</b> — Coaching Completion accountability starts WK'+V76_ACCT_START_WK+'; weeks before WK'+V76_ACCT_START_WK+' never count.</div>'+
+      '<div style="margin-top:6px"><b>Current week</b> — the live, in-progress week is never penalized yet (a team can still reach 80% before the week closes); only completed weeks incur a penalty.</div>'+
+      '<div style="margin-top:6px;color:#7a8aa0">A week counts as a qualifying occurrence when Coaching Completion is below 80% (Completed ÷ Required &lt; 80%, matching the Daily Coaching Completion report) for a COMPLETED week from WK'+V76_ACCT_START_WK+' onward, within the 3-month clearing window, and not exempt. Repeated qualifying weeks escalate the ladder. The Exact Penalty shows the consequence for the current occurrence; displaying it creates no official record — SOM must still Review → Confirm or Exempt. Exempt weeks do not count, and a week is one occurrence whether or not it was later SOM-confirmed.</div></div></details>';
+  }
+  async function v76AccountabilityTable(tls, canWrite){
+    var all=await v76LoadAcc(); var wkStr=v76CompWkStr();
+    var weekSel='<select onchange="v76SetCompWk(this.value)" style="font-size:.76rem;padding:3px 8px;border:1px solid #d7dbe3;border-radius:6px"><option value="">Current ('+e2(currentWkString())+')</option>'+
+      Array.from(new Set(entries.map(function(e){return e.wkNumber;}).filter(Boolean))).sort(function(a,b){ return wkNum({wkNumber:b})-wkNum({wkNumber:a}); }).map(function(w){ return '<option value="'+e2(w)+'"'+(v76CompWk===w?' selected':'')+'>'+e2(w)+'</option>'; }).join('')+'</select>';
+    var nCompliant=0,nReview=0,nExempt=0;
+    var compWkInt=v76CompWkInt();
+    var acctActive=(compWkInt>=V76_ACCT_START_WK);   // WK557 floor — no penalties for the selected week if it is pre-WK557
+    var curLiveWk=parseInt(String(currentWkString()).replace(/\D/g,''),10) || 0;
+    var inProgressWk=(compWkInt>=curLiveWk);          // the selected compliance week is the current, still-in-progress week
+    var nInProgress=0;
+    var rowsHtml=tls.map(function(t){ var comp=v76ComplianceForTL(t.display); var exempt=v76HasExemption(all,t,wkStr);
+      // EXACT 80% boundary: below-80% ⟺ !comp.met (full/denom < 0.8). Never rounded pctNum. Floored at WK557.
+      var below=comp.hasRoster && !comp.met && !exempt && acctActive;
+      // The CURRENT in-progress week is NOT penalized yet (week not over). Only COMPLETED weeks incur a penalty.
+      var pending=below && inProgressWk;
+      var detected=below && !inProgressWk;
+      // Model A: applicable instance = prior qualifying COMPLETED weekly occurrences (WK557+, within clearing, non-exempt) + this completed one
+      var instNum=detected ? (v76PriorOccurrenceCount(all,t,compWkInt)+1) : 0;
+      if(comp.hasRoster){ if(exempt) nExempt++; else if(pending) nInProgress++; else if(detected) nReview++; else if(comp.met||!acctActive) nCompliant++; }
+      var attn=detected ? ' style="background:rgba(178,59,59,0.045)"' : '';
+      return '<tr'+attn+'><td style="text-align:left"><b>'+e2(t.display)+'</b></td>'+
+        '<td>'+(comp.hasRoster?(comp.full+' / '+comp.denom):'—')+'</td>'+
+        '<td>'+v76ComplCellPct(comp)+'</td>'+
+        '<td style="text-align:left">'+v76ApplicableInstanceCell(comp,instNum,exempt,detected,pending)+'</td>'+
+        '<td style="text-align:left">'+v76ExactPenaltyCell(comp,instNum,exempt,detected,pending)+'</td>'+
+        '<td style="text-align:left">'+v76StatusActionCell(comp,detected,exempt,canWrite,t.email,pending)+'</td></tr>'; }).join('')
+      || '<tr><td colspan="6" class="empty-state">No TLs in view.</td></tr>';
+    var summary='<div style="display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 10px">'+v76StatChip(nCompliant,'Compliant','improved')+(inProgressWk?v76StatChip(nInProgress,'Below 80% (in progress)','pending'):v76StatChip(nReview,'Needs Review','needs'))+(nExempt>0?v76StatChip(nExempt,'Exempt','neutral'):'')+'</div>';
+    var hist=v76AccVisible(all).slice().sort(function(a,b){ return (b.confirmedAt||b.exemptedAt||0)-(a.confirmedAt||a.exemptedAt||0); });
+    var histHtml=hist.length?('<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700;color:#5a6b82;font-size:.8rem">Accountability history ('+hist.length+')</summary><div class="table-wrap" style="margin-top:6px"><table class="proj-table v76-compact"><thead><tr class="proj-row-header"><th style="text-align:left">TL</th><th>Type</th><th>Week</th><th>Instance</th><th>Consequence</th><th>By</th><th>Clearing</th><th>Status</th></tr></thead><tbody>'+hist.map(function(x){ var st=x.type==='exemption'?'Exempt':(window.v76EffStatus(x)==='active'?'Active':'Cleared'); return '<tr><td style="text-align:left">'+e2(x.tlDisplay||x.tlEmail||'—')+'</td><td>'+e2(x.type==='exemption'?'Exemption':'Instance')+'</td><td>'+e2(x.wk||'—')+'</td><td>'+(x.instanceNumber?('#'+x.instanceNumber):'—')+'</td><td>'+e2(x.consequence||'—')+'</td><td>'+e2(x.confirmedBy||x.exemptedBy||'—')+'</td><td>'+e2(x.clearsOn||'—')+'</td><td>'+v76Chip(st)+'</td></tr>'; }).join('')+'</tbody></table></div></details>'):'';
+    return '<div class="cl-card" style="margin-top:8px;border-top:3px solid #f2c60022" id="v76AccCard">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px"><div><h3 style="margin:0;font-size:1.02rem">Coaching Compliance &amp; Accountability</h3><div style="font-size:.75rem;color:#8a93a6;margin-top:1px">Compliance Week: '+e2(wkStr)+'</div></div><div style="font-size:.72rem;color:#7a8aa0">Compliance week: '+weekSel+'</div></div>'+
+      summary+
+      '<div class="table-wrap"><table class="proj-table v76-tbl-compliance"><thead><tr class="proj-row-header"><th style="text-align:left">TL</th><th style="text-align:left">Completed / Required</th><th style="text-align:left">Compliance</th><th style="text-align:left">Applicable Instance</th><th style="text-align:left">Exact Penalty</th><th style="text-align:left">Status / Action</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div>'+
+      (canWrite?'':'<div style="font-size:.72rem;color:#9aa3b4;margin-top:6px">Read-only. Only SOM can Confirm or Exempt.</div>')+
+      v76PenaltyPolicy()+histHtml+'<div id="v76ReviewPanel" style="margin-top:10px"></div></div>';
+  }
+
+  window.v76ReviewNonCompliance=async function(tlEmail){
+    if(!window.v76CanWriteAccountability()){ try{alert('Only SOM can review/confirm.');}catch(e){} return; }
+    var all=await v76LoadAcc(); var t=v76ScopeTLsAll().find(function(x){ return String(x.email).toLowerCase()===String(tlEmail).toLowerCase(); }); if(!t) return;
+    var wkStr=v76CompWkStr(); var comp=v76ComplianceForTL(t.display); var prior=v76PriorOccurrenceCount(all,t,v76CompWkInt()); var suggested=prior+1; var cons=window.v76Consequence(suggested);
+    var p=document.getElementById('v76ReviewPanel'); if(!p) return;
+    p.innerHTML='<div style="border:1px solid #e3b0b0;background:#fff7f7;border-radius:8px;padding:12px 14px"><div style="font-size:.7rem;font-weight:800;letter-spacing:.05em;color:#b23b3b">REVIEW NON-COMPLIANCE</div><div style="font-weight:800;margin-top:3px">'+e2(t.display)+' · '+e2(wkStr)+'</div><div style="font-size:.85rem;margin-top:6px">Required Coaching: <b>'+comp.denom+'</b> · Completed Coaching: <b>'+comp.full+'</b> · Completion: <b>'+comp.pctNum+'%</b> · Required Threshold: <b>80%</b></div><div style="font-size:.85rem;margin-top:4px">Prior Qualifying Occurrences (within clearing): <b>'+prior+'</b></div><div style="font-size:.85rem;margin-top:4px">Suggested Instance: <b>#'+suggested+'</b> &nbsp; Suggested Consequence: <b>'+e2(cons)+'</b></div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-add btn-add-green" onclick="v76DoConfirm(\''+e2(t.email)+'\','+suggested+')">Confirm Instance</button><button class="cl-btn" onclick="v76DoExempt(\''+e2(t.email)+'\')">Exempt</button><button class="cl-btn cl-btn-clear" onclick="document.getElementById(\'v76ReviewPanel\').innerHTML=\'\'">Cancel</button></div></div>';
+  };
+  window.v76DoConfirm=async function(tlEmail, instNum){ var t=v76ScopeTLsAll().find(function(x){ return String(x.email).toLowerCase()===String(tlEmail).toLowerCase(); }); if(!t) return; var comp=v76ComplianceForTL(t.display);
+    var r=await window.v76WriteInstance({ tlEmail:t.email, tlDisplay:t.display, cluster:t.cluster, wk:v76CompWkStr(), required:comp.denom, completed:comp.full, pct:comp.pctNum, instanceNumber:instNum });
+    if(r.ok){ if(typeof v76ActiveRender==='function') v76ActiveRender(); else openCoachingPerf(); } else { try{alert('Could not confirm: '+(r.error||'error'));}catch(e){} } };
+  window.v76DoExempt=async function(tlEmail){ var t=v76ScopeTLsAll().find(function(x){ return String(x.email).toLowerCase()===String(tlEmail).toLowerCase(); }); if(!t) return; var reason=''; try{ reason=prompt('Exemption reason (PTO, LOA, dashboard outage, approved exception):','')||''; }catch(e){} var comp=v76ComplianceForTL(t.display);
+    var r=await window.v76WriteExemption({ tlEmail:t.email, wk:v76CompWkStr(), pct:comp.pctNum, reason:reason });
+    if(r.ok){ if(typeof v76ActiveRender==='function') v76ActiveRender(); else openCoachingPerf(); } else { try{alert('Could not exempt: '+(r.error||'error'));}catch(e){} } };
+
+  // ==================== chart-series builders (per-role, drill-down) ====================
+  function v76Range(){ return { lo:v76CurWkInt()-(v76F.range-1), hi:v76CurWkInt() }; }
+  function v76AgentPoints(name, metric, lo, hi){ var s=v76AgentSeries(name, metric); return Object.keys(s).map(function(w){return {wk:+w,val:s[w]};}).filter(function(p){return p.wk>=lo&&p.wk<=hi;}).sort(function(a,b){return a.wk-b.wk;}); }
+  function v76MeanSeries(agentNames, metric, lo, hi){ var acc={}; agentNames.forEach(function(nm){ var s=v76AgentSeries(nm, metric); Object.keys(s).forEach(function(wk){ var w=+wk; if(w<lo||w>hi) return; (acc[w]=acc[w]||[]).push(s[wk]); }); });
+    return Object.keys(acc).map(function(w){ var a=acc[w]; return {wk:+w,val:a.reduce(function(x,y){return x+y;},0)/a.length}; }).sort(function(a,b){return a.wk-b.wk;}); }
+  function v76CoachMarkers(agentNames, metric, lo, hi){ var set={}; agentNames.forEach(function(n){set[n]=1;});
+    var ivs=window.v76Interventions(entries.filter(function(e){ return set[e.agentName]; }), metric);
+    var byWk={}; ivs.filter(function(iv){ return iv.wkInt>=lo && iv.wkInt<=hi; }).forEach(function(iv){ (byWk[iv.wkInt]=byWk[iv.wkInt]||[]).push(iv); });
+    var markers=Object.keys(byWk).map(function(w){ var g=byWk[w]; var lines=g.slice(0,5).map(function(iv){ var lim=(iv.entry&&iv.entry.limiter)||'—'; var dt=(iv.entry&&iv.entry.dateOfCoaching)||'—'; return iv.agent+' — '+lim+' ('+V76_METRIC_LABEL[iv.metric]+'), '+iv.outcome+(iv.tl?' · '+iv.tl:'')+' · '+dt; });
+      if(g.length>5) lines.push('…and '+(g.length-5)+' more'); return { wk:+w, count:g.length, tip:'WK'+w+' · '+g.length+' coaching'+(g.length>1?'s':'')+'\n'+lines.join('\n') }; });
+    return { markers:markers, focus: ivs[0]||null }; }
+  function v76CapSeries(series){ if(series.length<=8) return {series:series, note:''}; return {series:series.slice(0,8), note:'Showing 8 of '+series.length+' — use the filters to narrow.'}; }
+
+  function v76ChartCard(title, series, focus, metric, note){
+    var r=v76Range();
+    return '<div class="cl-card">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><h3 style="margin:0;font-size:1.05rem">'+e2(title)+'</h3>'+(note?'<div style="font-size:.75rem;color:#8a93a6;margin-top:1px">'+e2(note)+'</div>':'')+'</div>'+v76MetricTabs()+'</div>'+
+      v76CompactResult(focus, metric)+v76Legend(series)+
+      v76LineChart(series, {metric:metric, focusWk:focus?focus.wkInt:null, lo:r.lo, hi:r.hi})+'</div>';
+  }
+  function v76ClustersInScope(){ if(v76F.cluster) return [v76F.cluster]; return Array.from(new Set(v76ScopeTLsAll().map(function(t){return t.cluster;}).filter(Boolean))).sort(); }
+
+  // ==================== FULL-WIDTH TL REPORT SECTIONS (management views) ====================
+  // Build one TL's report data ONCE (reused for shared-scale + render; no per-chart re-fetch).
+  function v76TLReportData(tl, metric, r){
+    var agents=v76ActiveAgentsForTLs([tl]).sort(); var setA={}; agents.forEach(function(n){setA[n]=1;});
+    var series=v76MeanSeries(agents, metric, r.lo, r.hi);
+    var mk=v76CoachMarkers(agents, metric, r.lo, r.hi);
+    var ivs=window.v76Interventions(entries.filter(function(x){ return setA[x.agentName]; }), metric);
+    return { tl:tl, agents:agents, series:series, markers:mk.markers, ivs:ivs, counts:v76OutcomeCounts(ivs), coachCount:ivs.length, cls:v76TLMetricClass(tl, metric) };
+  }
+  // one full-width management report section for a single TL (summary table → activity → ONE trend chart → agent details)
+  function v76TLReportSection(d, metric, yMax, r){
+    var tl=d.tl, c=d.counts, eff=v76EffPct(d.ivs), cls=d.cls;
+    var effTxt=(eff==null)?'—':eff+'%';
+    var supp=d.agents.length+' Active Agent'+(d.agents.length===1?'':'s')+' · '+d.coachCount+' '+V76_METRIC_LABEL[metric]+' Coaching'+(d.coachCount===1?'':'s')+' · WK'+r.lo+'–WK'+r.hi;
+    var summary='<div class="table-wrap"><table class="proj-table v76-tbl-summary"><thead><tr class="proj-row-header"><th style="text-align:left">Metric</th><th>Agents Coached</th><th>Improved</th><th>Declined</th><th>Stayed Same</th><th>Pending</th><th>Needs Review</th><th>Effectiveness</th></tr></thead><tbody>'+
+      '<tr><td style="text-align:left">'+e2(V76_METRIC_LABEL[metric])+'</td><td>'+c.agents+'</td><td>'+v76CountCell(c.Improved,'improved')+'</td><td>'+v76CountCell(c.Declined,'declined')+'</td><td>'+c['Stayed the Same']+'</td><td>'+v76CountCell(c.Pending,'pending')+'</td><td>'+v76CountCell(c['Needs Review'],'needs')+'</td><td>'+(eff==null?'<span style="color:#9aa3b4">—</span>':v76ColSpan(effTxt,(eff>=50?V76_GREEN:V76_RED)))+'</td></tr>'+
+      '</tbody></table></div>';
+    var activity='<div style="font-size:.8rem;color:#5a6b82;margin:10px 0 2px"><b style="color:#44556a">Coaching Activity:</b> '+d.coachCount+' '+V76_METRIC_LABEL[metric]+' coaching intervention'+(d.coachCount===1?'':'s')+' · '+c.agents+' agent'+(c.agents===1?'':'s')+' coached</div>';
+    var hasData=d.series.length;
+    var chart=hasData
+      ? v76LineChart([{label:tl.display, color:V76_LINE[0], points:d.series, markers:d.markers}], {metric:metric, yMax:yMax, height:280, hideMarkerCount:true, markerR:3.2})
+      : '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f7f9fc;border:1px dashed #dbe2ec;border-radius:8px;color:#9aa3b4;font-size:.8rem"><span style="font-size:.95rem;line-height:1">▁</span>No '+e2(V76_METRIC_LABEL[metric])+' performance data for this period.</div>';
+    var details='<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:#0A6FB0;font-size:.8rem">View Agent Details</summary><div style="margin-top:8px">'+v76AgentOutcomesInner(d.agents, metric)+'</div></details>';
+    return '<div class="cl-card" style="margin-top:24px;padding:18px 20px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;border-bottom:1px solid #eef1f5;padding-bottom:10px;margin-bottom:12px">'+
+        '<div><h3 style="margin:0;font-size:1.1rem">'+e2(tl.display)+'</h3><div style="font-size:.8rem;color:#8a93a6;margin-top:1px">Team Coaching Performance</div><div style="font-size:.76rem;color:#9aa3b4;margin-top:4px">'+e2(supp)+'</div></div>'+
+        '<div style="text-align:right"><div style="font-size:.68rem;color:#9aa3b4;text-transform:uppercase;letter-spacing:.04em">Coaching Effectiveness</div><div style="font-size:1.15rem;font-weight:800;margin-top:1px;color:'+(eff==null?'#9aa3b4':(eff>=50?V76_GREEN:V76_RED))+'">'+e2(effTxt)+'</div><div style="margin-top:2px">'+v76ColSpan(cls.cls+' '+cls.glyph, cls.col)+'</div></div>'+
+      '</div>'+
+      summary+activity+
+      '<div style="font-size:.82rem;font-weight:700;color:#44556a;margin:14px 0 4px">'+e2(tl.display+' — '+V76_METRIC_LABEL[metric]+' Performance Trend')+'</div>'+chart+
+      details+'</div>';
+  }
+  // shared y-axis across a set of prebuilt report data (never auto-scale each TL graph independently)
+  function v76ReportsYMax(datas, metric){ var vals=[]; datas.forEach(function(d){ d.series.forEach(function(p){ vals.push(p.val); }); }); if(!vals.length) return null; return v76VisibleMax(vals, metric).max; }
+  function v76ClusterHeading(cl, tlsInCl, agentCount){
+    return '<div style="margin:36px 0 4px;padding:8px 14px;background:#fffbe9;border-left:4px solid #f2c60088;border-radius:6px"><div style="font-size:1.05rem;font-weight:800;letter-spacing:.02em;color:#1a3353">CLUSTER '+e2(String(cl).toUpperCase())+'</div><div style="font-size:.76rem;color:#8a6d00;margin-top:1px">'+tlsInCl+' TL'+(tlsInCl===1?'':'s')+' · '+agentCount+' Active Agent'+(agentCount===1?'':'s')+'</div></div>'; }
+
+  // ==================== role renders ====================
+  async function v76RenderTL(root){
+    var u=v76View(); var disp=(u.tlInfo&&u.tlInfo.display)||u.display; var metric=v76F.metric; var r=v76Range();
+    var agents=v76ActiveAgentsForTLs([{display:disp}]).sort();
+    if(metric==='ATT'){ try{ await v76LoadAtt(agents); }catch(e){} }
+    var series, focus, note='', title='Agent '+V76_METRIC_LABEL[metric]+' Performance Trend';
+    if(v76F.agent){ var mk=v76CoachMarkers([v76F.agent],metric,r.lo,r.hi); series=[{label:v76F.agent,color:V76_LINE[0],points:v76AgentPoints(v76F.agent,metric,r.lo,r.hi),markers:mk.markers}]; focus=mk.focus; }
+    else if(agents.length && agents.length<=6){ series=agents.map(function(nm,i){ var mk=v76CoachMarkers([nm],metric,r.lo,r.hi); return {label:nm,color:V76_LINE[i%V76_LINE.length],points:v76AgentPoints(nm,metric,r.lo,r.hi),markers:mk.markers}; }); focus=v76CoachMarkers(agents,metric,r.lo,r.hi).focus; }
+    else { var mk2=v76CoachMarkers(agents,metric,r.lo,r.hi); series=[{label:'Team Average',color:V76_LINE[0],points:v76MeanSeries(agents,metric,r.lo,r.hi),markers:mk2.markers}]; focus=mk2.focus; note='Team average — select an agent to view an individual trend.'; }
+    root.innerHTML=v76ChartCard(title,series,focus,metric,note)+v76AgentOutcomesTable(agents,metric)+v76AgentEffectivenessSection(agents);
+  }
+
+  // OM + SOM My Cluster — one stacked full-width report section per in-scope TL; selected TL → only that report.
+  async function v76RenderTLScoped(root, opts){
+    var metric=v76F.metric; var r=v76Range(); var tls=v76ScopeTLs();
+    var canWrite=(V76_SIM.role===null) && window.v76CanWriteAccountability();
+    if(metric==='ATT'){ try{ await v76LoadAtt(v76ActiveAgentsForTLs(tls)); }catch(e){} }
+    var datas=tls.map(function(t){ return v76TLReportData(t, metric, r); });
+    var yMax=v76ReportsYMax(datas, metric);   // shared y-axis across all visible TL reports
+    var reports=datas.length ? datas.map(function(d){ return v76TLReportSection(d, metric, yMax, r); }).join('')
+      : '<div class="cl-card" style="margin-top:16px"><div class="empty-state" style="padding:24px;color:#9aa3b4">No teams in view.</div></div>';
+    // Compliance & Accountability moved to the TOP (respects current scope/filters via the same in-scope tls), then TL reports.
+    var acct=await v76AccountabilityTable(tls,canWrite);
+    var html=acct+v76PerfControls()+reports;   // bottom TL Coaching Effectiveness table removed from management views (engine v76TLEffectivenessSection/v76TLMetricClass untouched)
+    root.innerHTML=html;
+  }
+  async function v76RenderOM(root){ return v76RenderTLScoped(root, {}); }
+  async function v76RenderMyCluster(root){ var oc=v76SomOwnCluster();
+    if(!oc){ root.innerHTML='<div class="cl-card"><h3 style="margin:0 0 6px">My Cluster</h3><div style="color:#8a6d00;background:#fff8e1;border:1px solid #ffd78a;border-radius:8px;padding:14px;font-size:.9rem">My Cluster is not configured — your SOM user document has no <b>cluster</b> field. Ask an admin to set it to enable this view.</div></div>'; return; }
+    return v76RenderTLScoped(root, {clusterLabel:oc}); }
+
+  // SOM All Clusters + Director — CLUSTER heading → its TL report sections. Selected cluster/TL narrows the page.
+  async function v76RenderAllClusters(root){
+    var metric=v76F.metric; var r=v76Range();
+    var canWrite=(V76_SIM.role===null) && window.v76CanWriteAccountability();
+    var tls=v76ScopeTLs();   // respects cluster + tl filters
+    if(metric==='ATT'){ try{ await v76LoadAtt(v76ActiveAgentsForTLs(tls)); }catch(e){} }
+    var datas=tls.map(function(t){ return v76TLReportData(t, metric, r); });
+    var yMax=v76ReportsYMax(datas, metric);   // shared across every visible TL report, all clusters
+    var body='';
+    if(v76F.tl){   // only the selected TL's report
+      body = datas.length ? datas.map(function(d){ return v76TLReportSection(d, metric, yMax, r); }).join('') : '<div class="cl-card" style="margin-top:16px"><div class="empty-state" style="padding:24px;color:#9aa3b4">No team in view.</div></div>';
+    } else {       // group TL reports under CLUSTER headings (single cluster if filtered)
+      var clusters=v76ClustersInScope();
+      body = clusters.map(function(cl){
+        var clDatas=datas.filter(function(d){ return d.tl.cluster===cl; });
+        var agentCount=Array.from(new Set([].concat.apply([], clDatas.map(function(d){return d.agents;})))).length;
+        return v76ClusterHeading(cl, clDatas.length, agentCount) + (clDatas.length? clDatas.map(function(d){ return v76TLReportSection(d, metric, yMax, r); }).join('') : '<div class="cl-card" style="margin-top:16px"><div class="empty-state" style="padding:20px;color:#9aa3b4">No teams in this cluster.</div></div>');
+      }).join('') || '<div class="cl-card" style="margin-top:16px"><div class="empty-state" style="padding:24px;color:#9aa3b4">No clusters in view.</div></div>';
+    }
+    // Compliance & Accountability moved to the TOP — ONE section for the whole management scope (never repeated per cluster), then the cluster-grouped TL reports.
+    var acct=await v76AccountabilityTable(tls,canWrite);
+    var html=acct+v76PerfControls()+body;   // bottom TL Coaching Effectiveness table removed from management views (engine v76TLEffectivenessSection/v76TLMetricClass untouched)
+    root.innerHTML=html;
+  }
+
+
+  // ---- STAGING Test View: control + banner + handlers ----
+  function v76TestViewControl(){
+    var roleOpts=['','Agent','TL','OM','SOM','Director'].map(function(r){ var lbl=(r===''?'Actual Role':r); return '<option value="'+r+'"'+((V76_SIM.role||'')===r?' selected':'')+'>'+lbl+'</option>'; }).join('');
+    var second='';
+    var selStyle='font-size:.8rem;padding:4px 8px;border:1px solid #d7dbe3;border-radius:6px';
+    if(V76_SIM.role==='Agent'){ var ags=ROSTER.slice().sort(function(a,b){ return String(a.name).localeCompare(String(b.name)); });
+      second='<select onchange="v76SimSetTarget(\'Agent\',this.value)" style="'+selStyle+'"><option value="">Select Agent</option>'+ags.map(function(a){ return '<option value="'+e2(a.name)+'"'+(V76_SIM.agentName===a.name?' selected':'')+'>'+e2(a.name)+'</option>'; }).join('')+'</select>'; }
+    else if(V76_SIM.role==='TL'){ var tls=v76ScopeTLsAll().slice().sort(function(a,b){ return String(a.display).localeCompare(String(b.display)); });
+      second='<select onchange="v76SimSetTarget(\'TL\',this.value)" style="'+selStyle+'"><option value="">Select TL</option>'+tls.map(function(t){ return '<option value="'+e2(t.display)+'"'+(V76_SIM.tlDisplay===t.display?' selected':'')+'>'+e2(t.display)+'</option>'; }).join('')+'</select>'; }
+    else if(V76_SIM.role==='OM'){ var oms=Object.keys(OM_EMAILS||{}).map(function(k){ return {email:k, display:(OM_EMAILS[k]||{}).display||k, cluster:(OM_EMAILS[k]||{}).cluster||''}; }).sort(function(a,b){ return String(a.display).localeCompare(String(b.display)); });
+      second='<select onchange="v76SimSetTarget(\'OM\',this.value)" style="'+selStyle+'"><option value="">Select OM</option>'+oms.map(function(o){ return '<option value="'+e2(o.display)+'"'+(V76_SIM.omDisplay===o.display?' selected':'')+'>'+e2(o.display)+(o.cluster?(' — '+e2(o.cluster)):'')+'</option>'; }).join('')+'</select>'; }
+    return '<div id="v76TVBox" style="display:flex;gap:8px;align-items:center;margin:8px 0;padding:8px 10px;background:#fff8e1;border:1px solid #ffd78a;border-radius:8px">'+
+      '<span style="font-size:.7rem;font-weight:800;letter-spacing:.04em;color:#8a6d00">TEST VIEW</span>'+
+      '<select onchange="v76SimSetRole(this.value)" style="'+selStyle+'">'+roleOpts+'</select>'+second+
+      '<span style="font-size:.7rem;color:#9a7b00">Staging QA · read-only simulation</span></div>';
+  }
+  function v76UpdateBanner(){ var el=document.getElementById('v76SimBanner'); if(!el) return; var s=V76_SIM;
+    if(!s.role){ el.style.display='none'; el.innerHTML=''; return; }
+    var label=s.role; if(s.role==='Agent') label='Agent '+(s.agentName||'(none selected)'); else if(s.role==='TL') label='TL '+(s.tlDisplay||'(none selected)'); else if(s.role==='OM') label='OM '+(s.omDisplay||'(none selected)');
+    el.style.display='block';
+    el.innerHTML='<div style="background:#3a2b00;color:#ffd84d;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid #ffb300">'+
+      '<div><b>TEST VIEW — '+e2(label)+'</b> <span style="opacity:.85">· Read-only simulation</span></div>'+
+      '<button onclick="v76SimExit()" style="background:#ffb300;color:#3a2b00;border:none;border-radius:6px;padding:4px 12px;font-weight:800;cursor:pointer">Exit Test View</button></div>';
+  }
+  function v76SimRestoreMp(){ var a=document.getElementById('mpAgentWrap'), t=document.getElementById('mpTLWrap'); if(a)a.style.display=''; if(t)t.style.display=''; }
+  window.v76SimSetRole=function(role){ V76_SIM.role=(role||'')||null; V76_SIM.agentName=null; V76_SIM.tlDisplay=null; V76_SIM.omDisplay=null; V76_SIM.omCluster=null;   // switching role clears incompatible target selections
+    if(V76_SIM.role===null) v76SimRestoreMp();
+    window.openCoachingPerf(); };
+  window.v76SimSetTarget=function(kind,val){ if(kind==='Agent') V76_SIM.agentName=val||null; else if(kind==='TL') V76_SIM.tlDisplay=val||null; else if(kind==='OM'){ V76_SIM.omDisplay=val||null; var o=v76FindOM(val); V76_SIM.omCluster=o?o.cluster:''; }
+    window.openCoachingPerf(); };
+  window.v76SimExit=function(){ V76_SIM.role=null; V76_SIM.agentName=null; V76_SIM.tlDisplay=null; V76_SIM.omDisplay=null; V76_SIM.omCluster=null; v76SimRestoreMp(); window.openCoachingPerf(); };
+
+  // ---- entry point ----
+  window.openCoachingPerf=function(){
+    var real=(typeof currentUser!=='undefined')?currentUser:null; if(!real) return;
+    // Test View is staging + real-SOM only; if not allowed, force any simulation off (defense in depth).
+    if(!v76TestViewAllowed() && V76_SIM.role){ V76_SIM.role=null; V76_SIM.agentName=V76_SIM.tlDisplay=V76_SIM.omDisplay=V76_SIM.omCluster=null; v76SimRestoreMp(); }
+    var eff=v76View();
+    // Reset scope filters when the effective role/sub-tab changes (prevents stale cross-role filter state,
+    // e.g. a leftover TL/cluster selection when switching views in Test View). A real single-role user
+    // never triggers this after the first render, so their filter choices persist within their session.
+    var roleKey=(eff&&eff.role||'')+((eff&&eff.role)==='SOM'?('/'+v76SomTab):'');
+    if(v76F._lastRoleKey!==roleKey){ v76F.cluster=''; v76F.tl=''; v76F.agent=''; v76F._lastRoleKey=roleKey; }
+    v76UpdateBanner();
+    var tvSlot=document.getElementById('cpv76TestView'); if(tvSlot) tvSlot.innerHTML = v76TestViewAllowed() ? v76TestViewControl() : '';
+    // Agent: reachable ONLY through the staging Test View simulation (Agents no longer have a Coaching
+    // Performance nav item). Simulated Agent routes to the existing My Performance; a real Agent gets no view.
+    if(eff.role==='Agent'){
+      if(V76_SIM.role==='Agent'){
+        showView('log');                                   // route to the existing My Performance view
+        var sel=document.getElementById('iaAgent');
+        if(sel && V76_SIM.agentName){ if(![].some.call(sel.options,function(o){return o.value===V76_SIM.agentName;})){ var op=document.createElement('option'); op.value=V76_SIM.agentName; op.textContent=V76_SIM.agentName; sel.appendChild(op);} sel.value=V76_SIM.agentName; }
+        if(typeof renderMyPerformance==='function') renderMyPerformance();
+        // self-only: hide the TL/agent selectors AFTER the render (renderMyPerformance resets their display for non-agent roles)
+        var aw=document.getElementById('mpAgentWrap'), tw=document.getElementById('mpTLWrap'); if(aw)aw.style.display='none'; if(tw)tw.style.display='none';
+        v76UpdateBanner();
+        return;
+      }
+      var r0=document.getElementById('cpv76Root'); if(r0) r0.innerHTML='<div class="empty-state" style="padding:24px;color:#8a93a6">Coaching Performance is not available for agents. Your performance is under Coaching Log → My Performance.</div>';
+      var f0=document.getElementById('cpv76Filters'); if(f0) f0.innerHTML=''; return;   // real agent (should not normally reach here)
+    }
+    var title=document.getElementById('cpv76Title'), sub=document.getElementById('cpv76Sub'), filt=document.getElementById('cpv76Filters'), root=document.getElementById('cpv76Root');
+    if(!root) return;
+    if(filt) filt.innerHTML='';
+    if(eff.role==='TL'){
+      title.textContent='My Coaching Impact'; sub.textContent="Track your agents' coaching results and performance trends.";
+      v76HeaderOwnsFilters=true;   // TL: filters live in the page-header slot
+      v76FilterKinds=['range','agent']; if(filt) filt.innerHTML=v76FilterBar(v76FilterKinds);
+      v76ActiveRender=function(){ v76RenderTL(root); }; v76ActiveRender();
+    } else if(eff.role==='OM'){
+      title.textContent='Team Coaching Performance'; sub.textContent='Track coaching results across your TLs.';
+      v76HeaderOwnsFilters=false; v76FilterKinds=['range','tl']; if(filt) filt.innerHTML='';   // perf filters live in the Performance Report Controls toolbar (below compliance)
+      v76ActiveRender=function(){ v76RenderOM(root); }; v76ActiveRender();
+    } else if(eff.role==='SOM'){
+      var tabsHtml='<div style="display:flex;gap:8px;margin:6px 0 2px">'+
+        '<button class="cl-btn'+(v76SomTab==='mine'?' cl-btn-apply':'')+'" onclick="v76SomSetTab(\'mine\')">My Cluster</button>'+
+        '<button class="cl-btn'+(v76SomTab!=='mine'?' cl-btn-apply':'')+'" onclick="v76SomSetTab(\'all\')">All Clusters</button></div>';
+      if(v76SomTab==='mine'){
+        title.textContent='My Cluster Coaching Performance'; sub.textContent='Track coaching results across your TLs.';
+        v76HeaderOwnsFilters=false; v76FilterKinds=['range','tl']; if(filt) filt.innerHTML='';
+        v76ActiveRender=function(){ root.innerHTML=tabsHtml; var box=document.createElement('div'); root.appendChild(box); v76RenderMyCluster(box); };
+      } else {
+        title.textContent='Cluster Coaching Performance'; sub.textContent='Compare coaching results across clusters.';
+        v76HeaderOwnsFilters=false; v76FilterKinds=['range','cluster','tl']; if(filt) filt.innerHTML='';
+        v76ActiveRender=function(){ root.innerHTML=tabsHtml; var box=document.createElement('div'); root.appendChild(box); v76RenderAllClusters(box); };
+      }
+      v76ActiveRender();
+    } else if(eff.role==='Director'||eff.role==='Admin'){
+      v76SomTab='all';
+      title.textContent='Coaching Performance Overview'; sub.textContent='Compare coaching results across clusters.';
+      v76HeaderOwnsFilters=false; v76FilterKinds=['range','cluster','tl']; if(filt) filt.innerHTML='';
+      v76ActiveRender=function(){ v76RenderAllClusters(root); }; v76ActiveRender();
+    } else { root.innerHTML='<div class="empty-state" style="padding:24px;color:#8a93a6">No access.</div>'; }
+  };
+  window.v76SomSetTab=function(tab){ v76SomTab=(tab==='mine')?'mine':'all'; v76F.tl=''; v76F.cluster=''; window.openCoachingPerf(); };
 })();
 </script>
 </body>
