@@ -903,31 +903,80 @@ tbody td{padding:10px 12px;vertical-align:middle;max-width:220px;overflow:hidden
         </table>
       </div>
     </div>
+    <style id="rmv77css">
+      /* ===== v77 Rainmaker Script Flow — enterprise coaching-intelligence styling (APEX design system) ===== */
+      #rmv77Root{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#1a2a44}
+      .rmv77-scorecard{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.6fr);gap:10px;margin:2px 0 16px}
+      @media (max-width:1100px){.rmv77-scorecard{grid-template-columns:repeat(2,1fr)}}
+      @media (max-width:640px){.rmv77-scorecard{grid-template-columns:1fr}}
+      .rmv77-kpi{background:#fff;border:1px solid #e3e8ef;border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:2px;min-width:0}
+      .rmv77-kpi .k-label{font-size:.66rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#7a8aa0}
+      .rmv77-kpi .k-val{font-size:1.5rem;font-weight:800;line-height:1.05;color:#1a2a44}
+      .rmv77-kpi .k-sub{font-size:.68rem;color:#8a93a6}
+      .rmv77-kpi.k-gap{background:#fdf5f3;border-color:#f0d3cc}
+      .rmv77-kpi.k-gap .k-val{font-size:.95rem;color:#a4362b;font-weight:800;line-height:1.15}
+      .rmv77-kpi .k-pill{display:inline-block;margin-top:2px;font-size:.6rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:999px}
+      .rmv77-sev-ok{color:#2f6f43;background:#e8f3ec}
+      .rmv77-sev-warn{color:#8a6300;background:#fbf3dd}
+      .rmv77-sev-crit{color:#a4362b;background:#f7e2dd}
+      .rmv77-phase{border:1px solid #e3e8ef;border-radius:10px;margin-bottom:12px;overflow:hidden;background:#fff}
+      .rmv77-phhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 14px;cursor:pointer;color:#fff}
+      .rmv77-phhead .ph-l{display:flex;align-items:center;gap:9px;min-width:0}
+      .rmv77-phnum{font-size:.66rem;font-weight:800;letter-spacing:.06em;opacity:.85;text-transform:uppercase}
+      .rmv77-phname{font-size:.94rem;font-weight:800}
+      .rmv77-phright{display:flex;align-items:center;gap:12px;flex-shrink:0}
+      .rmv77-phexec{font-size:.9rem;font-weight:800}
+      .rmv77-phsub{font-size:.66rem;opacity:.9}
+      .rmv77-chev{transition:transform .15s;font-size:.7rem}
+      .rmv77-phase.collapsed .rmv77-chev{transform:rotate(-90deg)}
+      .rmv77-phase.collapsed .rmv77-body{display:none}
+      .rmv77-beh{display:grid;grid-template-columns:minmax(0,2.3fr) 130px 96px 110px;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid #eef1f6}
+      .rmv77-beh:first-child{border-top:none}
+      .rmv77-beh .b-name{font-size:.82rem;font-weight:600;color:#26324a;min-width:0}
+      .rmv77-beh .b-name .b-meta{display:block;font-size:.66rem;color:#8a93a6;font-weight:600;margin-top:1px}
+      .rmv77-bar{height:7px;border-radius:5px;background:#eef1f6;overflow:hidden;position:relative}
+      .rmv77-bar>i{display:block;height:100%;border-radius:5px}
+      .rmv77-beh .b-pct{text-align:right;font-size:.86rem;font-weight:800;font-variant-numeric:tabular-nums}
+      .rmv77-beh .b-den{font-size:.66rem;color:#8a93a6;text-align:right;font-weight:600}
+      .rmv77-sevtag{font-size:.6rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;justify-self:start}
+      .rmv77-drillbtn{background:none;border:none;color:#0a6fb0;font-size:.72rem;font-weight:700;cursor:pointer;padding:2px 0;text-align:left}
+      .rmv77-drill{grid-column:1/-1;border-top:1px dashed #dbe2ec;margin-top:6px;padding-top:8px}
+      .rmv77-drill table{width:100%;border-collapse:collapse;font-size:.74rem}
+      .rmv77-drill th{text-align:left;color:#7a8aa0;font-weight:800;font-size:.64rem;text-transform:uppercase;letter-spacing:.03em;padding:3px 8px;border-bottom:1px solid #eef1f6}
+      .rmv77-drill td{padding:3px 8px;border-bottom:1px solid #f4f6fa;vertical-align:top}
+      .rmv77-dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+      .rmv77-empty{background:#f7f9fc;border:1px dashed #dbe2ec;border-radius:9px;padding:20px;text-align:center;color:#8a93a6;font-size:.82rem}
+      .rmv77-note{font-size:.68rem;color:#9aa3b4;margin:2px 0 12px}
+      @media (max-width:640px){.rmv77-beh{grid-template-columns:1fr auto;row-gap:4px}.rmv77-beh .b-den{grid-column:2}}
+    </style>
     <div id="viewRainmaker" style="display:none">
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button id="rmSubFlow" class="btn-add" style="background:#1a3353" onclick="rmShowSub('flow')">🧭 Script Flow</button>
         <button id="rmSubScript" class="btn-add" style="background:#7a3b12" onclick="rmShowSub('script')">📖 Rainmaker Script</button>
-        <button id="rmSubHistory" class="btn-add" style="background:#1a3353" onclick="rmShowSub('history')">📊 Results &amp; History</button>
+        <button id="rmSubHistory" class="btn-add" style="background:#41506b" onclick="rmShowSub('history')">📊 Results &amp; History</button>
       </div>
 
+      <!-- Agent scope note + SHARED filter bar (used by Script Flow and Results & History) -->
+      <div id="rmAgentOwnNote" style="display:none;font-size:.85rem;color:#555;margin-bottom:12px;background:#f5f8ff;border:1px solid #dbe6ff;border-radius:8px;padding:10px 14px">📊 <b>My Rainmaker Results &amp; History</b> — these are your own Rainmaker Call Reviews only (read-only).</div>
+      <div id="rmFilterBar" class="filters-bar" style="display:none;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+        <select id="rmFilterWK" onchange="renderRainmakerActive()"><option value="">All Weeks</option></select>
+        <select id="rmFilterCluster" onchange="rmOnFilterClusterChange()"><option value="">All Clusters</option><option>Jubee</option><option>Kendryck</option><option>Arielle</option></select>
+        <select id="rmFilterTL" onchange="rmOnFilterTLChange()"><option value="">All TLs</option></select>
+        <select id="rmFilterAgent" onchange="renderRainmakerActive()"><option value="">All Agents</option></select>
+        <button style="background:#f5f5f5;border:none;border-radius:6px;padding:8px 14px;font-weight:700;cursor:pointer" onclick="rmClearFilters()">Clear</button>
+      </div>
+
+      <!-- ===== v77 Script Flow (world-class; computed from real TL reviews) ===== -->
+      <div id="rmPaneFlow"><div id="rmv77Root"></div></div>
+
       <!-- ===== Rainmaker Script (read-only, static, 0 SheetDB) ===== -->
-      <div id="rmPaneScript">
+      <div id="rmPaneScript" style="display:none">
         <div style="font-size:.85rem;color:#555;margin-bottom:10px">Complete approved Rainmaker Script — read-only reference for TLs and agents (call listening, coaching, practice, role-play, feedback). This is static content and makes no server requests.</div>
         <iframe id="rmScriptFrame" title="Rainmaker Script" style="width:100%;height:72vh;border:1px solid var(--border);border-radius:8px;background:#fff" sandbox="allow-same-origin allow-scripts"></iframe>
       </div>
 
-      <!-- Call Review moved into the Coaching Log modal (v33). The standalone creation
-           sub-tab was removed; historical reviews remain visible in Results & History. -->
-
-      <!-- ===== Results & History ===== -->
+      <!-- ===== Results & History (existing tables; shares the filter bar above) ===== -->
       <div id="rmPaneHistory" style="display:none">
-        <div id="rmAgentOwnNote" style="display:none;font-size:.85rem;color:#555;margin-bottom:12px;background:#f5f8ff;border:1px solid #dbe6ff;border-radius:8px;padding:10px 14px">📊 <b>My Rainmaker Results &amp; History</b> — these are your own Rainmaker Call Reviews only (read-only).</div>
-        <div id="rmFilterBar" class="filters-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-          <select id="rmFilterWK" onchange="renderRainmakerDashboard()"><option value="">All Weeks</option></select>
-          <select id="rmFilterCluster" onchange="rmOnFilterClusterChange()"><option value="">All Clusters</option><option>Jubee</option><option>Kendryck</option><option>Arielle</option></select>
-          <select id="rmFilterTL" onchange="rmOnFilterTLChange()"><option value="">All TLs</option></select>
-          <select id="rmFilterAgent" onchange="renderRainmakerDashboard()"><option value="">All Agents</option></select>
-          <button style="background:#f5f5f5;border:none;border-radius:6px;padding:8px 14px;font-weight:700;cursor:pointer" onclick="rmClearFilters()">Clear</button>
-        </div>
         <div class="stats-grid">
           <div class="stat-card"><div class="label">Calls Reviewed</div><div class="value" id="rmCardReviewed">0</div><div class="sublabel">Unique Practice IDs in view</div></div>
           <div class="stat-card"><div class="label">Avg. Rainmaker Adherence</div><div class="value" id="rmCardAvg">—</div><div class="sublabel">Mean adherence across reviews</div></div>
@@ -1771,7 +1820,7 @@ Follow-Up: Review TCR, leads touched, and cadence compliance during next week's 
 // Deployment/version marker — lets us confirm which build a browser actually loaded.
 // Check `APEX_BUILD` in the browser console on the live site; it also appears next to the
 // user badge for SOM/Director/Admin. Bump this string whenever index.html is redeployed.
-const APEX_BUILD = "2026-09-30-coaching-perf-final-audit-weekrange-dedupe-v76";
+const APEX_BUILD = "2026-10-01-v77-att-review-hhmmss+hours-hidden-staging";
 // ── v46: passive, non-persistent SESSION counter of SheetDB requests. A transparent window.fetch
 // wrapper that ONLY observes (counts) requests whose URL targets SheetDB and always passes the call
 // straight through — it changes NO request behavior and persists NOTHING (reset on reload). Fully
@@ -9994,7 +10043,7 @@ async function rmEnsureLoaded(){
   if (!rmEntries.length) loadRmEntries();     // free localStorage hydrate
   await fetchRainmakerFromSheets(false);      // 1 GET first time / 0 within cache
   rmLoaded = true; rmPreloaded = true;        // Rainmaker data is now in memory for the session
-  renderRainmakerDashboard();
+  renderRainmakerActive();
 }
 
 // ---- tab + sub-tab control ----
@@ -10004,24 +10053,34 @@ function openRainmakerTab(){
     rmPopulateWk();
     rmInited = true;
   }
-  rmShowSub('script');   // default landing = Script (0 SheetDB requests)
+  rmShowSub('flow');   // default landing = Script Flow (v77 world-class exec view)
+}
+// Re-render whichever Rainmaker results pane is currently visible (shared filter bar drives both).
+function renderRainmakerActive(){
+  const flow = document.getElementById('rmPaneFlow');
+  const hist = document.getElementById('rmPaneHistory');
+  if (flow && flow.style.display !== 'none' && typeof rmv77Render === 'function') rmv77Render();
+  if (hist && hist.style.display !== 'none') renderRainmakerDashboard();
 }
 function rmShowSub(sub){
   // v33: the "review" (creation) sub-tab was removed — reviews are created inside the Coaching Log.
   if (sub === 'review') sub = 'script';
-  const panes = { script:'rmPaneScript', history:'rmPaneHistory' };
+  if (sub !== 'flow' && sub !== 'script' && sub !== 'history') sub = 'flow';
+  const panes = { flow:'rmPaneFlow', script:'rmPaneScript', history:'rmPaneHistory' };
   Object.keys(panes).forEach(k => { const el = document.getElementById(panes[k]); if (el) el.style.display = (k===sub)?'block':'none'; });
-  ['rmSubScript','rmSubHistory'].forEach(id => { const el=document.getElementById(id); if(el) el.style.opacity = '0.6'; });
-  const activeBtn = { script:'rmSubScript', history:'rmSubHistory' }[sub];
+  ['rmSubFlow','rmSubScript','rmSubHistory'].forEach(id => { const el=document.getElementById(id); if(el) el.style.opacity = '0.6'; });
+  const activeBtn = { flow:'rmSubFlow', script:'rmSubScript', history:'rmSubHistory' }[sub];
   const ab = document.getElementById(activeBtn); if (ab) ab.style.opacity = '1';
   // v33 permissions: an Agent sees only their OWN reviews (read-only). Hide the leadership
   // filter bar (cluster/TL/agent) and show a "My Results & History" note. getVisibleRmEntries()
   // remains the actual data boundary — the UI hiding is cosmetic, not the security gate.
   const agent = rmIsAgent();
-  const bar = document.getElementById('rmFilterBar'); if (bar) bar.style.display = agent ? 'none' : 'flex';
-  const own = document.getElementById('rmAgentOwnNote'); if (own) own.style.display = agent ? 'block' : 'none';
-  if (sub === 'script') rmRenderScript();                // static, 0 requests
-  if (sub === 'history'){ if(!agent) rmPopulateFilters(); rmEnsureLoaded(); }
+  const showBar = (sub === 'flow' || sub === 'history') && !agent;
+  const bar = document.getElementById('rmFilterBar'); if (bar) bar.style.display = showBar ? 'flex' : 'none';
+  const own = document.getElementById('rmAgentOwnNote'); if (own) own.style.display = (agent && sub !== 'script') ? 'block' : 'none';
+  if (sub === 'script'){ rmRenderScript(); return; }     // static, 0 requests
+  if (!agent) rmPopulateFilters();
+  rmEnsureLoaded();                                       // hydrates + renders the active pane
 }
 
 // ---- Rainmaker Script (verbatim, static, iframe-isolated, 0 requests) ----
@@ -10210,11 +10269,11 @@ function rmPopulateFilterAgents(){
   sel.innerHTML = '<option value="">All Agents</option>' + list.map(a=>`<option value="${rmEsc(a.name)}">${rmEsc(a.name)}</option>`).join('');
   if (prev) sel.value = prev;
 }
-function rmOnFilterClusterChange(){ document.getElementById('rmFilterTL').value=''; rmPopulateFilterAgents(); renderRainmakerDashboard(); }
-function rmOnFilterTLChange(){ rmPopulateFilterAgents(); renderRainmakerDashboard(); }
+function rmOnFilterClusterChange(){ document.getElementById('rmFilterTL').value=''; rmPopulateFilterAgents(); renderRainmakerActive(); }
+function rmOnFilterTLChange(){ rmPopulateFilterAgents(); renderRainmakerActive(); }
 function rmClearFilters(){
   ['rmFilterWK','rmFilterCluster','rmFilterTL','rmFilterAgent'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  rmPopulateFilterAgents(); renderRainmakerDashboard();
+  rmPopulateFilterAgents(); renderRainmakerActive();
 }
 function rmApplyFilters(list){
   const wk = document.getElementById('rmFilterWK')?.value || '';
@@ -10256,6 +10315,122 @@ function renderRainmakerDashboard(){
   }
   renderRmHistory(list);
 }
+
+// ====================== v77 Rainmaker Script Flow (computed from real TL reviews) ======================
+// Data source = the SAME scoped+filtered review list the dashboard uses (rmApplyFilters(getVisibleRmEntries())),
+// so roles, filters and every aggregate reconcile 1:1 with Results & History. No invented tiers/weights/scores.
+// PROPOSED (pending approval, flagged in the audit doc): the 9 authoritative steps grouped into 4 phases,
+// and the coaching thresholds below. These are presentation/IA + a proposed policy, not silent new scoring.
+const RMV77_PHASES = [
+  { n:1, name:'Open',                      color:'#1a3353', steps:['Warm Open / Assumptive Open'] },
+  { n:2, name:'Discover',                  color:'#1f6f6a', steps:['Discovery'] },
+  { n:3, name:'Hours & Trust',             color:'#4a3f8f', steps:['Recommend the Hours'] },
+  { n:4, name:'Price, Objections & Close', color:'#9a4a1f', steps:['Pricing & Membership','Objection Handling / ECOC','Logistics','Confirmation Readback','Secure Payment','Closing'] }
+];
+const RMV77_THRESH = { ok:70, warn:40 };       // ≥70 On Track · 40–69 Needs Coaching · <40 Critical Gap (PROPOSED)
+const RMV77_MIN_SAMPLE = 3;                     // Biggest Gap ignores behaviors with < this many evaluated calls
+let rmv77OpenSteps = {};                        // step -> bool (drill-down expanded)
+let rmv77Collapsed = {};                        // phase n -> bool (collapsed)
+
+function rmv77Sev(pct){ if(pct==null) return null; if(pct>=RMV77_THRESH.ok) return 'ok'; if(pct>=RMV77_THRESH.warn) return 'warn'; return 'crit'; }
+function rmv77SevLabel(s){ return s==='ok'?'On Track':s==='warn'?'Needs Coaching':s==='crit'?'Critical Gap':'No Data'; }
+function rmv77BarColor(s){ return s==='ok'?'#2f6f43':s==='warn'?'#b8860b':s==='crit'?'#b23b3b':'#c3ccdb'; }
+
+// Per-step stats over a review list (Followed ÷ applicable; N/A + blank excluded — identical to rmAdherence).
+function rmv77StepStats(list){
+  const st = {}; RM_STEPS.forEach(s => st[s] = { followed:0, needs:0, na:0 });
+  list.forEach(r => RM_STEPS.forEach(s => {
+    const v = r.checklist ? r.checklist[s] : '';
+    if (v==='Followed') st[s].followed++; else if (v==='Needs Coaching') st[s].needs++; else if (v==='N/A') st[s].na++;
+  }));
+  RM_STEPS.forEach(s => { const a=st[s]; a.applicable=a.followed+a.needs; a.pct = a.applicable>0 ? Math.round(a.followed/a.applicable*100) : null; a.sev = rmv77Sev(a.pct); });
+  return st;
+}
+function rmv77PhaseStats(st, phase){
+  let f=0, app=0; phase.steps.forEach(s => { f+=st[s].followed; app+=st[s].applicable; });
+  const pct = app>0 ? Math.round(f/app*100) : null;
+  return { followed:f, applicable:app, pct, sev:rmv77Sev(pct) };
+}
+// Phase Coverage = avg # of the 4 phases "touched" per call (a phase is touched if ≥1 of its steps is
+// applicable — Followed or Needs Coaching — on that call). Definition is explicit + flagged for approval.
+function rmv77Coverage(list){
+  if(!list.length) return null;
+  let total=0;
+  list.forEach(r => { let hit=0; RMV77_PHASES.forEach(ph => { if(ph.steps.some(s => { const v=r.checklist?r.checklist[s]:''; return v==='Followed'||v==='Needs Coaching'; })) hit++; }); total+=hit; });
+  return Math.round(total/list.length*10)/10;
+}
+
+function rmv77Render(){
+  const root = document.getElementById('rmv77Root'); if(!root) return;
+  const list = rmApplyFilters(getVisibleRmEntries());
+  const uniq = new Set(list.map(r=>r.id)); const calls = uniq.size;
+  if(!calls){ root.innerHTML = '<div class="rmv77-empty">No Rainmaker reviews in the selected scope. Adjust the filters, or log Rainmaker Call Reviews from the Coaching Log to populate this view.</div>'; return; }
+  const st = rmv77StepStats(list);
+  // KPIs
+  const adhs = list.map(rmAdherence).filter(a=>a.pct!=null);
+  const avgAdh = adhs.length ? Math.round(adhs.reduce((s,a)=>s+a.pct,0)/adhs.length) : null;
+  const applic = list.filter(r=>rmAdherence(r).applicable>0);
+  const fully = applic.length ? Math.round(applic.filter(r=>rmAdherence(r).fullyAdherent).length/applic.length*100) : null;
+  const coverage = rmv77Coverage(list);
+  // Biggest Gap = lowest-execution behavior with a real sample (criticality-aware version needs approved tiers — flagged).
+  let gap=null; RM_STEPS.forEach(s => { const a=st[s]; if(a.applicable>=RMV77_MIN_SAMPLE && a.pct!=null){ if(!gap || a.pct<gap.pct) gap={step:s,pct:a.pct,app:a.applicable,sev:a.sev}; } });
+  if(!gap){ RM_STEPS.forEach(s => { const a=st[s]; if(a.pct!=null){ if(!gap || a.pct<gap.pct) gap={step:s,pct:a.pct,app:a.applicable,sev:a.sev,low:true}; } }); }
+  const kpi = (label,val,sub,extra)=>'<div class="rmv77-kpi'+(extra||'')+'"><div class="k-label">'+label+'</div><div class="k-val">'+val+'</div><div class="k-sub">'+sub+'</div></div>';
+  let gapCard='<div class="rmv77-kpi k-gap"><div class="k-label">Biggest Gap</div>';
+  if(gap){ gapCard+='<div class="k-val">'+rmEsc(gap.step)+'</div><div class="k-sub">'+gap.pct+'% executed · '+gap.app+' calls'+(gap.low?' · small sample':'')+'</div><span class="k-pill rmv77-sev-'+(gap.sev||'crit')+'">'+rmv77SevLabel(gap.sev)+'</span>'; }
+  else gapCard+='<div class="k-val" style="font-size:1rem">—</div><div class="k-sub">No behavior with enough calls</div>';
+  gapCard+='</div>';
+  let html='<div class="rmv77-scorecard">'
+    + kpi('Calls Scored', calls, 'Rainmaker call reviews in scope')
+    + kpi('Phase Coverage', (coverage==null?'—':coverage), 'avg of 4 phases touched / call')
+    + kpi('Avg Adherence', (avgAdh==null?'—':avgAdh+'%'), 'Followed ÷ applicable, mean / call')
+    + kpi('Fully-Adherent', (fully==null?'—':fully+'%'), 'calls with every step followed')
+    + gapCard
+    + '</div>';
+  html += '<div class="rmv77-note">Computed from real TL-entered Rainmaker reviews (9 approved steps, Followed ÷ applicable; N/A excluded). Phase grouping &amp; coaching thresholds (≥70 / 40–69 / &lt;40) are proposed pending approval. Tiers, weights, Weighted Score &amp; Tier-1 Execution require an approved taxonomy and are intentionally not shown.</div>';
+  // Phases
+  RMV77_PHASES.forEach(ph => {
+    const ps = rmv77PhaseStats(st, ph);
+    const collapsed = !!rmv77Collapsed[ph.n];
+    html += '<div class="rmv77-phase'+(collapsed?' collapsed':'')+'">'
+      + '<div class="rmv77-phhead" style="background:'+ph.color+'" onclick="rmv77TogglePhase('+ph.n+')" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();rmv77TogglePhase('+ph.n+')}" aria-expanded="'+(!collapsed)+'">'
+      + '<div class="ph-l"><span class="rmv77-chev">▼</span><span class="rmv77-phnum">Phase '+ph.n+'</span><span class="rmv77-phname">'+rmEsc(ph.name)+'</span></div>'
+      + '<div class="rmv77-phright"><span class="rmv77-phexec">'+(ps.pct==null?'—':ps.pct+'%')+'</span><span class="rmv77-phsub">'+(ps.pct==null?'no applicable calls':'executed · '+ps.followed+'/'+ps.applicable+' calls')+'</span></div>'
+      + '</div><div class="rmv77-body">';
+    ph.steps.forEach(s => {
+      const a = st[s]; const open = !!rmv77OpenSteps[s];
+      const sev = a.sev; const barc = rmv77BarColor(sev); const w = a.pct==null?0:a.pct;
+      html += '<div class="rmv77-beh">'
+        + '<div class="b-name">'+rmEsc(s)+'<span class="b-meta"><button class="rmv77-drillbtn" onclick="rmv77ToggleStep(this)" data-step="'+rmEsc(s)+'" aria-expanded="'+open+'">'+(open?'▾ Hide call evidence':'▸ View call evidence')+'</button></span></div>'
+        + '<div><span class="rmv77-sevtag rmv77-sev-'+(sev||'crit')+'">'+(a.pct==null?'No Data':rmv77SevLabel(sev))+'</span><div class="rmv77-bar" style="margin-top:5px" role="img" aria-label="'+ (a.pct==null?'no applicable calls':a.pct+' percent executed')+'"><i style="width:'+w+'%;background:'+barc+'"></i></div></div>'
+        + '<div class="b-pct">'+(a.pct==null?'—':a.pct+'%')+'</div>'
+        + '<div class="b-den">'+(a.applicable>0?(a.followed+'/'+a.applicable+' calls'):'no applicable')+'</div>'
+        + (open?rmv77Evidence(list, s):'')
+        + '</div>';
+    });
+    html += '</div></div>';
+  });
+  root.innerHTML = html;
+}
+
+// Call-evidence drill-down for one behavior — real reviews only (agent, date, TL, status, Aircall). Reconciles:
+// Followed rows = behavior.followed; Followed+Needs rows = behavior.applicable.
+function rmv77Evidence(list, step){
+  const rows = list.filter(r => { const v=r.checklist?r.checklist[step]:''; return v==='Followed'||v==='Needs Coaching'||v==='N/A'; })
+    .sort((a,b)=> String(b.date||'').localeCompare(String(a.date||'')));
+  if(!rows.length) return '<div class="rmv77-drill"><div style="color:#8a93a6;font-size:.74rem">No calls evaluated this behavior in scope.</div></div>';
+  const stt = v => v==='Followed'?'<span class="rmv77-dot" style="background:#2f6f43"></span>Followed'
+    : v==='Needs Coaching'?'<span class="rmv77-dot" style="background:#b8860b"></span>Needs Coaching'
+    : '<span class="rmv77-dot" style="background:#c3ccdb"></span>N/A';
+  let t='<div class="rmv77-drill"><table><thead><tr><th>Date</th><th>WK</th><th>Agent</th><th>Team Lead</th><th>Result</th><th>Call</th></tr></thead><tbody>';
+  rows.forEach(r=>{ const v=r.checklist?r.checklist[step]:'';
+    t+='<tr><td>'+rmEsc(r.date||'—')+'</td><td>'+rmEsc(r.wk||'—')+'</td><td>'+rmEsc(r.agent||'—')+'</td><td>'+rmEsc(r.teamLead||'—')+'</td><td>'+stt(v)+'</td><td>'+(r.aircall?'<a href="'+rmEsc(r.aircall)+'" target="_blank" rel="noopener" style="color:#0a6fb0">Aircall ↗</a>':'—')+'</td></tr>';
+  });
+  t+='</tbody></table></div>';
+  return t;
+}
+window.rmv77TogglePhase = function(n){ rmv77Collapsed[n] = !rmv77Collapsed[n]; rmv77Render(); };
+window.rmv77ToggleStep = function(btn){ const s = btn.getAttribute('data-step'); rmv77OpenSteps[s] = !rmv77OpenSteps[s]; rmv77Render(); };
 function renderRmHistory(list){
   const body = document.getElementById('rmHistoryBody');
   if (!body) return;
@@ -10766,9 +10941,105 @@ function rmViewReadOnly(id){
       +line('Attendance rows processed', esc2(P.attProcessed))
       +(flag?'<div style="font-size:.72rem;color:#8a6d00;margin-top:8px">Unmatched / ambiguous names are NOT written (attendance shows as unavailable for them). Send me the list and I\'ll propose a reviewed attendance alias map for your approval.</div>':'')
       +'<div style="margin-top:12px"><button class="btn-add btn-add-green" id="mpConfirmBtn" onclick="mpConfirmSync()">✔ Confirm — write matched attendance</button> <button class="cl-btn cl-btn-clear" onclick="mpCancelSync()">Cancel</button></div>'
-      +'<div style="font-size:.72rem;color:#9aa3b4;margin-top:8px">No agentPerformance / CVR writes. Only agentAttendance/{email} for exact-matched and approved alias-matched agents. Unchanged agents are skipped.</div></div>';
+      +'<div style="font-size:.72rem;color:#9aa3b4;margin-top:8px">No agentPerformance / CVR writes. Only agentAttendance/{email} for exact-matched and approved alias-matched agents. Unchanged agents are skipped.</div></div>'
+      + mpValSectionHtml(P);
   }
+
+  // ── Controlled single-agent validation (SOM only) ── writes exactly ONE agentAttendance/{email}
+  // document via the SAME shared write path as bulk, then reads it back and compares to the preview.
+  let mpValIdx = null;
+  function mpAgentNameForEmail(email){ const e=String(email||'').toLowerCase(); const a=(typeof ROSTER!=='undefined'?ROSTER:[]).find(x=>String(x.email||'').toLowerCase()===e); return (a&&(a.name||a.fullName))?(a.name||a.fullName):email; }
+  // DISPLAY-ONLY rounding for the review table: strips floating-point noise (e.g. 137.61666666666667 → 137.62)
+  // without touching the stored value. null/blank → '—' (kept visually distinct from a real 0). Never used for writes.
+  function mpFmtNum(v){ if(v===null||v===undefined||v==='') return '—'; const n=Number(v); if(!isFinite(n)) return esc2(v); return esc2(Math.round(n*100)/100); }
+  // DISPLAY-ONLY duration formatter: decimal MINUTES → HH:MM:SS, seconds preserved (0.5 min = 30s), rounded to the
+  // nearest second. 0 → 00:00:00. Never mutates the stored raw minute value (used only for the review table).
+  function mpFmtDur(min){ if(min===null||min===undefined||min==='') return '—'; const n=Number(min); if(!isFinite(n)) return esc2(min);
+    let t=Math.round(n*60); const sign=t<0?'-':''; t=Math.abs(t); const h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=t%60; const p=x=>String(x).padStart(2,'0');
+    return sign+p(h)+':'+p(m)+':'+p(s); }
+  function mpValSectionHtml(P){
+    if(!window.mpSom || !window.mpSom()) return '';          // SOM only
+    if(!P || !P.rows || !P.rows.length) return '';           // nothing matched → nothing to validate
+    // Selector is populated ONLY from P.rows = exact-matched + approved-alias-matched. Unmatched / ambiguous
+    // are in separate arrays and can never appear here, so they are impossible to select or write.
+    const opts = P.rows.map((r,i)=>'<option value="'+i+'">'+esc2(mpAgentNameForEmail(r.email))+' ('+esc2(r.email)+') · '+esc2(r.action)+'</option>').join('');
+    return '<div class="cl-card" style="margin-top:14px;border:1px solid #d9c38a;background:#fffdf5">'
+      +'<div class="cl-head"><div class="cl-ic">🧪</div><div><h3>Controlled single-agent validation (first write)</h3>'
+      +'<div class="cl-sub">SOM only. Writes exactly ONE <code>agentAttendance/{email}</code> document using the same write the bulk Confirm uses, then reads it back and compares. For the first controlled test — it never touches the other agents and never auto-proceeds.</div></div></div>'
+      +'<div style="background:#fff8e1;border:1px solid #ffd78a;border-radius:8px;padding:8px 11px;font-size:.74rem;color:#8a6d00;margin:8px 0">⚠ Staging and production share one Firestore. This writes to the real <code>agentAttendance</code> document for the selected agent.</div>'
+      +'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label style="font-weight:700;font-size:.8rem">Select a matched agent:</label>'
+      +'<select id="mpValAgent" style="padding:6px 10px;border:1px solid #d7dbe3;border-radius:6px;min-width:280px"><option value="">— choose one —</option>'+opts+'</select>'
+      +'<button class="cl-btn" onclick="mpValLoad()">Load payload</button></div>'
+      +'<div id="mpValDetail" style="margin-top:10px"></div></div>';
+  }
+  window.mpValLoad=function(){
+    const P=mpsPreview; if(!P){ return; }
+    if(!window.mpSom()){ return; }
+    const sel=document.getElementById('mpValAgent'); const det=document.getElementById('mpValDetail'); if(!sel||!det) return;
+    const v=sel.value; if(v===''){ det.innerHTML='<div style="color:#8a93a6;font-size:.78rem">Choose a matched agent above, then Load payload.</div>'; mpValIdx=null; return; }
+    const idx=parseInt(v,10); const x=P.rows[idx];
+    if(!x){ det.innerHTML='<div style="color:#b23b3b;font-size:.78rem">That agent is no longer in the matched set. Rebuild the preview.</div>'; mpValIdx=null; return; }
+    mpValIdx=idx;
+    const weeks=x.doc.weeks||{}; const wk=Object.keys(weeks).sort((a,b)=>wkNum({wkNumber:a})-wkNum({wkNumber:b}));
+    // Columns match the authoritative Attendance report for side-by-side verification: Week | Late Duration |
+    // Undertime Duration | Absent | Abandoned | Late # | Incurred Points. Late/Undertime shown as HH:MM:SS.
+    // Required/Actual Hours are intentionally hidden here (not needed for Attendance; still stored — see note).
+    let rows=wk.map(w=>{ const d=weeks[w]||{}; return '<tr><td style="text-align:left;font-weight:600">'+esc2(w)+'</td><td>'+mpFmtDur(d.lateMinutes)+'</td><td>'+mpFmtDur(d.undertimeMinutes)+'</td><td>'+mpFmtNum(d.absentCount)+'</td><td>'+mpFmtNum(d.abandonedCount)+'</td><td>'+mpFmtNum(d.lateCount)+'</td><td>'+mpFmtNum(d.incurredPoints)+'</td></tr>'; }).join('');
+    if(!wk.length) rows='<tr><td colspan="7" style="color:#8a93a6">No weeks in this payload.</td></tr>';
+    det.innerHTML='<div style="border:1px solid #e3e8ef;border-radius:8px;padding:10px 12px;background:#fff">'
+      +'<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><b>'+esc2(mpAgentNameForEmail(x.email))+'</b> <span style="color:#7a8aa0">·</span> <code>'+esc2(x.email)+'</code></div><div style="font-size:.74rem;color:#7a8aa0">Action: <b>'+esc2(x.action)+'</b> · '+wk.length+' week(s) · '+((x.doc.incidents||[]).length)+' incident(s)</div></div>'
+      +'<div class="table-wrap" style="margin-top:8px"><table class="proj-table" style="font-size:11px"><thead><tr class="proj-row-header"><th style="text-align:left">Week</th><th>Late Duration</th><th>Undertime Duration</th><th>Absent</th><th>Abandoned</th><th>Late #</th><th>Incurred Points</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+      +'<div style="font-size:.7rem;color:#9aa3b4;margin-top:6px">Late/Undertime shown as HH:MM:SS (converted from raw decimal minutes; stored precision unchanged). Required/Actual Hours are not shown — not used for Attendance; still retained in the stored record (used by sync hashing) pending a separate schema decision.</div>'
+      +'<div style="margin-top:10px"><button class="btn-add" style="background:#8a6d00" onclick="mpValPrepare()">Prepare single-agent write →</button></div>'
+      +'</div>';
+  };
+  window.mpValPrepare=function(){
+    const P=mpsPreview; if(!P||mpValIdx==null||!window.mpSom()) return; const x=P.rows[mpValIdx]; if(!x) return;
+    const det=document.getElementById('mpValDetail'); if(!det) return;
+    const box=document.createElement('div');
+    box.style.cssText='margin-top:10px;border:2px solid #b23b3b;border-radius:8px;padding:11px 13px;background:#fdf5f3';
+    box.innerHTML='<div style="font-weight:800;color:#a4362b;font-size:.85rem">Second confirmation required</div>'
+      +'<div style="font-size:.78rem;color:#5a3b36;margin-top:3px">You are about to write <b>exactly one</b> real document — <code>agentAttendance/'+esc2(x.email)+'</code> for <b>'+esc2(mpAgentNameForEmail(x.email))+'</b> — to the shared production Firestore, then read it back and compare. No other agents are touched.</div>'
+      +'<div style="margin-top:9px"><button class="btn-add btn-add-green" id="mpValConfirmBtn" onclick="mpValConfirm()">✔ Confirm — write ONLY this agent</button> <button class="cl-btn cl-btn-clear" onclick="mpValLoad()">Back</button></div>'
+      +'<div id="mpValResult" style="margin-top:10px"></div>';
+    det.appendChild(box);
+  };
+  window.mpValConfirm=async function(){
+    const P=mpsPreview; if(!P||mpValIdx==null){ return; }
+    if(!window.mpSom()){ const r=document.getElementById('mpValResult'); if(r) r.innerHTML='<span style="color:#b23b3b">SOM access required.</span>'; return; }
+    const x=P.rows[mpValIdx]; if(!x) return;
+    const btn=document.getElementById('mpValConfirmBtn'); if(btn){ btn.disabled=true; btn.textContent='Writing one document…'; }
+    const res=document.getElementById('mpValResult');
+    const nowIso=ctISO();
+    try{
+      await mpWriteAttendanceRow(x, nowIso);                 // EXACTLY ONE write, same path as bulk
+      // Read back the one document and compare every preview week/value against what Firestore saved.
+      const snap=await FB_DB.collection('agentAttendance').doc(x.email).get();
+      const saved=(snap&&snap.exists)?(snap.data()||{}):null;
+      const FIELDS=['requiredHours','actualHours','lateMinutes','undertimeMinutes','incurredPoints','absentCount','abandonedCount','lateCount'];
+      const want=x.doc.weeks||{}; const got=(saved&&saved.weeks)||{};
+      const mism=[]; const wk=Object.keys(want);
+      wk.forEach(w=>{ const a=want[w]||{}, b=got[w]||{}; if(!(w in got)){ mism.push(w+': missing in saved'); return; } FIELDS.forEach(f=>{ if(a[f]!==b[f]) mism.push(w+'.'+f+': preview='+a[f]+' saved='+b[f]); }); });
+      const hashOk = saved && saved._hash===x.hash;
+      if(!saved){ if(res) res.innerHTML='<div style="color:#b23b3b;font-weight:700">FAIL — could not read the document back.</div>'; if(btn){btn.disabled=false;btn.textContent='✔ Retry — write ONLY this agent';} return; }
+      if(mism.length===0 && hashOk){
+        if(res) res.innerHTML='<div style="color:#2f6f43;font-weight:800;font-size:.9rem">✔ PASS — one document written and verified</div>'
+          +'<div style="font-size:.76rem;color:#33553f;margin-top:3px">agentAttendance/'+esc2(x.email)+' · '+wk.length+' week(s) matched exactly · _hash matches · no other agents written.</div>';
+      } else {
+        if(res) res.innerHTML='<div style="color:#b23b3b;font-weight:800;font-size:.9rem">FAIL — saved document does not match the preview</div>'
+          +'<div style="font-size:.74rem;color:#7a2a22;margin-top:3px">'+(hashOk?'':'_hash mismatch. ')+esc2(mism.slice(0,8).join(' | ')||'—')+'</div>';
+      }
+    }catch(e){ if(res) res.innerHTML='<div style="color:#b23b3b;font-weight:700">FAIL — write error: '+esc2(String(e&&e.message||e))+'. Existing data preserved (merge write).</div>'; if(btn){btn.disabled=false;btn.textContent='✔ Retry — write ONLY this agent';} }
+  };
+  window.mpsBuildPreview = mpsBuildPreview;   // read-only preview builder exposed for automated QA (no write surface)
+
   window.mpCancelSync=function(){ mpsPreview=null; document.getElementById('mpSyncPreview').innerHTML=''; mpsMsg('Sync cancelled. Nothing was written.'); };
+
+  // ── SHARED production write path ── the ONE function that writes an agentAttendance document.
+  // Both the bulk Confirm and the single-agent validation call this; there is no alternate data path.
+  // merge:true preserves prior weeks (last-good); _hash covers the incoming payload for idempotency.
+  function mpAttendanceDoc(x, nowIso){ return Object.assign({}, x.doc, { agentEmail:x.email, lastSyncedAt:nowIso, _hash:x.hash }); }
+  async function mpWriteAttendanceRow(x, nowIso){ return FB_DB.collection('agentAttendance').doc(x.email).set(mpAttendanceDoc(x, nowIso), {merge:true}); }
 
   window.mpConfirmSync=async function(){
     const P=mpsPreview; if(!P){ mpsFail('nothing to confirm'); return; }
@@ -10778,9 +11049,7 @@ function rmViewReadOnly(id){
     for(const x of P.rows){
       if(x.action==='unchanged') continue;
       try{
-        // merge:true preserves prior weeks (last-good); _hash covers the incoming payload for idempotency
-        const doc=Object.assign({}, x.doc, { agentEmail:x.email, lastSyncedAt:nowIso, _hash:x.hash });
-        await FB_DB.collection('agentAttendance').doc(x.email).set(doc, {merge:true});
+        await mpWriteAttendanceRow(x, nowIso);   // identical write path used by the single-agent validation
         written++; Object.keys(x.doc.weeks||{}).forEach(w=>weeksTouched.add(w));
       }catch(e){ errors++; }
     }
